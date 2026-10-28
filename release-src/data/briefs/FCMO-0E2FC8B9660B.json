@@ -1,0 +1,125 @@
+{
+  "record": {
+    "id": "FCMO-0E2FC8B9660B",
+    "title": "A paper reports prompt-based manipulation of LLM serving length estimates, with fixed-output completion gains near parity",
+    "desk": "Inference Systems",
+    "event_at": "2026-10-02T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "The authors of JIL report a white-box attack that appends an optimized suffix to reduce the output-length estimate used by a TRAIL-style scheduler. In their end-to-end serving experiments, the system moved target requests earlier in queue order. The paper’s controls show that the headline 1.53× completion advantage combines scheduling and changes in generated output length: when output is fixed at 512 tokens, target completion speedup is 1.05 [0.92, 1.18] at 16 slots and 1.00 [0.97, 1.03] at 64; the fixed-output signal comparison against FCFS is 0.97 [0.95, 1.00] and 1.01 [0.99, 1.03]. The reported setup uses one model for serving, one GPU, and five small workloads; attack construction assumes white-box model/probe access and per-request optimization. These are paper-reported results, not an independent reproduction or evidence of deployed prevalence.",
+    "topics": [
+      "LLM serving",
+      "request scheduling",
+      "security",
+      "evaluation"
+    ],
+    "organizations": [
+      "Florida State University",
+      "Massachusetts Institute of Technology",
+      "Tel Aviv University"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-0E2FC8B9660B.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-0E2FC8B9660B.json",
+    "citation": {
+      "id": "FCMO-0E2FC8B9660B",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-0E2FC8B9660B.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "The authors posted arXiv:2610.03430, a paper describing JIL, an attack on prediction-based LLM request scheduling."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that an optimized prompt suffix lowers the length estimate used by a TRAIL-style scheduler and can move attacked requests earlier in queue order in their tested serving experiments."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In the paper’s 512-token fixed-output controls, target completion speedup is 1.05 [0.92, 1.18] at 16 slots and 1.00 [0.97, 1.03] at 64; the fixed-output signal contrast against FCFS is 0.97 [0.95, 1.00] and 1.01 [0.99, 1.03]. This indicates queue-position manipulation in the tested setup but little or no isolated completion-time benefit in these controls."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The paper does not establish independent reproducibility, black-box attack feasibility, prevalence in deployed systems, production-scale effects, or generality across schedulers and serving setups."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-28"
+    ],
+    "event_at": "2026-10-02T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction of the serving controls or verification of the linked anonymous artifact and its hashes was completed.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "The threat model assumes white-box access to model and probe gradients and per-request suffix optimization; deployment prevalence and realistic attacker cost are unknown.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-0E2FC8B9660B",
+    "importance_effective_score": 6,
+    "importance_rationale": "If user-controlled prompts can bias learned service-time estimates, prediction-driven schedulers may let some requests gain queue priority and shift latency among users. The paper reports a concrete attack and controlled queue-order effects, but fixed-output completion effects are near parity and noisily estimated; the white-box per-request attack and single serving configuration sharply limit deployment inference.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-10-28T17:24:15Z",
+    "limitations": [
+      "Results are author-reported and not independently reproduced in this activation.",
+      "End-to-end serving results use one model, one GPU and five small workloads; broader scheduler and production generality is not established.",
+      "The headline natural-output completion ratio combines scheduling effects with output-length changes; fixed-output controls put completion effects near parity with uncertainty intervals spanning parity.",
+      "The attack assumes white-box access and per-request optimization, so black-box feasibility and deployment prevalence remain unknown."
+    ],
+    "organizations": [
+      "Florida State University",
+      "Massachusetts Institute of Technology",
+      "Tel Aviv University"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-10-28T17:24:15Z",
+    "regions": [
+      "United States",
+      "Israel"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2610.03430v1"
+    ],
+    "status": "active",
+    "summary": "The authors of JIL report a white-box attack that appends an optimized suffix to reduce the output-length estimate used by a TRAIL-style scheduler. In their end-to-end serving experiments, the system moved target requests earlier in queue order. The paper’s controls show that the headline 1.53× completion advantage combines scheduling and changes in generated output length: when output is fixed at 512 tokens, target completion speedup is 1.05 [0.92, 1.18] at 16 slots and 1.00 [0.97, 1.03] at 64; the fixed-output signal comparison against FCFS is 0.97 [0.95, 1.00] and 1.01 [0.99, 1.03]. The reported setup uses one model for serving, one GPU, and five small workloads; attack construction assumes white-box model/probe access and per-request optimization. These are paper-reported results, not an independent reproduction or evidence of deployed prevalence.",
+    "technical": {
+      "claimed_result": "The authors report that an optimized prompt suffix can lower a scheduler’s predicted output length and move requests earlier in a TRAIL-style serving queue.",
+      "demonstrated_result": "The paper reports experiments and fixed-output controls; no independent replication or deployed-system effect is demonstrated.",
+      "mechanism": "A gradient-optimized suffix changes the prompt representation used by a learned output-length probe. A prediction-based scheduler uses that estimate to rank requests, so an underestimated length may alter queue order.",
+      "regime": "Author-reported white-box attack against a TRAIL-style scheduler using Llama-3-8B serving on one B200 GPU across five paired small workloads, plus prediction and utility analyses across additional models/tasks.",
+      "reproducibility": "The paper describes request-level records, manifests and hashes and links an anonymous code artifact. Those materials were not retrieved or independently executed in this review.",
+      "strongest_baseline": "The paper’s own fixed-output controls and FCFS comparison isolate scheduling effects from changes in generated response length; they show queue-position movement but completion-speedup estimates close to parity."
+    },
+    "title": "A paper reports prompt-based manipulation of LLM serving length estimates, with fixed-output completion gains near parity",
+    "topics": [
+      "LLM serving",
+      "request scheduling",
+      "security",
+      "evaluation"
+    ],
+    "why_it_matters": "The paper identifies a potential integrity weakness in serving systems that use prompt-derived length predictions to assign request priority. Its controlled results support a narrow queue-order finding, while fixed-output completion measures are near parity. Independent reproduction and real-world prevalence remain open."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

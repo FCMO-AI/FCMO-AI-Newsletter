@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "8669b6e2c21d8cd394ee0ff64c8155d10b1752caa4ba8b1eb31da3cb4aeb5991",
+  "canonical_source_sha256": "730789d7a99849368d40d067e6eda551457e869f1f46a6e90b5957a55561ae37",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -3249,6 +3249,58 @@
       },
       "title": "Uni-LaDiR informa mejoras con razonamiento latente compartido en razonamiento visual y manipulación simulada",
       "why_it_matters": "Una representación latente compartida podría permitir que los modelos multimodales conserven información intermedia útil al razonar entre imágenes, datos 3D y estados robóticos. Las mejoras informadas abarcan razonamiento visual y manipulación simulada, pero no demuestran transferencia a robots físicos ni mejoras generales fuera de los protocolos evaluados."
+    },
+    "FCMO-0E2FC8B9660B": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron arXiv:2610.03430, un artículo que describe JIL, un ataque contra la programación de solicitudes LLM basada en predicciones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que un sufijo optimizado reduce la longitud de salida estimada por un planificador tipo TRAIL y puede adelantar las solicitudes atacadas en el orden de cola de sus pruebas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En los controles del artículo con salida fija de 512 tokens, la velocidad de finalización objetivo fue 1.05 [0.92, 1.18] con 16 espacios y 1.00 [0.97, 1.03] con 64; la comparación de señal frente a FCFS fue 0.97 [0.95, 1.00] y 1.01 [0.99, 1.03]. En el entorno evaluado se alteró el orden de cola, pero estas comparaciones muestran poco o ningún beneficio aislado en tiempo de finalización."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra reproducción independiente, viabilidad de un ataque de caja negra, prevalencia en sistemas desplegados, efectos a escala de producción ni generalidad entre planificadores y entornos de servicio."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se completó una reproducción independiente de los controles de atención ni se verificaron el artefacto anónimo enlazado y sus hashes.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El modelo de amenaza presupone acceso de caja blanca a gradientes del modelo y la sonda, además de optimizar un sufijo para cada solicitud; se desconocen la prevalencia y el costo real para un atacante.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las solicitudes controladas por usuarios pueden sesgar estimaciones aprendidas de tiempo de servicio, ciertos pedidos podrían ganar prioridad y trasladar latencia a otros usuarios. El artículo informa de un ataque concreto y efectos controlados sobre el orden de atención, pero las mejoras de finalización con salida fija son casi nulas y están estimadas con incertidumbre; la condición de caja blanca y una sola configuración limitan cualquier inferencia de despliegue.",
+      "limitations": [
+        "Los resultados son informados por los autores y no se reprodujeron de forma independiente en esta revisión.",
+        "Las pruebas de atención extremo a extremo usan un modelo, una GPU y cinco cargas pequeñas; no se demuestra su generalidad a otros planificadores ni a producción.",
+        "La razón destacada para salida natural combina cambios en la programación y en la longitud de las respuestas; con salida fija, las estimaciones de finalización quedan cerca de la paridad y sus intervalos incluyen ese valor.",
+        "El ataque presupone acceso de caja blanca y optimización por solicitud; no se conocen la viabilidad de caja negra ni la prevalencia en sistemas desplegados."
+      ],
+      "relationships": [],
+      "summary": "Los autores de JIL informan de un ataque de caja blanca que añade un sufijo optimizado para reducir la estimación de longitud de salida utilizada por un planificador similar a TRAIL. En sus pruebas de atención extremo a extremo, las solicitudes objetivo avanzaron en el orden de la cola. Los controles del artículo muestran que la ventaja de finalización destacada de 1.53× combina cambios de prioridad y de longitud generada: con salida fija de 512 tokens, la velocidad relativa de finalización objetivo fue 1.05 [0.92, 1.18] con 16 espacios y 1.00 [0.97, 1.03] con 64; la comparación de señal con salida fija frente a FCFS fue 0.97 [0.95, 1.00] y 1.01 [0.99, 1.03]. El entorno reportado utiliza un modelo para atención, una GPU y cinco cargas pequeñas; el ataque supone acceso de caja blanca y optimización por solicitud. Son resultados reportados por los autores, no una reproducción independiente ni evidencia de prevalencia en producción.",
+      "technical": {
+        "claimed_result": "Los autores informan que un sufijo optimizado puede reducir la longitud de salida prevista y adelantar solicitudes en una cola de atención tipo TRAIL.",
+        "demonstrated_result": "El artículo informa experimentos y controles con salida fija; no se demuestra una réplica independiente ni un efecto en sistemas desplegados.",
+        "mechanism": "Un sufijo optimizado mediante gradiente cambia la representación de la solicitud que utiliza una sonda aprendida de longitud de salida. El planificador usa esa estimación para ordenar solicitudes, de modo que una subestimación puede cambiar la posición en cola.",
+        "regime": "Ataque de caja blanca reportado por los autores contra un planificador tipo TRAIL; servicio con Llama-3-8B en una GPU B200 y cinco cargas pequeñas emparejadas, además de análisis de predicción y utilidad en otros modelos y tareas.",
+        "reproducibility": "El artículo describe registros por solicitud, manifiestos y hashes, y enlaza un artefacto de código anónimo. No se recuperaron ni ejecutaron esos materiales de forma independiente.",
+        "strongest_baseline": "Los controles con salida fija y la comparación con FCFS del propio artículo aíslan la programación de los cambios en la longitud generada; muestran movimiento en el orden de cola, pero velocidades de finalización casi iguales."
+      },
+      "title": "Un estudio informa manipulación de estimaciones de longitud en la atención de solicitudes LLM; con salida fija, la mejora de finalización es casi nula",
+      "why_it_matters": "El artículo identifica una posible debilidad de integridad en sistemas de atención que usan predicciones de longitud derivadas del texto para asignar prioridad. Los resultados controlados respaldan un hallazgo acotado sobre el orden de la cola, mientras que las medidas de finalización con salida fija quedan cerca de la paridad. La reproducción independiente y la prevalencia real siguen sin resolverse."
     },
     "FCMO-0F178F944930": {
       "claims": [
@@ -7941,6 +7993,53 @@
       "title": "BarrierFormer informa control predictivo de seguridad con baja latencia simulada",
       "why_it_matters": "El artículo prueba si las restricciones de seguridad de varios pasos pueden incorporarse a una política para evitar el costo de optimización en línea. Si los resultados de simulación se trasladan, el control predictivo seguro podría ser más barato en tiempo de ejecución para robots con observación parcial. La evidencia actual abarca tres dinámicas simuladas y una estación de trabajo; no demuestra seguridad física ni tiempos reales en hardware embebido."
     },
+    "FCMO-2B06E0A961E1": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El Tesoro británico publicó el Presupuesto 2026 el 28 de octubre de 2026 y anunció 40 millones de libras para establecer una Unidad Nacional de Seguridad de Agentes de IA."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El Presupuesto indica que la unidad propuesta desarrollará capacidades para detectar, investigar y responder a incidentes con agentes de IA descontrolados o desalineados, e integrará funciones de monitoreo y respuesta a incidentes."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El anuncio no demuestra que la unidad tenga personal o esté operativa, que sus capacidades de monitoreo y respuesta funcionen, ni que hayan reducido riesgos o mejorado resultados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El Presupuesto no especifica la adscripción institucional de la unidad, su autoridad legal, dirección, personal ni relación con las instituciones británicas de seguridad e IA existentes.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No se informa una línea base, un conjunto de incidentes, un protocolo de evaluación, métricas de tiempo de respuesta ni mediciones de resultados que establezcan si la capacidad prevista detecta o mitiga incidentes con agentes de IA.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se implementa según lo descrito, una función nacional financiada para detectar y responder a incidentes con agentes de IA desalineados podría cambiar de manera sustancial las operaciones de seguridad pública y las expectativas sobre el despliegue de agentes. La consecuencia es importante, pero se limita a una capacidad nacional propuesta; el anuncio no aporta pruebas de eficacia.",
+      "limitations": [
+        "El Presupuesto describe gasto previsto y capacidades planificadas; no demuestra gasto efectivo, dotación de personal, autoridad legal, acceso técnico, procedimientos operativos ni preparación para operar.",
+        "No se informa sobre datos de incidentes, una línea base de respuesta, un diseño de evaluación ni una medición de reducción de riesgos.",
+        "No se detallan la ubicación institucional o independencia de la unidad, sus vínculos con otros organismos públicos ni su coordinación con proveedores y operadores."
+      ],
+      "relationships": [],
+      "summary": "El Presupuesto 2026 del Tesoro británico anuncia 40 millones de libras para establecer una Unidad Nacional de Seguridad de Agentes de IA. El gobierno dice que la unidad desarrollará capacidades para detectar, investigar y responder a incidentes con agentes descontrolados o desalineados, integrando monitoreo y respuesta a incidentes. Es un plan gubernamental; el anuncio no demuestra que la unidad tenga personal, opere o sea eficaz. El Presupuesto también anuncia inversiones relacionadas con seguridad de IA, bioseguridad y ciberdefensa, pero son programas separados.",
+      "technical": {
+        "claimed_result": "El gobierno afirma que la unidad desarrollará nuevas capacidades para detectar, investigar y responder a actividad de agentes desalineados y aumentará la resiliencia ante incidentes con agentes de IA.",
+        "demonstrated_result": "El documento oficial del Presupuesto se publicó y anuncia la unidad propuesta, la asignación de 40 millones de libras y su mandato previsto. No demuestra que exista una unidad operativa ni resultados de desempeño.",
+        "mechanism": "El gobierno describe una Unidad Nacional de Seguridad de Agentes de IA prevista que integraría funciones de monitoreo y respuesta a incidentes con capacidades para detectar, investigar y responder a actividad de agentes descontrolados o desalineados.",
+        "regime": "Política británica de seguridad nacional de IA y capacidad gubernamental prevista para responder a incidentes; anuncio del 28 de octubre de 2026.",
+        "reproducibility": "No aplica al anuncio. La ejecución y eficacia aún no se han evaluado de manera independiente.",
+        "strongest_baseline": "La fuente demuestra un compromiso institucional anunciado por el gobierno británico. No ofrece una medida de referencia sobre incidentes con agentes, capacidad de respuesta o monitoreo público actual."
+      },
+      "title": "El Presupuesto británico de 2026 asigna 40 millones de libras a una unidad de seguridad para agentes de IA",
+      "why_it_matters": "La unidad propuesta convertiría el monitoreo y la respuesta a incidentes con sistemas de agentes de IA en una función explícita de seguridad nacional. Su importancia práctica dependerá del diseño institucional, la autoridad, el acceso técnico, la coordinación y el desempeño demostrado, ninguno de los cuales queda establecido por este anuncio de financiación."
+    },
     "FCMO-2B53E683F72E": {
       "claims": [
         {
@@ -8542,6 +8641,79 @@
       },
       "title": "Un preprint atribuye a Apex Math la producción de una prueba analítica de la conjetura de Mockenhaupt",
       "why_it_matters": "Si la prueba es correcta, un sistema de investigación de IA contribuyó a un resultado de análisis armónico que resuelve los casos enteros restantes de una conjetura de larga data. La evidencia se refiere a un teorema concreto en un artículo escrito y verificado por personas; no establece capacidad matemática general ni autonomía de IA validada de forma independiente."
+    },
+    "FCMO-2E463C2574B4": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "BigHat publicó el 27 de octubre de 2026 un informe sobre una colaboración con Anthropic para optimizar anticuerpos terapéuticos con asistencia de IA."
+        },
+        {
+          "label": "DISPUTED",
+          "text": "Las dos empresas informan totales distintos para la misma colaboración de diez semanas en optimización de anticuerpos: BigHat reporta 1,232 anticuerpos sintetizados y probados, mientras que Anthropic menciona cerca de 1,010 variantes. Los informes no explican si difieren la unidad de conteo o los criterios de inclusión."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "BigHat informa que algunas variantes alcanzaron hasta nueve veces más afinidad por sus blancos, hasta 18 °C más de estabilidad en solución que los anticuerpos iniciales y una agregación más lenta; algunas muestras no se agregaron por completo al límite instrumental de 85 °C."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La empresa afirma que su sistema Reccy para controlar el laboratorio y administrar datos expuso a Claude, mediante MCP, datos de muestras, instrumentos, protocolos, resultados y controles de calidad. El equipo también modificó un ensayo de estabilidad térmica después de considerar engañosos los resultados del software habitual del instrumento."
+        }
+      ],
+      "contradictory_evidence": [
+        "El informe de Anthropic del 27 de octubre dice que BigHat produjo y probó cerca de 1,010 variantes en unas diez semanas (secciones 40–43); el informe de BigHat del 27 de octubre indica 1,232 anticuerpos sintetizados y probados en diez semanas y siete rondas. Ninguna de las fuentes revisadas reconcilia las cifras ni define un denominador común. Se conservan ambas como cifras reportadas por las empresas; no se elige ni promedia ninguna."
+      ],
+      "evidence_gaps": [
+        {
+          "description": "Los experimentos y resultados numéricos son afirmaciones de la propia empresa; esta revisión no realizó una reproducción independiente ni auditó los datos subyacentes.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-28T16:13:06Z"
+        },
+        {
+          "description": "El estudio abarcó dos familias de anticuerpos, y el informe de que los ciclos tardaron 3–5x menos que los habituales no viene acompañado aquí de un conjunto de comparación con condiciones equiparables.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-28T16:13:06Z"
+        },
+        {
+          "description": "Participaron en conjunto personal científico, Claude, el laboratorio de BigHat, Reccy y cambios iterativos en los ensayos; el informe no separa el efecto causal del modelo ni demuestra eficacia terapéutica.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-28T16:13:06Z"
+        },
+        {
+          "description": "BigHat informa 1,232 anticuerpos, mientras que Anthropic menciona cerca de 1,010 variantes para la misma colaboración de diez semanas; no se explican la unidad, las reglas de inclusión ni la relación entre los conteos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-28T16:17:59Z"
+        }
+      ],
+      "importance_rationale": "Si se replica, la optimización iterativa de moléculas con asistencia de IA y pruebas de laboratorio podría afectar el ritmo del desarrollo de anticuerpos y el papel de los datos y sistemas de control experimental estandarizados. La fuente actual describe una colaboración empresarial en dos familias de anticuerpos y no establece resultados generales ni terapéuticos.",
+      "limitations": [
+        "La fuente es un informe de BigHat sobre su colaboración con Anthropic; esta revisión no reprodujo de forma independiente sus resultados numéricos.",
+        "Los resultados abarcan dos familias de anticuerpos y algunas variantes optimizadas; no establecen transferencia a otros blancos, moléculas o laboratorios.",
+        "La afirmación de BigHat de que ciclos comparables suelen tardar 3–5 veces más no se apoya aquí en una comparación cuantitativa con condiciones equiparables.",
+        "Participaron una persona investigadora de Anthropic, Claude, científicos de BigHat, equipo automatizado, Reccy y ajustes iterativos de los ensayos; no se aisló la contribución causal del modelo.",
+        "Las mediciones de afinidad, estabilidad y agregación son propiedades de ingeniería preclínica y no demuestran seguridad, eficacia ni beneficio clínico.",
+        "BigHat y Anthropic informan totales distintos de variantes producidas y probadas (1,232 frente a cerca de 1,010); la base del conteo no está aclarada."
+      ],
+      "relationships": [],
+      "summary": "El informe del 27 de octubre de BigHat describe una colaboración en la que una persona investigadora de Anthropic y Claude trabajaron con científicos de BigHat y un laboratorio automatizado para optimizar dos familias de anticuerpos terapéuticos. BigHat dice que sintetizó y probó 1,232 anticuerpos en siete rondas iterativas durante diez semanas; el informe de Anthropic sobre la misma colaboración menciona cerca de 1,010 variantes. Ninguna fuente explica la diferencia. BigHat reporta mejoras seleccionadas de afinidad, estabilidad en solución y agregación. Son resultados declarados por las empresas, sin reproducción independiente, y no demuestran eficacia terapéutica ni una contribución aislada del modelo.",
+      "technical": {
+        "claimed_result": "BigHat informa que algunas variantes tuvieron hasta nueve veces más afinidad, hasta 18 °C más de estabilidad en solución y una agregación más lenta. BigHat reporta 1,232 anticuerpos sintetizados y probados, mientras que Anthropic menciona cerca de 1,010 variantes para la misma colaboración; la discrepancia no está resuelta.",
+        "compute_or_cost": "La fuente revisada no informa el costo total de inferencia, mano de obra ni el retorno económico. BigHat afirma que ciclos similares suelen tardar 3–5 veces más, sin aportar aquí una comparación con condiciones equiparables.",
+        "demonstrated_result": "El informe de BigHat y su descripción del flujo de trabajo colaborativo del laboratorio están disponibles directamente. La empresa reporta los resultados experimentales numéricos; esta revisión no los reprodujo de forma independiente.",
+        "implementation_status": "Piloto de investigación preclínica descrito por la empresa y realizado en dos familias de anticuerpos; no se establecen seguridad, eficacia ni uso clínico.",
+        "mechanism": "Claude se conectó mediante MCP al sistema Reccy de BigHat y a su flujo de laboratorio automatizado. Científicos de BigHat sintetizaron y midieron diseños, revisaron datos instrumentales y controles de calidad sin procesar, y colaboraron para ajustar ensayos durante ciclos iterativos de diseño, construcción y prueba.",
+        "novelty": "Estudio de optimización iterativa de anticuerpos asistida por IA que combina diseño de secuencias, laboratorio húmedo automatizado, datos experimentales trazables y ajustes de ensayos dirigidos por científicos, según un informe de las empresas participantes.",
+        "regime": "Dos familias de anticuerpos (una VHH y una scFv), siete rondas iterativas de diseño y diez semanas, según los informes de las empresas. BigHat informa 1,232 anticuerpos sintetizados y probados; Anthropic menciona cerca de 1,010 variantes. Se reportan mediciones seleccionadas de afinidad, estabilidad térmica y agregación, pero las definiciones del conteo no están claras.",
+        "reproducibility": "Ambos informes de las empresas están disponibles públicamente; esta revisión no examinó un conjunto de datos compartido, ni realizó una reproducción o auditoría independiente. Los totales de variantes reportados difieren y no se explican.",
+        "strongest_baseline": "Los anticuerpos iniciales y sus mediciones de referencia. La afirmación de que el ciclo fue 3–5x más rápido que los ciclos habituales no incluye en la fuente revisada una comparación con condiciones equiparables."
+      },
+      "title": "BigHat informa una optimización de dos familias de anticuerpos con IA y laboratorio automatizado",
+      "why_it_matters": "Si se reproduce de forma independiente, un ciclo iterativo de diseño y prueba en laboratorio asistido por modelos podría cambiar el ritmo de optimización de anticuerpos y destacar la importancia de datos estandarizados y trazables. El informe cubre dos proyectos preclínicos de una sola empresa: no demuestra que el enfoque se transfiera a otros programas, reduzca el costo total, produzca eficacia clínica ni dependa solamente de Claude."
     },
     "FCMO-2E833C884A29": {
       "claims": [
@@ -33387,6 +33559,62 @@
       "title": "Un estudio de Carnegie Mellon delimita cuándo TypeSafe JEV puede sustituir o aplazar jueces LLM costosos",
       "why_it_matters": "Este estudio ofrece una prueba externa y acotada por tareas de si un modelo de decisiones tipadas y bajo costo puede reservar el razonamiento costoso para evaluaciones inciertas. Si se reproduce en cargas locales, la derivación basada en confianza podría reducir el costo y la latencia recurrentes de evaluar modelos a gran escala. El artículo también muestra límites: los juicios derivados difíciles, el estilo adversarial y la factualidad sin referencia requieren controles más fuertes o abstención."
     },
+    "FCMO-C93E6B20A3AE": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El Tesoro británico publicó el Pacto para Centros de Datos el 28 de octubre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El Pacto dice que se alienta a los centros de datos a cumplir sus pruebas y que los sitios estratégicos deben cumplirlas para recibir apoyo gubernamental adicional. Las pruebas cubren los costos del sistema energético y la flexibilidad de la red, planes de beneficio local, eficiencia de energía y agua, informes anuales sobre recursos, empleos y cadenas de suministro británicas, y seguridad. Se espera que las nuevas instalaciones alcancen una PUE de 1.3 o mejor."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El Pacto señala que el gobierno estima que el Reino Unido necesitará 6 GW de capacidad de centros de datos de IA para 2030."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "A cambio del cumplimiento de las pruebas, el gobierno dice que considerará apoyar a los sitios estratégicos mediante conexiones a la red más rápidas o reasignadas y, bajo condiciones estrictas, generación temporal en el sitio para proyectos excepcionalmente estratégicos."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La publicación no establece qué proyectos recibirán apoyo adicional, si se aplicarán las medidas planificadas de energía y conexión, si las instalaciones cumplirán los requisitos ni si la política reducirá los costos de los hogares o mejorará resultados energéticos, hídricos, de emisiones, seguridad o beneficio comunitario."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La definición de centro de datos estratégico y los criterios adicionales para cada proyecto siguen pendientes; tampoco se especifican la verificación práctica ni la aplicación de varios compromisos del Pacto.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No hay líneas base ni mediciones por proyecto que demuestren agilización de conexiones, desempeño de energía, agua o emisiones, asignación de costos a hogares, beneficios locales o efectos sobre el acceso seguro a IA británica.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se implementa, condicionar el apoyo público adicional y el acceso escaso a la red para centros de datos estratégicos a compromisos energéticos, comunitarios, de recursos y de seguridad podría cambiar de forma importante la economía y los requisitos operativos de los proyectos de IA en el Reino Unido. El alcance es de importancia nacional, pero futuro; el documento no aporta pruebas de implementación ni resultados medidos.",
+      "limitations": [
+        "El Pacto y el Presupuesto establecen texto de política y planes gubernamentales, no designaciones o aprobaciones de proyectos, conexiones a la red, autorizaciones de generación temporal ni cumplimiento de las instalaciones.",
+        "La definición de los centros de datos estratégicos y los criterios adicionales aún no se han publicado; el significado y la aplicación de varios compromisos todavía no son claros.",
+        "La cifra de 6 GW es una estimación del gobierno, no un pronóstico evaluado de manera independiente ni evidencia de capacidad contratada o construida.",
+        "No se reportan resultados por instalación sobre consumo de energía o agua, emisiones, reutilización de calor, flexibilidad, costos de hogares, seguridad o beneficios locales."
+      ],
+      "relationships": [],
+      "summary": "El Tesoro británico publicó un Pacto para Centros de Datos el 28 de octubre de 2026. Se alienta a todos los centros a cumplir sus pruebas; los proyectos designados como estratégicos deben cumplirlas si solicitan apoyo gubernamental adicional. Los requisitos abarcan los costos del sistema energético y la flexibilidad de la red, planes de beneficio local, uso eficiente de energía y agua, informes anuales para sitios estratégicos, empleos y cadenas de suministro británicas, y acceso seguro a cómputo. Se espera que las nuevas instalaciones alcancen una efectividad en el uso de energía (PUE) de 1.3 o mejor. A cambio, el gobierno describe medidas para agilizar o reasignar conexiones a la red y una vía muy controlada para generar energía en el sitio temporalmente en proyectos excepcionalmente estratégicos cuando otras opciones no puedan aportar capacidad a tiempo. El gobierno estima que el Reino Unido necesitará 6 GW de capacidad de centros de datos de IA para 2030. Son condiciones de política y una estimación gubernamental, no evidencia de implementación, capacidad entregada ni resultados medidos.",
+      "technical": {
+        "claimed_result": "El gobierno afirma que el Pacto apoyará la capacidad nacional de centros de datos y, al mismo tiempo, asegurará beneficios energéticos, locales, ambientales, laborales, de suministro y seguridad. Estima que se necesitarán 6 GW de capacidad de centros de datos de IA en el Reino Unido para 2030.",
+        "demonstrated_result": "El Tesoro británico publicó el Pacto y su diseño de política. No se demuestra autorización de proyectos, aceleración de conexiones, cumplimiento de instalaciones ni resultados.",
+        "mechanism": "El Pacto alienta a todos los operadores a cumplir cinco pruebas y condiciona la acción gubernamental adicional para sitios estratégicos al cumplimiento de dichas pruebas. Combina compromisos sobre el sistema energético, planes de beneficio local, eficiencia e informes de recursos, empleo y cadenas de suministro, y cooperación en seguridad con medidas públicas para agilizar las conexiones eléctricas. La generación temporal en el sitio se reserva para proyectos excepcionalmente estratégicos cuando las otras medidas no pueden aportar capacidad a tiempo y bajo condiciones como la seguridad energética.",
+        "regime": "Proyectos de centros de datos del Reino Unido, con pruebas adicionales ligadas a la designación estratégica y a solicitudes de apoyo público reforzado; política publicada el 28 de octubre de 2026.",
+        "reproducibility": "No corresponde a la publicación de la política. El cumplimiento y los efectos requieren evidencia por proyecto y una evaluación posterior.",
+        "strongest_baseline": "El documento no ofrece una línea base sobre uso de energía o agua en centros de datos, espera para conexiones a la red, distribución de costos eléctricos a hogares, beneficios locales ni capacidad nacional de IA para evaluar sus efectos."
+      },
+      "title": "El Pacto británico para centros de datos condiciona el apoyo estratégico a requisitos de energía, comunidad, ambiente y seguridad",
+      "why_it_matters": "El Pacto vincula la expansión de infraestructura de IA con los costos del sistema energético, los beneficios locales, la publicación de datos sobre recursos, la seguridad y el acceso a apoyo público y conexiones eléctricas. Si se aplica como se describe, podría cambiar la economía de los proyectos de centros de datos y la asignación y los plazos de la capacidad de la red británica. La definición de los sitios estratégicos y los criterios adicionales siguen pendientes, y el documento no informa cumplimiento ni resultados de proyectos concretos."
+    },
     "FCMO-CA074E079EA8": {
       "claims": [
         {
@@ -39964,6 +40192,57 @@
       "title": "Una coalición de 60 organizaciones fija una meta a cinco años para la IA en lenguas subrepresentadas",
       "why_it_matters": "Si la coalición convierte su objetivo declarado en recursos lingüísticos, puntos de referencia y aplicaciones utilizables, podría ampliar el acceso a la IA para numerosas comunidades y crear infraestructura compartida entre investigación, industria, gobierno y filantropía. El anuncio primario y el compromiso establecen una meta amplia y los signatarios iniciales, pero la gobernanza, las contribuciones, las líneas de base y la medición siguen sin definirse, por lo que aún se desconocen la ejecución y el impacto."
     },
+    "FCMO-F77CB2913259": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El Departamento de Negocios, Innovación, Ciencia y Tecnología publicó una propuesta inicial de Declaración de Política Nacional para centros de datos y abrió una consulta pública el 28 de octubre de 2026, con cierre el 8 de enero de 2027."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El borrador indica que probablemente se consideren de importancia nacional y aptos para ser dirigidos al régimen NSIP conforme a la sección 35 los proyectos con al menos 100 MW de carga eléctrica nominal de TI. La Secretaría de Estado evaluaría cada proyecto individualmente y podría considerar excepciones por debajo de ese umbral indicativo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El borrador establece principios de evaluación propuestos para solicitudes de consentimiento, incluidos los enlaces de energía, impactos ambientales, seguridad, salud y efectos socioeconómicos. La decisión correspondería a la Secretaría de Estado tras el examen de la Inspección de Planificación."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El borrador no establece una Declaración de Política Nacional designada, el resultado de la consulta, ninguna dirección o autorización para un proyecto concreto, su construcción o cumplimiento, ni efectos medidos sobre energía, comunidades, ambiente o capacidad de cómputo del Reino Unido."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La propuesta podría cambiar tras la consulta y debe completar el proceso parlamentario previsto por la ley antes de su designación.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No hay decisiones ni resultados por proyecto que muestren cómo el umbral y las pruebas propuestas afectan el desarrollo de centros de datos, las conexiones de energía, los impactos locales o el uso de recursos.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se adopta y aplica, un marco nacional de consentimiento y un umbral indicativo de 100 MW podrían influir de forma importante en qué grandes proyectos británicos pueden solicitar evaluación bajo el régimen NSIP y en la ponderación de sus efectos sobre energía, ambiente, seguridad y comunidades. La propuesta tiene relevancia nacional, pero está sujeta a consulta y aprobación parlamentaria; aún no hay pruebas de aplicación ni resultados por proyecto.",
+      "limitations": [
+        "El documento es una propuesta inicial, no una Declaración de Política Nacional designada; la consulta cierra el 8 de enero de 2027.",
+        "La cifra de 100 MW es indicativa y se refiere a la carga nominal de TI; la Secretaría de Estado conserva la evaluación caso por caso y puede considerar excepciones.",
+        "La publicación no aporta evidencia de aprobación de proyectos, construcción, cumplimiento ni efectos energéticos, económicos, ambientales, de seguridad o comunitarios ya realizados."
+      ],
+      "relationships": [],
+      "summary": "El Departamento de Negocios, Innovación, Ciencia y Tecnología publicó una propuesta inicial de Declaración de Política Nacional para centros de datos en Inglaterra y abrió una consulta hasta el 8 de enero de 2027. El borrador describe cómo se examinarían y decidirían las solicitudes de consentimiento dirigidas al régimen de Proyectos de Infraestructura de Importancia Nacional (NSIP). Señala que probablemente se consideren de importancia nacional y aptos para ser dirigidos conforme a la sección 35 los proyectos con al menos 100 MW de carga eléctrica nominal de TI, aunque permite excepciones caso por caso. La propuesta también establece principios de evaluación de energía, ambiente, seguridad e impactos locales. Es un borrador sujeto a consulta y aprobación parlamentaria; no demuestra decisiones ni efectos de proyectos.",
+      "technical": {
+        "claimed_result": "El gobierno propone un marco nacional de decisión para proyectos de centros de datos dirigidos al régimen NSIP, con un umbral indicativo de 100 MW de carga nominal de TI.",
+        "demonstrated_result": "El departamento publicó la propuesta inicial y abrió la consulta. No se demuestra la designación final ni una decisión sobre un proyecto.",
+        "mechanism": "La Declaración de Política Nacional propuesta orientaría el examen de la Inspección de Planificación y las decisiones de la Secretaría de Estado sobre solicitudes de consentimiento que entren al régimen NSIP. Las direcciones conforme a la sección 35 seguirían siendo individuales; los 100 MW de carga nominal de TI son un nivel indicativo probablemente importante a escala nacional y se admiten excepciones.",
+        "regime": "Marco de planificación propuesto para autorizar centros de datos en Inglaterra; consulta publicada el 28 de octubre de 2026 y abierta hasta el 8 de enero de 2027.",
+        "reproducibility": "No corresponde a la publicación de una propuesta de política. La aplicación y los efectos requieren registros legales y evidencia posterior por proyecto.",
+        "strongest_baseline": "El borrador describe el proceso y los criterios propuestos, pero no presenta una línea base por proyecto de plazos de autorización, capacidad construida, uso de energía o agua, impactos locales ni cumplimiento."
+      },
+      "title": "Reino Unido propone un umbral indicativo de 100 MW y un marco nacional para decidir proyectos de centros de datos",
+      "why_it_matters": "Un marco de planificación específico podría influir en cómo los grandes proyectos de centros de datos en Inglaterra solicitan consentimiento de importancia nacional y en cómo se evalúan sus impactos energéticos, ambientales y comunitarios. El umbral de 100 MW es indicativo, no una regla automática, y el borrador sigue abierto a consulta; aún no se han establecido su aplicación ni los efectos sobre proyectos."
+    },
     "FCMO-F81EBA109D3B": {
       "claims": [
         {
@@ -43383,6 +43662,48 @@
       "why_it_matters": {
         "locale_sha256": "feb01b360dd6e1ba29433f936157cd6eb6f89269e37b8c2ea2d6d7e52210212e",
         "source_sha256": "4bcc6a2842fb6a69d7e430e1eff9f3223c31fc1faca9227f9c4c0a2fc7cafc01"
+      }
+    },
+    "FCMO-0E2FC8B9660B": {
+      "claims": {
+        "locale_sha256": "26f8b970c87aa98b0c5b78e77fa03a57637edfe3d1053d57617a6a5ebe63b4e4",
+        "source_sha256": "a7b0946dd09d3fef0687520ed2ea6e600a307a0caaeab091820a490983d79121"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "09d75c1d43012d77fa93c4e6f2be60afdb6cfcd99bcb776005d16c798a7d2346",
+        "source_sha256": "68e0a82ba05ab76c72a4d9e47aa503c3a6be4dc006b3e433c50c0f01a3590567"
+      },
+      "importance_rationale": {
+        "locale_sha256": "f978cf1ee2316be32f24564c3ff4513a5c3e381dd577fe4aa0cdae42080557d4",
+        "source_sha256": "63032f3375471addb2067aa9345e6805ed13fcfbc09b1400224e07d6cb32f71b"
+      },
+      "limitations": {
+        "locale_sha256": "9c372e745fc59c231316ad6d3256b2ad52b7012c5ab82123a834b3c25a8d40a9",
+        "source_sha256": "af7441d76c1a34563f829789ab47d3a299830114180864ae3832014694436253"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "7a8cf2e0a8ba458a29263bd17c3910b59a39078f9b219cba8335a716f5869a8c",
+        "source_sha256": "df58503e4bc32767effcb25a98fde443cb939b6956ce2d6f10627e72b4191bfa"
+      },
+      "technical": {
+        "locale_sha256": "64fbda0e5a824a46b5d09556b92b3cbc3184e671fa9b90073626844221382224",
+        "source_sha256": "7e2ecf1f93886fe5eeda4a3a16c9df933878e2c419c612d3f4ee5547125c0355"
+      },
+      "title": {
+        "locale_sha256": "b4bc872ada058fa88cfbf986bfe3a44d84ebfd61376299fda8f387182fa8c7ce",
+        "source_sha256": "36070adc4dc8bbdf527726731395bde7818dd682fed8df4577d6bfbbfc5044ab"
+      },
+      "why_it_matters": {
+        "locale_sha256": "a8c08a1098e8a0de17f70d55436b4840efbf9d8c8f3cc4cb2e30f2d3624bd2f3",
+        "source_sha256": "b7503899729ead38d8aba541c89d19b1a438949163f43420d49d29c1dc4f3465"
       }
     },
     "FCMO-0F178F944930": {
@@ -46899,6 +47220,48 @@
         "source_sha256": "cf58c4fb077e695b167eee01b53bd6d2c2e0bab5077bb2ec4f779dff8a1b11ae"
       }
     },
+    "FCMO-2B06E0A961E1": {
+      "claims": {
+        "locale_sha256": "7527f7609be6d4c244f03ab2fd8cde47453599cc3b907c28a7df89c72c49b420",
+        "source_sha256": "cb7facf6dc715c1bee87d864db4d063039205107a86b58941d5546f1371f25ad"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "c45af7d74d06970fca2f466ff306dda0426b82b7b0c52ddaa1fe0f0b963449a8",
+        "source_sha256": "8ab3f26231a26d3a25bd09a923da90de5980b04e926202f0c7cd53bf9038b0e8"
+      },
+      "importance_rationale": {
+        "locale_sha256": "c2d2fdaba0fe0dcb86c03752e87621379e422a257bbc3c731ffc42d194a173b0",
+        "source_sha256": "740e1ea3f79ce4e98e1a9be003485a951cd58874b923d752e8eb3fe73078e1f2"
+      },
+      "limitations": {
+        "locale_sha256": "f67ce8d974abbbb15dbdd9a560840cabf4f40fec37a9f547af58f6e6c34029cf",
+        "source_sha256": "bfae32cc119ab3d7bac69085b394aa234ca7030b457e2c0b66f358d4d1c77658"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "bcf9d3c81afbceb4b04fd5ccb45888668585948666a92139a7b61ed74d36b836",
+        "source_sha256": "8baeec628d17315c841b6f90fb190423d0f58556971a6e74353edf750a44ff6f"
+      },
+      "technical": {
+        "locale_sha256": "8af0734cc57761c343ad6489621e5561dde59c35b4c332c4090e1ee39ef88969",
+        "source_sha256": "e67493145fa2dc9dd29d8973a48014d525c0790aaff40d2c80e6904f0885c160"
+      },
+      "title": {
+        "locale_sha256": "35821807b862249419f02d199e4298848194b26c1e709500dc7ab4c5c0bc8ef0",
+        "source_sha256": "d50b16e370e60813c1694a1e23d62365563a46e7055f648126de42e7d425e673"
+      },
+      "why_it_matters": {
+        "locale_sha256": "6da16abfa25f145231d2666d6a46b42156148c7ef70ccc9ce40dfd66c4996877",
+        "source_sha256": "a7fe3594343e2a6781ca98755a4901671ec9f6b567786238f1c7ba8bfddbbe37"
+      }
+    },
     "FCMO-2B53E683F72E": {
       "claims": {
         "locale_sha256": "65529ddf44a5df1fc81727b9b077740488bcecf3f267e06386141cb4642e02b1",
@@ -47373,6 +47736,48 @@
       "why_it_matters": {
         "locale_sha256": "f66d7fecea893c538e73a176eefd8f24a0e89258d21b5e0909ab5e6df7efb9a5",
         "source_sha256": "089774ae4108744f2ef450c363d6c63aba361cd9510ae6f317db4b5b6e6c0a0b"
+      }
+    },
+    "FCMO-2E463C2574B4": {
+      "claims": {
+        "locale_sha256": "34718a3f7f43f62f6a25e4c7a6f8e4c82c8625391506fee7709a74c2f0e9f6b4",
+        "source_sha256": "97a65cab50ee931995c9075d9f4531c81c71261fa0e6a7067afccb7f4af61505"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "3b88025361ea5dc5213c462896c453b8fc15cfc03bf5921203d2d3369ed3847b",
+        "source_sha256": "e8310d925565b2253eb9e3dedffb5b084be8782751e5e2be339b7883ce7be02b"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "1637dda8b13da12b8040fadc116ebd24daa5bfc8674aba44b47a27185080f2e0",
+        "source_sha256": "aff74c4b71a1cf21c815a0a80555fa955ae20f30e6232749b005e3bb6ee26c87"
+      },
+      "importance_rationale": {
+        "locale_sha256": "52fe2aaaec503a47b0efa0a6dbe77baa3428844190491fb560c3ce5cc9c3f4e3",
+        "source_sha256": "c8c2838468c61a548f8c1d2c7f42e8a303f1f6de1ce6a4baeea1aab0bfcf69c5"
+      },
+      "limitations": {
+        "locale_sha256": "1084a65d34d43ce806ee5200a61a4042424aaad3ee929c36f1e0c22f1103c1ea",
+        "source_sha256": "a1d9a1261c23a3bac5100d9f3a4d669fc5d306b1268cf20f071cdcce730c74d9"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "a5c256c2b0027938bad25da96b60694a75ed980aaf4fe07d105606c4572b8493",
+        "source_sha256": "70e7f93579261ea1fdfdc49542bf07d9fcfe835aa329790a8b87680302cca8bc"
+      },
+      "technical": {
+        "locale_sha256": "9e4abf1b1e939d2f0c1e778874da8b858be0c00c3aa272e4c9b1d24c027950f9",
+        "source_sha256": "0d7756cb3ec2e58a53e1afbcddc42adf4c758c62e8b5084d09d425666c29018a"
+      },
+      "title": {
+        "locale_sha256": "3fc3c19ad29a4a570691ab75675d83f40cdeb803c27367e99751666cde24a6aa",
+        "source_sha256": "af840d5c7d6d29023ee412c73406840f8c9cce291683911b1c48dc38d0d9b708"
+      },
+      "why_it_matters": {
+        "locale_sha256": "046604effde43702099a991b24baab94c6a5729d4a0be9803fb71818ce3c1ba3",
+        "source_sha256": "bf8c1744ff495861630216f206dff592ffd2d826774eb70e3ab61174951e74e3"
       }
     },
     "FCMO-2E833C884A29": {
@@ -66009,6 +66414,48 @@
         "source_sha256": "cefd474e94d1f0c0d59ea8d49620eeb6164b4104f58e8a38e24136f360991d83"
       }
     },
+    "FCMO-C93E6B20A3AE": {
+      "claims": {
+        "locale_sha256": "c0d928f2c18630ae120e2960a2f52460fada7a0475159c1c538c52b930a91e6a",
+        "source_sha256": "a5f7d83a8070427667058e9441c65c65f4bc7d7950c0b1e6cdb75c4108357470"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "3035e0b2262b0954bdce5a2c121ec3cd3145606a78c1f117425128f66a71316a",
+        "source_sha256": "9527cfbb6597740147ccc53ac29db8c9b8b871d111c1e06bef5372a6cc2fc774"
+      },
+      "importance_rationale": {
+        "locale_sha256": "1438bc3fd92147b42ae995877df33b6c87f65bfa744f3039b40d0398fdff78eb",
+        "source_sha256": "39e17d946887408b67ba24b6b13f10bd688262237760aed3956b09f14372ed55"
+      },
+      "limitations": {
+        "locale_sha256": "883e4969401058d384c04bbad7d5ee440db92cc879e609dc907401a5cbf6cf35",
+        "source_sha256": "c9de457151036e686481d505700cd71275afcdcbceb6ca695028b45d3c325067"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "80cdf36fe06ed6e8d106015cb71684f4fb7af881d220337b93d586eb574fdc42",
+        "source_sha256": "151909fa99af803d1afd80a777ed4fecb4434b67027f6365f83118861095ed2a"
+      },
+      "technical": {
+        "locale_sha256": "f0703c94fddccf599f55250ff748f0151792728303d6817d8411de7516da0d03",
+        "source_sha256": "1869dcda60f3edf95caa69180f57b72c7f158a3e27b4bd9f6f76f0cad4c2e794"
+      },
+      "title": {
+        "locale_sha256": "68a3fb79ffd8e1c2262cf1da14805e43a00cd625d1a4a4aa8e35e0d112f65fc3",
+        "source_sha256": "a5109c9490b319160b2d37fe0bbf03507ef31517d9142f423691aef971be7cff"
+      },
+      "why_it_matters": {
+        "locale_sha256": "615c314293f7c368510b62f9020fd557249a2bc109d45e9a98d758f98cef0824",
+        "source_sha256": "c0e8c06cd43d41c238da15fab9e419e4359424a4006cb998fa54157d1bfacee0"
+      }
+    },
     "FCMO-CA074E079EA8": {
       "claims": {
         "locale_sha256": "fe6bbfb4091f97bdb80fccfbcda288c55479d005c9c98296eb072c30bfe8109b",
@@ -70949,6 +71396,48 @@
       "why_it_matters": {
         "locale_sha256": "d4ba27365ee308925eec37d5f33994f3990ea501df9ab97f4b33d0eb79ae6442",
         "source_sha256": "91cb006ed05153a98f63796ee7afe80936cdc49174d19ec438fa826397453b50"
+      }
+    },
+    "FCMO-F77CB2913259": {
+      "claims": {
+        "locale_sha256": "3f65e7db20cdf421e66e3a50df5f9f9ee8bbf97fe6342293696c5d72c1cfb0b0",
+        "source_sha256": "7f75304c47e528a11284be19d3597f7d9282811c819b92767b378e655195272b"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "7d4b832716fcbc4d5e82a2c47c249094910dbda4df1f1de0a2472e349105a3ce",
+        "source_sha256": "904d1af9dc81ca7a17b9c225dd71225c2f90896a1738240f80932be6f3f21848"
+      },
+      "importance_rationale": {
+        "locale_sha256": "d163634092129e723e37e6d86a5b7c6f039a522cc8f93110618526e8eaa8a025",
+        "source_sha256": "f0aaada240b7aeead222a96664df8601b45e966b2c633cbe9c1fea99a5dbe1aa"
+      },
+      "limitations": {
+        "locale_sha256": "3cf2c18f2fcb13942cfae559849187fe11d6f1f9b7f574ed7e13f795b5c5883f",
+        "source_sha256": "3f3d9cab546b65b3f6df68a459afd4012028abcd6cf0d6b7a5c9dda9c4251768"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "ceb4445de85725030ae36378eb64b6ca0c5b1a5885619b9af1ce90dfeadbb11f",
+        "source_sha256": "a125bc792a8e86538399684b2edbdf04d0d0258d097c752033e664ef2b94782f"
+      },
+      "technical": {
+        "locale_sha256": "84009fa42d4d2c0f47c511fdf1c988892f615cc34e4e92dddc9bd1a1c1d5364f",
+        "source_sha256": "1c9bd943b6e331e22a5cdfdad6df7dabae3ea19e09b0ccb4ee3e10743669a52f"
+      },
+      "title": {
+        "locale_sha256": "2610583bc28c6914bfd22b374625db981debb8c82f4751cb7449ee52afb0b0e8",
+        "source_sha256": "695b8a72da414f97206dae6511c8f8dff8e3cbcb88e5a60359d877aa7e31f4b8"
+      },
+      "why_it_matters": {
+        "locale_sha256": "789bfa9d6f408ecadefb35fe2c98ccb3f32f49e0a210fa311df1da1fbe61aabf",
+        "source_sha256": "34532ee2482f64bb85a94253a92d250c56fabdcd2925ca7095b86c135b85af97"
       }
     },
     "FCMO-F81EBA109D3B": {

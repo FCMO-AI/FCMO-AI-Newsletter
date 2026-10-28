@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "8669b6e2c21d8cd394ee0ff64c8155d10b1752caa4ba8b1eb31da3cb4aeb5991",
+  "canonical_source_sha256": "730789d7a99849368d40d067e6eda551457e869f1f46a6e90b5957a55561ae37",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -3249,6 +3249,58 @@
       },
       "title": "Uni-LaDiR 报告共享潜在推理提升视觉推理和模拟操作基准表现",
       "why_it_matters": "共享潜在表示可能帮助多模态模型在图像、3D 信息和机器人状态之间推理时保留有用的中间信息。论文报告的提升涉及视觉推理和模拟操作，但不能证明可迁移到实体机器人，也不能说明在评估协议以外普遍有效。"
+    },
+    "FCMO-0E2FC8B9660B": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "作者发布了arXiv:2610.03430论文，介绍针对基于预测的LLM请求调度的JIL攻击。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告，经过优化的提示词后缀可降低TRAIL类调度器使用的长度估计，并在其服务实验中使受攻击请求提前进入队列。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文的固定输出对照将生成长度设为512个词元；目标请求完成速度在16个槽位下为1.05 [0.92, 1.18]，在64个槽位下为1.00 [0.97, 1.03]。相对FCFS的固定输出信号比较分别为0.97 [0.95, 1.00]和1.01 [0.99, 1.03]。测试环境出现了队列顺序变化，但这些对照显示单独的完成时间优势很小或不存在。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "论文未证明独立可复现性、黑盒攻击可行性、已部署系统中的普遍程度、生产规模影响，也未证明该结果可推广至其他调度器和服务环境。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "尚未独立复现服务对照实验，也未核验论文链接的匿名代码和哈希。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "威胁模型假定攻击者可获取模型与探针的梯度，并为每个请求单独优化；真实部署普遍程度和攻击成本未知。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果用户可控的提示词能够系统性影响服务时长估计，部分请求可能获得更高队列优先级并把延迟转移给其他用户。论文报告了具体攻击和受控队列顺序变化，但固定输出下的完成优势接近于零且估计不精确；白盒假设和单一服务配置限制了部署推断。",
+      "limitations": [
+        "结果由论文作者报告，本次审查未独立复现。",
+        "端到端服务实验采用一个模型、一块GPU和五组小型负载，尚未证明对其他调度器或生产环境具有普遍性。",
+        "自然输出下的完成时间优势同时包含调度和输出长度变化；固定输出对照中的完成时间估计接近持平，置信区间涵盖持平结果。",
+        "攻击假定白盒访问和逐请求优化，因此黑盒可行性及实际部署普遍性未知。"
+      ],
+      "relationships": [],
+      "summary": "JIL作者报告了一种白盒攻击：附加经过优化的后缀，以降低TRAIL类调度器使用的输出长度估计。在端到端服务实验中，目标请求的队列位置提前。论文的对照实验表明，1.53×这一醒目的完成时间优势同时包含调度变化和生成长度变化：输出固定为512个词元时，目标请求完成速度在16个并发槽位下为1.05 [0.92, 1.18]，在64个槽位下为1.00 [0.97, 1.03]；固定输出信号相对FCFS的比较分别为0.97 [0.95, 1.00]和1.01 [0.99, 1.03]。作者报告的服务实验采用一个模型、一块GPU和五组小型负载；攻击假定白盒访问并逐请求优化。这些是论文报告的结果，并非独立复现或实际部署普遍性的证据。",
+      "technical": {
+        "claimed_result": "作者报告，优化提示词后缀可降低调度器预测的输出长度，并使请求在TRAIL类服务队列中提前。",
+        "demonstrated_result": "论文报告了实验和固定输出对照；没有独立复现或已部署系统影响的证据。",
+        "mechanism": "基于梯度优化的后缀改变请求表示，影响学习得到的输出长度探针。调度器依据该估计排列请求，因此低估值可能改变队列顺序。",
+        "regime": "作者报告的TRAIL类白盒攻击；使用Llama-3-8B和一块B200 GPU，在五组小型配对负载下进行服务实验，并在其他模型和任务上分析预测与效用。",
+        "reproducibility": "论文描述了请求级记录、清单和哈希，并链接匿名代码材料。本次审查未获取或独立运行这些材料。",
+        "strongest_baseline": "论文自身的固定输出对照和FCFS比较将调度效应与生成长度变化分开；结果显示队列顺序变化，但完成速度基本持平。"
+      },
+      "title": "论文报告提示词可操纵LLM服务时长估计；固定输出下完成时间优势接近于零",
+      "why_it_matters": "论文指出，若服务系统依赖提示词推导出的长度预测分配优先级，可能存在完整性弱点。受控实验支持一个范围有限的队列顺序结论，而固定输出时的完成时间指标接近持平。独立复现和现实部署中的普遍程度仍未确定。"
     },
     "FCMO-0F178F944930": {
       "claims": [
@@ -7941,6 +7993,53 @@
       "title": "BarrierFormer报告：在模拟环境中实现低延迟的预测式安全控制",
       "why_it_matters": "该论文测试了能否将多步安全约束学习进策略，从而省去在线优化开销。若模拟结果能够迁移，部分可观测机器人可能以较低运行成本实现预测式安全控制。现有证据仅涉及三种模拟动力学和一台工作站，不能证明实体机器人安全或嵌入式硬件上的实际实时表现。"
     },
+    "FCMO-2B06E0A961E1": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "英国财政部于2026年十月28日发布《2026年预算》，并宣布拨款£40 million设立国家代理式人工智能安全小组。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "《预算》称，拟设立的小组将建设相关能力，以发现、调查并应对失控或失调的代理式人工智能事件，并整合监测与事件响应职能。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "该公告并未证明小组已配备人员或开始运行，也未证明其监测和响应能力有效，或已经降低风险、改善结果。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "《预算》没有说明该小组的组织归属、法律权限、领导层、人员配置，或其与英国现有安全及人工智能机构之间的关系。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "资料没有提供基线、事件数据集、评估方案、响应时间指标或结果测量，因而无法确认计划中的能力能否发现或缓解代理式人工智能事件。",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果按公告所述实施，面向失调代理式人工智能事件、并获得国家级经费支持的发现与响应职能，可能显著改变政府安全行动以及对代理系统部署的要求。其影响重大，但目前仅限于一项拟建的国家能力；公告没有提供有效性证据。",
+      "limitations": [
+        "《预算》描述的是计划支出和预期能力，并未证明实际支出、人员配置、法律权限、技术访问权、运行流程或运行准备情况。",
+        "公告没有提供事件数据、响应时间基线、评估设计或风险降低结果测量。",
+        "公告没有说明该小组的组织归属和独立性、与现有政府机构的关系，或其将如何与模型提供方及部署方协调。"
+      ],
+      "relationships": [],
+      "summary": "英国财政部《2026年预算》宣布拨款£40 million设立国家代理式人工智能安全小组。政府表示，该小组将建设能力，以发现、调查并应对失控或失调代理系统事件，并整合监测和事件响应职能。这是政府计划；公告并未证明小组已配备人员、开始运行或具备成效。预算还宣布了人工智能安全、生物安全和网络防御方面的相关投入，但这些属于不同项目。",
+      "technical": {
+        "claimed_result": "政府称该小组将建设新能力，以发现、调查并应对失调代理活动，从而提高应对代理事件的韧性。",
+        "demonstrated_result": "官方预算文件已发布，并宣布设立拟议小组、拨款£40 million及其预期职责。文件没有证明小组已经运行或取得绩效结果。",
+        "mechanism": "政府描述了拟设立的国家代理式人工智能安全小组，计划整合监测与事件响应职能，建设发现、调查并应对失控或失调代理活动的能力。",
+        "regime": "英国国家人工智能安全政策及拟建政府事件响应能力；公告日期为2026年十月28日。",
+        "reproducibility": "不适用于公告事件。其交付情况和效果尚未经过独立评估。",
+        "strongest_baseline": "该文件证明英国政府宣布了一项机构建设承诺。它没有提供代理事件、政府响应能力或现有政府监测水平的基线数据。"
+      },
+      "title": "英国《2026年预算》拨款£40 million设立代理式人工智能安全小组",
+      "why_it_matters": "拟建小组将使代理系统监测和事件响应成为英国国家安全职能中的明确组成部分。其实际意义取决于机构设计、权限、技术访问、协调机制和已证明的绩效，而这项拨款公告尚未确立这些条件。"
+    },
     "FCMO-2B53E683F72E": {
       "claims": [
         {
@@ -8542,6 +8641,79 @@
       },
       "title": "预印本称 Apex Math 生成了 Mockenhaupt 主猜想的解析证明",
       "why_it_matters": "如果证明正确，AI 研究系统参与产出了一项调和分析结果，解决了一个长期猜想尚未解决的整数情形。这是关于一条具体定理、并由人类作者撰写和核验的证据；它不能证明通用数学研究能力或经过独立验证的 AI 自主性。"
+    },
+    "FCMO-2E463C2574B4": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "BigHat 于 2026 年 十月 27 日发布报告，介绍其与 Anthropic 合作开展的 AI 辅助治疗性抗体优化工作。"
+        },
+        {
+          "label": "DISPUTED",
+          "text": "两家合作方对同一项为期十周的抗体优化合作报告了不同总数：BigHat 称合成并测试了 1,232 个抗体，Anthropic 则称约有 1,010 个变体。两份报告没有说明计数单位或纳入标准是否不同。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "BigHat 称，部分筛选出的变体对靶点结合力最高提高至原来的九倍，溶液稳定温度最高比起始抗体高 18 °C，且聚集更慢；部分样品在仪器 85 °C 的测量上限下仍未完全聚集。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "公司称，其 Reccy 实验室控制和数据系统通过 MCP 向 Claude 提供样品、仪器、协议、结果和质量控制信息。团队还在认为常规仪器软件结果具有误导性后，调整了热稳定性实验。"
+        }
+      ],
+      "contradictory_evidence": [
+        "Anthropic 十月 27 日的报告称，BigHat 在约十周内制作并测试了约 1,010 个变体（第 40–43 行）；BigHat 的十月 27 日报告则称，七轮设计中共合成并全面测试了 1,232 个抗体。所审阅的两份报告都没有解释两者差异，也没有定义共同的计数分母。保留两家各自报告的数据；不选取其中之一，也不进行平均。"
+      ],
+      "evidence_gaps": [
+        {
+          "description": "实验和数值结果来自公司报告；本次审查没有独立复现，也没有审计底层数据。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-28T16:13:06Z"
+        },
+        {
+          "description": "研究只涵盖两类抗体；关于周期比通常实验快 3–5x的说法，在本次审查的材料中没有可比条件下的对照数据。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-28T16:13:06Z"
+        },
+        {
+          "description": "科学家、Claude、BigHat 实验室、Reccy 和迭代式实验调整共同参与；报告没有分离模型的因果贡献，也没有证明治疗效果。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-28T16:13:06Z"
+        },
+        {
+          "description": "BigHat 报告 1,232 个抗体，Anthropic 对同一项为期十周的合作报告约 1,010 个变体；计数单位、纳入规则及两个总数之间的关系尚未说明。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-28T16:17:59Z"
+        }
+      ],
+      "importance_rationale": "如果得到复现，AI 辅助的迭代式实验室优化可能影响抗体先导研发速度，以及标准化数据和实验控制系统的作用。当前来源仅报告一项涉及两类抗体的公司合作，尚未建立普遍或治疗性结果。",
+      "limitations": [
+        "来源是 BigHat 对其与 Anthropic 合作的公司报告；本次审查未独立复现其中的数值结果。",
+        "结果涉及两类抗体及部分优化变体，不能证明可迁移到其他靶点、分子或实验室。",
+        "BigHat 称类似实验周期通常长 3–5 倍，但本次审查的材料没有提供可比条件下的量化对照。",
+        "Anthropic 研究人员、Claude、BigHat 科学家、自动化设备、Reccy 和迭代式实验调整共同参与；没有通过消融实验分离模型的因果贡献。",
+        "亲和力、稳定性和聚集测量是临床前工程指标，不能证明药物的安全性、疗效或临床获益。",
+        "BigHat 和 Anthropic 对制作并测试的变体总数报告不同（1,232 对约 1,010）；计数依据尚未说明。"
+      ],
+      "relationships": [],
+      "summary": "BigHat 于 十月 27 日发布的报告介绍了一项合作：Anthropic 一名研究人员与 Claude 和 BigHat 科学家及自动化实验室共同优化两类治疗性抗体。BigHat 称，团队在十周内通过七轮迭代合成并测试了 1,232 个抗体；Anthropic 对同一合作的报告则称约有 1,010 个变体。两份报告都未解释差异。BigHat 报告了部分结合力、溶液稳定性和聚集方面的改善。这些结果来自合作公司报告，未经独立复现；不能证明治疗效果或模型的独立贡献。",
+      "technical": {
+        "claimed_result": "BigHat 称，部分变体结合力最高提高至原来的九倍，溶液稳定温度最高提高 18 °C，且聚集更慢。BigHat 报告合成并测试了 1,232 个抗体，Anthropic 则为同一合作报告约 1,010 个变体；计数差异尚未解释。",
+        "compute_or_cost": "本次审查的来源没有报告推理成本、完整人工成本或总经济回报。BigHat 称类似实验周期通常长 3–5 倍，但这里没有可比条件下的对照。",
+        "demonstrated_result": "BigHat 报告及其对协作实验流程的描述可直接查阅。数值实验结果由公司报告，本次审查未独立复现。",
+        "implementation_status": "公司报告的一项涉及两类抗体的临床前研究试点；尚未证明治疗安全性、疗效或临床应用。",
+        "mechanism": "Claude 通过 MCP 访问 BigHat 的 Reccy 数据与实验控制系统及自动化实验流程。BigHat 科学家合成和测量设计、审查原始仪器输出与质量标记，并在迭代式设计—构建—测试过程中共同调整实验。",
+        "novelty": "一项由合作方报告的迭代式 AI 辅助抗体优化研究，结合了序列设计、自动化湿实验室、可追溯实验数据和科学家主导的实验调整。",
+        "regime": "据合作方报告，研究涉及两类抗体（一类 VHH 和一类 scFv）、七轮设计迭代和十周时间。BigHat 报告合成并测试了 1,232 个抗体；Anthropic 称约有 1,010 个变体。报告给出部分结合力、热稳定性和聚集指标，但计数定义不明确。",
+        "reproducibility": "两家合作方的报告均可公开查阅；本次审查未检查共同数据集，也未进行独立复现或审计。两份报告给出的变体总数不同，且未作解释。",
+        "strongest_baseline": "起始抗体及其基线测量。报告中“周期快 3–5x”的说法在所审材料中没有可比条件下的对照。"
+      },
+      "title": "BigHat 报告称，AI 辅助自动化实验室优化了两类抗体",
+      "why_it_matters": "如果经独立复现，AI 辅助的迭代式设计—实验循环可能影响抗体先导优化的速度，并凸显标准化、可追溯实验数据的重要性。报告仅涉及一家公司的两个临床前项目，不能证明其可迁移到其他项目、降低总体成本、带来临床疗效，或效果仅由 Claude 产生。"
     },
     "FCMO-2E833C884A29": {
       "claims": [
@@ -33387,6 +33559,62 @@
       "title": "卡内基梅隆大学研究界定 TypeSafe JEV 何时可替代或延后调用昂贵的 LLM 评审器",
       "why_it_matters": "这项按任务限定的外部研究检验了一种低成本带类型决策模型能否只将不确定评测交给高成本推理。如果能在本地工作负载上复现，基于置信度的升级处理可能降低大规模模型评测的持续成本和延迟。论文也指出了失效边界：复杂派生判断、对抗性答案风格和无参考事实性需要更强的检查或弃答机制。"
     },
+    "FCMO-C93E6B20A3AE": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "英国财政部于2026年十月28日发布了《数据中心契约》。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "契约称，鼓励数据中心满足其中的测试要求；寻求额外政府支持的战略数据中心必须满足这些要求。测试涵盖能源系统成本和电网灵活性、地方利益计划、能源和用水效率、年度资源报告、英国就业和供应链，以及安全。新设施预计达到1.3或更优的PUE。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "契约称，政府估计到2030年英国将需要6 GW的人工智能数据中心容量。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "政府表示，满足这些测试后，将考虑通过加快或重新分配电网接入，以及在严格条件下为特别战略项目提供临时现场发电，来支持战略设施。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "该文件没有确立哪些项目将获得额外支持、计划中的电网和能源措施是否会落实、设施是否会遵守要求，也没有证明这项政策会降低家庭成本或改善能源、用水、排放、安全或社区利益结果。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "战略数据中心的定义和其他项目标准尚待发布；多项契约要求的实际核验和执行方式也没有说明。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "没有项目级基线或测量结果证明电网接入已加快、能源/用水/排放绩效得到改善、家庭成本分配有所变化、地方利益已经交付，或英国安全人工智能算力受到何种影响。",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果得到实施，将额外政府支持和稀缺电网接入与能源、社区、资源和安全承诺挂钩，可能实质改变英国战略人工智能数据中心项目的经济性和运营要求。其范围具有国家层面的重要性，但仍属前瞻性政策；文件没有提供实施或测量结果的证据。",
+      "limitations": [
+        "契约和预算确立的是政策文本及政府计划，并不证明已有项目被指定或批准、获得电网连接或临时发电许可，也不证明设施合规。",
+        "战略数据中心的定义和其他标准尚未发布；若干承诺的具体含义和执行方式仍不清楚。",
+        "6 GW是政府估算，不是独立评估的预测，也不证明相关容量已签约或建成。",
+        "文件没有报告设施级能源和用水、排放、热量再利用、电网灵活性、家庭成本、安全或地方利益结果。"
+      ],
+      "relationships": [],
+      "summary": "英国财政部于2026年十月28日发布《数据中心契约》。文件鼓励所有数据中心满足其中的测试要求；寻求额外政府支持的战略数据中心必须满足这些要求。测试涉及能源系统成本与电网灵活性、地方利益计划、能源和用水效率、战略项目年度报告、英国就业和供应链，以及安全算力。新设施预计达到1.3或更优的能源使用效率（PUE）。作为交换，政府提出加快或重新分配电网接入，并为其他途径无法及时提供容量的特别战略项目，建立一条受到严格控制的临时现场发电途径。政府估计，到2030年英国将需要6 GW的人工智能数据中心容量。这些内容是政策条款和政府估算，并非政策已实施、容量已交付或已取得测量结果的证据。",
+      "technical": {
+        "claimed_result": "政府称该契约将支持本国数据中心容量建设，同时保障能源系统、社区、环境、就业、供应链和安全方面的利益。政府估计到2030年英国需要6 GW的人工智能数据中心容量。",
+        "demonstrated_result": "英国财政部已发布契约及其政策设计。文件没有证明项目已获授权、电网连接已加快、设施已合规或已有结果。",
+        "mechanism": "契约鼓励所有运营方满足五项测试，并将面向战略设施的额外政府行动与这些测试挂钩。测试包括能源系统承诺、地方利益计划、资源效率和报告、就业和供应链，以及安全合作；政府计划通过加快电网接入予以支持。只有在其他措施无法及时提供容量时，特别战略项目才可申请临时现场发电，并须满足包括能源安全在内的条件。",
+        "regime": "英国数据中心项目；战略指定和申请额外政府支持的项目适用额外要求。政策发布于2026年十月28日。",
+        "reproducibility": "不适用于政策文本的发布事件。评估合规和效果需要项目级证据及后续评估。",
+        "strongest_baseline": "政策文件没有提供数据中心能源和用水、等待电网接入的时间、家庭成本分担、地方利益或国内人工智能容量的基线，无法据此评估影响。"
+      },
+      "title": "英国《数据中心契约》将战略支持与能源、社区、环境和安全要求挂钩",
+      "why_it_matters": "该契约把人工智能基础设施扩张与能源系统成本、地方利益、资源报告、安全，以及政府支持和电网接入联系起来。如果按所述实施，可能影响英国数据中心项目的经济性，以及电网容量的分配和接入时间。战略设施的定义和其他标准尚待公布，文件也没有提供项目合规或结果证据。"
+    },
     "FCMO-CA074E079EA8": {
       "claims": [
         {
@@ -39964,6 +40192,57 @@
       "title": "60个组织组成的联盟提出五年目标，推动代表性不足语言的人工智能服务",
       "why_it_matters": "如果联盟将其目标转化为可用的语言资源、基准和应用，可能改善众多语言社群获得人工智能服务的机会，并建立横跨研究、产业、政府和慈善领域的共享基础设施。官方公告和承诺确立了广泛目标及首批签署方，但治理、贡献、基线和测量方法仍未定义，因此交付情况与实际影响尚不清楚。"
     },
+    "FCMO-F77CB2913259": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "英国商业、创新、科学与技术部于2026年28日十月公布数据中心《国家政策声明》初步提案并启动公众咨询，咨询将于2027年8日一月结束。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "草案称，额定IT负载至少为100兆瓦的数据中心项目可能被视为具有国家重要性并适合依据《规划法》第35条转入NSIP程序。国务大臣将逐案考虑项目，也可在特殊情况下考虑低于该参考门槛的项目。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "草案为许可申请提出评估原则，涉及能源接入、环境影响、安全、健康和社会经济影响。规划监察署完成审查后，由国务大臣作出决定。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "草案并未确立已正式指定的国家政策声明，也未确定咨询结果、任何项目的转入决定或许可、开工或合规情况，更没有证明能源、社区、环境或英国算力容量方面的实际影响。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "咨询后提案可能修改；正式指定前还必须完成法定议会程序。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "尚无项目决定或结果能说明参考门槛和拟议评估标准对数据中心开发、能源接入、地方影响或资源使用产生何种影响。",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果获得通过并付诸实施，国家许可框架及100兆瓦参考门槛可能显著影响哪些英国大型数据中心项目能够申请NSIP审查，也可能影响能源、环境、安全和社区因素在决策中的权重。该提案具有全国层面的重要性，但仍须经过咨询和议会指定；目前没有实施或项目结果的证据。",
+      "limitations": [
+        "这份文件是初步提案，并非已指定的国家政策声明；咨询将于2027年8日一月结束。",
+        "100兆瓦是针对额定IT负载的参考门槛；国务大臣仍会逐案判断，也可能考虑例外。",
+        "文件没有证明任何项目已获批准、开工或符合政策，也没有提供已实现的能源、经济、环境、安全或社区影响证据。"
+      ],
+      "relationships": [],
+      "summary": "英国商业、创新、科学与技术部公布了英格兰数据中心《国家政策声明》的初步提案，并启动公众咨询，截止日期为2027年8日一月。草案说明，进入国家重大基础设施项目（NSIP）程序的开发许可申请将如何接受审查和裁决。草案称，额定IT负载达到100兆瓦的项目可能被视为具有国家重要性并适合依据《规划法》第35条转入该程序，同时允许逐案考虑例外。提案还列出能源、环境、安全和地方影响的评估原则。这仍是有待咨询和议会指定的草案；没有证据表明项目决定或实际影响已经发生。",
+      "technical": {
+        "claimed_result": "政府提出一套适用于转入NSIP程序的数据中心国家决策框架，其中包括额定IT负载100兆瓦的参考门槛。",
+        "demonstrated_result": "主管部门已公布初步提案并启动咨询；尚无最终指定或具体项目决定的证据。",
+        "mechanism": "拟议的国家政策声明将指导规划监察署审查以及国务大臣对进入NSIP程序的开发许可申请作出决定。依据第35条转入程序仍将逐案处理；额定IT负载100兆瓦是可能具有国家重要性的参考水平，草案也允许例外。",
+        "regime": "适用于英格兰数据中心许可的拟议规划框架；2026年28日十月公布咨询，截止日期为2027年8日一月。",
+        "reproducibility": "政策提案的发布不涉及可重复性问题。评估实际实施和影响需要后续法定记录及项目层面的结果证据。",
+        "strongest_baseline": "草案说明了拟议程序和评估标准，但没有提供项目层面的许可周期、已建成容量、能源或用水、地方影响或合规基线。"
+      },
+      "title": "英国提出数据中心国家决策框架，并设定100兆瓦的参考门槛",
+      "why_it_matters": "专门的规划框架可能影响英格兰大型数据中心如何申请国家重大项目许可，以及能源、环境和社区影响如何纳入评估。100兆瓦门槛只是参考标准，并非自动适用的规则；草案仍在征求意见，其实施情况和项目影响尚无定论。"
+    },
     "FCMO-F81EBA109D3B": {
       "claims": [
         {
@@ -43383,6 +43662,48 @@
       "why_it_matters": {
         "locale_sha256": "3b48a02627e6474a8cfb619032dcecb4903c3a541331ea04f0023d827cd0a80e",
         "source_sha256": "4bcc6a2842fb6a69d7e430e1eff9f3223c31fc1faca9227f9c4c0a2fc7cafc01"
+      }
+    },
+    "FCMO-0E2FC8B9660B": {
+      "claims": {
+        "locale_sha256": "05b5decc06f97518265aebac35a625fa6088552ebd310617c7b1a4d3fa7f59ab",
+        "source_sha256": "a7b0946dd09d3fef0687520ed2ea6e600a307a0caaeab091820a490983d79121"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "b1a4c8561dc7e2c15a546e3df6ef808e0b8449f2b532568e2e631224d5cd6103",
+        "source_sha256": "68e0a82ba05ab76c72a4d9e47aa503c3a6be4dc006b3e433c50c0f01a3590567"
+      },
+      "importance_rationale": {
+        "locale_sha256": "12cc7d22a5fcfe2795e1587a5bfd3f032afbe3bbc427e5a8ade7ab6f31c3be1e",
+        "source_sha256": "63032f3375471addb2067aa9345e6805ed13fcfbc09b1400224e07d6cb32f71b"
+      },
+      "limitations": {
+        "locale_sha256": "0fe6521f0e9ab81aaa24c09aab96ad3c034b2eba6b77b792be7caaa91c64b36b",
+        "source_sha256": "af7441d76c1a34563f829789ab47d3a299830114180864ae3832014694436253"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "611cd6f71a63a4533757971a1912dc8894ba09d0e236f3df78d6ce018ef2f086",
+        "source_sha256": "df58503e4bc32767effcb25a98fde443cb939b6956ce2d6f10627e72b4191bfa"
+      },
+      "technical": {
+        "locale_sha256": "1ac7cc42a16410bf3a4eb76f4bfcac5fe6cedfb9813481798209c60da75105fe",
+        "source_sha256": "7e2ecf1f93886fe5eeda4a3a16c9df933878e2c419c612d3f4ee5547125c0355"
+      },
+      "title": {
+        "locale_sha256": "52d15293b0a1bf58f740155bf7f61196094994b24b669ca15dff715b7c1711a5",
+        "source_sha256": "36070adc4dc8bbdf527726731395bde7818dd682fed8df4577d6bfbbfc5044ab"
+      },
+      "why_it_matters": {
+        "locale_sha256": "4b92eb4fd8221c17f318839253f3ea6bc48d276aa34163d4192f1166ee7ddbc8",
+        "source_sha256": "b7503899729ead38d8aba541c89d19b1a438949163f43420d49d29c1dc4f3465"
       }
     },
     "FCMO-0F178F944930": {
@@ -46899,6 +47220,48 @@
         "source_sha256": "cf58c4fb077e695b167eee01b53bd6d2c2e0bab5077bb2ec4f779dff8a1b11ae"
       }
     },
+    "FCMO-2B06E0A961E1": {
+      "claims": {
+        "locale_sha256": "fd824af43a06dcdfe3870a7f9534d20255d91a184d6228cc0a7cc0a0cd19fe52",
+        "source_sha256": "cb7facf6dc715c1bee87d864db4d063039205107a86b58941d5546f1371f25ad"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "aef651469a8b4d07f0d03e7fe74f79bfb41e3283b3ce7713bd795e487c89d8d8",
+        "source_sha256": "8ab3f26231a26d3a25bd09a923da90de5980b04e926202f0c7cd53bf9038b0e8"
+      },
+      "importance_rationale": {
+        "locale_sha256": "6e6bc9903ea806a12da365478c50d81e16676c5ef83751906e731e3517f1b89b",
+        "source_sha256": "740e1ea3f79ce4e98e1a9be003485a951cd58874b923d752e8eb3fe73078e1f2"
+      },
+      "limitations": {
+        "locale_sha256": "1c953be48560c1970ab6d1799564591140742becda7eb11354e3c46dd4520f15",
+        "source_sha256": "bfae32cc119ab3d7bac69085b394aa234ca7030b457e2c0b66f358d4d1c77658"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "3f93e2d62ac652b71a5c779589def400c234d5e1e8c2915b079c2d69b605abb2",
+        "source_sha256": "8baeec628d17315c841b6f90fb190423d0f58556971a6e74353edf750a44ff6f"
+      },
+      "technical": {
+        "locale_sha256": "03b7b457dd551c07d33edaed4194a1ce839521cdc51da4bd93880f7e95a2a81a",
+        "source_sha256": "e67493145fa2dc9dd29d8973a48014d525c0790aaff40d2c80e6904f0885c160"
+      },
+      "title": {
+        "locale_sha256": "be0f719fd17b2d571f1c65511b73439989f96894b0f8ec09014135ec675c62c9",
+        "source_sha256": "d50b16e370e60813c1694a1e23d62365563a46e7055f648126de42e7d425e673"
+      },
+      "why_it_matters": {
+        "locale_sha256": "2cfae0693b63f04fc3aa10f06e88a6d63fc5a65a1243a020b0c48079308b9317",
+        "source_sha256": "a7fe3594343e2a6781ca98755a4901671ec9f6b567786238f1c7ba8bfddbbe37"
+      }
+    },
     "FCMO-2B53E683F72E": {
       "claims": {
         "locale_sha256": "c17c59800148a9f7c7fe136e63015116b5ed579ea887f28ae4445a01c014545d",
@@ -47373,6 +47736,48 @@
       "why_it_matters": {
         "locale_sha256": "684ce255c3a709ac09d5c31993196d4c19a7477345aca53133542d058e5e29df",
         "source_sha256": "089774ae4108744f2ef450c363d6c63aba361cd9510ae6f317db4b5b6e6c0a0b"
+      }
+    },
+    "FCMO-2E463C2574B4": {
+      "claims": {
+        "locale_sha256": "6c631aca9af2ccdedf58cda682c1acc71e709ea941500218a33ace8c0c7c0b10",
+        "source_sha256": "97a65cab50ee931995c9075d9f4531c81c71261fa0e6a7067afccb7f4af61505"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "a45f7caeaea8a6adca060f465240be1cb1d489d25917ca324c186b66d5fd1c36",
+        "source_sha256": "e8310d925565b2253eb9e3dedffb5b084be8782751e5e2be339b7883ce7be02b"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "94390dfbf3b0e06266f387089bdfcf0125a1c13de1e7849c3ea5fcad273fc35d",
+        "source_sha256": "aff74c4b71a1cf21c815a0a80555fa955ae20f30e6232749b005e3bb6ee26c87"
+      },
+      "importance_rationale": {
+        "locale_sha256": "753bf2cc9551613ccf44868acec0ee88c7604bb8a627c24a4f389b7ba364ac2d",
+        "source_sha256": "c8c2838468c61a548f8c1d2c7f42e8a303f1f6de1ce6a4baeea1aab0bfcf69c5"
+      },
+      "limitations": {
+        "locale_sha256": "acfcdb89bb74ee0a2f9d64fb78fe1d451c7e835574f3b62693a178e2fd2330db",
+        "source_sha256": "a1d9a1261c23a3bac5100d9f3a4d669fc5d306b1268cf20f071cdcce730c74d9"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "56f7ca671b9ff100280aae70ab73d1c27eabb283c75df0cf776dd2504b03c442",
+        "source_sha256": "70e7f93579261ea1fdfdc49542bf07d9fcfe835aa329790a8b87680302cca8bc"
+      },
+      "technical": {
+        "locale_sha256": "c63e60de3e0be25ce46b65c6d76e47178ddb0cc30eceb809a912549068533463",
+        "source_sha256": "0d7756cb3ec2e58a53e1afbcddc42adf4c758c62e8b5084d09d425666c29018a"
+      },
+      "title": {
+        "locale_sha256": "d54d81c82ef2bf84f2cf3737e74ee66a9644bfd4bfdcb3f7e8570b3a0b5fe970",
+        "source_sha256": "af840d5c7d6d29023ee412c73406840f8c9cce291683911b1c48dc38d0d9b708"
+      },
+      "why_it_matters": {
+        "locale_sha256": "7aa83abbf67c1f27db4bac5c171dc2ec9db0ae5e3cc334abbba0b61d7415d4a4",
+        "source_sha256": "bf8c1744ff495861630216f206dff592ffd2d826774eb70e3ab61174951e74e3"
       }
     },
     "FCMO-2E833C884A29": {
@@ -66009,6 +66414,48 @@
         "source_sha256": "cefd474e94d1f0c0d59ea8d49620eeb6164b4104f58e8a38e24136f360991d83"
       }
     },
+    "FCMO-C93E6B20A3AE": {
+      "claims": {
+        "locale_sha256": "a7a4c6176e30e46fe46f1626b1fd219f8258c4fa6253b966cff91a69ad839479",
+        "source_sha256": "a5f7d83a8070427667058e9441c65c65f4bc7d7950c0b1e6cdb75c4108357470"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "044cb1238d3a18cdb20fceaed55043d8b4f6928c89681cdb812332218e4bb4bf",
+        "source_sha256": "9527cfbb6597740147ccc53ac29db8c9b8b871d111c1e06bef5372a6cc2fc774"
+      },
+      "importance_rationale": {
+        "locale_sha256": "707fe6aed1b59413f44843056c6f78409199b846d4b97f6c73ff763b564ff15a",
+        "source_sha256": "39e17d946887408b67ba24b6b13f10bd688262237760aed3956b09f14372ed55"
+      },
+      "limitations": {
+        "locale_sha256": "bdfb156a24b27780f367087048c01f6161751022e7f4caae0bdd9805bb643d89",
+        "source_sha256": "c9de457151036e686481d505700cd71275afcdcbceb6ca695028b45d3c325067"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "810b9fc3fb8dc94088cb91d187c093fa9858c6c50751bf62af79c7f8826fd85e",
+        "source_sha256": "151909fa99af803d1afd80a777ed4fecb4434b67027f6365f83118861095ed2a"
+      },
+      "technical": {
+        "locale_sha256": "5a3958ecf195b0e1ef1be602cb907e9ccf686127948c22eab13ef804aaca8dee",
+        "source_sha256": "1869dcda60f3edf95caa69180f57b72c7f158a3e27b4bd9f6f76f0cad4c2e794"
+      },
+      "title": {
+        "locale_sha256": "b389524a7f0a21398fa724bad56ca7e94a6d697a0bc5f40db605e72d65bdf1c4",
+        "source_sha256": "a5109c9490b319160b2d37fe0bbf03507ef31517d9142f423691aef971be7cff"
+      },
+      "why_it_matters": {
+        "locale_sha256": "8b01365151ac055bfefd109cac22947580adae224466161ca5eb05eba765e4bd",
+        "source_sha256": "c0e8c06cd43d41c238da15fab9e419e4359424a4006cb998fa54157d1bfacee0"
+      }
+    },
     "FCMO-CA074E079EA8": {
       "claims": {
         "locale_sha256": "5ccf95b8c7ef040225dff30991f5558d137a36b4ab1d234d95861e284f1ff716",
@@ -70949,6 +71396,48 @@
       "why_it_matters": {
         "locale_sha256": "97e34d072441954741417d5e46a840855d8b33607b10d3d0f82c0263f0bc2a2a",
         "source_sha256": "91cb006ed05153a98f63796ee7afe80936cdc49174d19ec438fa826397453b50"
+      }
+    },
+    "FCMO-F77CB2913259": {
+      "claims": {
+        "locale_sha256": "8070b6c2b65b19e72af2f77d36c04ee4300bb39d62c0e90c504f81dfdc9944f5",
+        "source_sha256": "7f75304c47e528a11284be19d3597f7d9282811c819b92767b378e655195272b"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "a274771dc2f4df8357ddcd42086f9a96e73e73c8788ac49e68e259ce91ead418",
+        "source_sha256": "904d1af9dc81ca7a17b9c225dd71225c2f90896a1738240f80932be6f3f21848"
+      },
+      "importance_rationale": {
+        "locale_sha256": "3458f9c70f43aa9163b704c7f838adbfa925ae57f53f148cc9c3927e5fe4a4b4",
+        "source_sha256": "f0aaada240b7aeead222a96664df8601b45e966b2c633cbe9c1fea99a5dbe1aa"
+      },
+      "limitations": {
+        "locale_sha256": "175dc4f312415579ada3a3d610555ef184337dcf0ae2bbdf90ac7b3574a582f3",
+        "source_sha256": "3f3d9cab546b65b3f6df68a459afd4012028abcd6cf0d6b7a5c9dda9c4251768"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "721d62d71c0fafd90c1cb6d824fc5aea8b5f338059acc9394cec79a0b2c36a57",
+        "source_sha256": "a125bc792a8e86538399684b2edbdf04d0d0258d097c752033e664ef2b94782f"
+      },
+      "technical": {
+        "locale_sha256": "b9a169a700daa380b2dddb8a7c42226ca22e9a6969733565d620cb7a8daca9ed",
+        "source_sha256": "1c9bd943b6e331e22a5cdfdad6df7dabae3ea19e09b0ccb4ee3e10743669a52f"
+      },
+      "title": {
+        "locale_sha256": "7daf3c667b92509aadd187d31df979fb181e9237042002891c9ce40057d4d21c",
+        "source_sha256": "695b8a72da414f97206dae6511c8f8dff8e3cbcb88e5a60359d877aa7e31f4b8"
+      },
+      "why_it_matters": {
+        "locale_sha256": "d496f496bdeef7c5d00df11cd0eb9b47b75492c07c0e49e4633eb99b24eca4d1",
+        "source_sha256": "34532ee2482f64bb85a94253a92d250c56fabdcd2925ca7095b86c135b85af97"
       }
     },
     "FCMO-F81EBA109D3B": {
