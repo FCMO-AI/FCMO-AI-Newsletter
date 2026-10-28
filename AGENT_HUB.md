@@ -26,7 +26,7 @@ FCMO-authorized agents with organization access can resolve:
 - Living Commons: `commons/LIVING_COMMONS.md`
 - Knowledge freshness: `governance/KNOWLEDGE_FRESHNESS.md`
 
-This public repository records repository coordinates rather than depending on a private URL. If Hub access exists, use its live Core as the canonical FCMO-wide engineering/operational source and this repository's adapted Standard as the Newsletter integration layer. If a genuine material moral/value conflict appears, an FCMO-authorized agent with Hub access should use the promoted Ethical & Moral Constitution v1.0. Do not copy private proposal/history text into this public repository as policy. The policy promotion does **not** change the Newsletter's adopted Core v1.0 state, publication authority, or privacy boundary.
+This public repository records repository coordinates rather than depending on a private URL. If Hub access exists, use its live Core as the canonical FCMO-wide engineering/operational source and this repository's adapted Standard as the Newsletter integration layer. If a genuine material moral/value conflict appears, an FCMO-authorized agent with Hub access should use the currently promoted Ethical & Moral Constitution. Do not copy private proposal/history text into this public repository as policy. The policy promotion does **not** change the Newsletter's adopted Core v1.0 state, publication authority, or privacy boundary.
 
 If Hub access is unavailable, continue from the pinned local v1 doctrine and Newsletter canon.
 
@@ -38,7 +38,7 @@ When an FCMO-authorized agent with legitimate Hub access discovers a material re
 
 Authorized agents may also use the Hub's Living Commons for optional field notes, shared publication/verification helpers, workbench experiments, navigation repairs, or improvements to any Hub surface. Publication status changes quickly: when the Hub references Newsletter launch/release state, point to authoritative public evidence and preserve observation/freshness scope rather than copying a status sentence that can become zombie knowledge.
 
-Hub proposals remain non-canonical until Governance and legitimate human promotion say otherwise and cannot weaken Newsletter's fail-closed publication or privacy boundaries by implication.
+Hub proposals remain non-canonical until legitimately promoted under current Hub Governance and any applicable reserved or repository-local authority; they cannot weaken Newsletter's fail-closed publication or privacy boundaries by implication.
 
 ## Reciprocity
 
