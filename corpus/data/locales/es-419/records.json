@@ -31287,6 +31287,61 @@
       "title": "Anthropic informa que investigadores de IA automatizados pueden reducir fallas de alineación medidas",
       "why_it_matters": "Si se reproduce de forma independiente, la experimentación de IA en ciclo cerrado que mejora conductas de seguridad medidas podría ayudar a que la investigación de alineación avance al ritmo del desarrollo de modelos. Los resultados informados se limitan a pruebas seleccionadas, condiciones de investigación supervisadas y la evaluación declarada por un solo laboratorio; no demuestran alineación general ni supervisión completa."
     },
+    "FCMO-BF0B56E9F9B6": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores enviaron a arXiv la versión 1 de «Follow the Gradient: Tracing Safety Degradation Back to Training Data» el 27 de octubre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que retirar el 20% de los ejemplos de Tulu 3 con mayor similitud de gradiente con respuestas inseguras de SafeRLHF redujo el éxito del ataque GCG de 47.7% a 37.0% para Qwen 3 1.7B, de 38.0% a 30.3% para Llama 3.2 1B y de 48.3% a 41.0% para Olmo 2 1B. Informan tres semillas de ajuste fino y errores estándar; en las pruebas seleccionadas, la capacidad se mantuvo en gran medida o mejoró."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que los gradientes de ejemplos de ajuste fino con código inseguro se alinearon con conductas dañinas posteriores al ajuste, con AUC de 0.865 para un modelo Mistral y 0.604 para un modelo Qwen."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El preprint no demuestra una reproducción independiente, eficacia con otros conjuntos objetivo o conductas específicas como la adulación, ni mayor seguridad en despliegues de producción."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación ningún grupo independiente reprodujo los resultados de atribución por gradientes ni el ajuste fino de SafeTulu.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los autores prueban seguridad general, no conductas específicas como la adulación, y utilizan un solo conjunto objetivo de respuestas inseguras.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "En esta activación no se auditaron ni ejecutaron el código, el conjunto de datos ni los artefactos exactos de puntuación.",
+          "kind": "missing_artifact",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce fuera de este régimen, detectar ejemplos de ajuste fino aparentemente inocuos asociados con conductas dañinas amplias y reducir el éxito de ataques mediante filtrado de datos podría cambiar de manera sustancial las prácticas de seguridad en el ajuste posterior. La evidencia actual es informada por los autores y se limita a modelos y evaluaciones seleccionados de tamaño pequeño.",
+      "limitations": [
+        "Todas las mediciones de resultados son informadas por los autores y aún carecen de reproducción independiente.",
+        "Los resultados de filtrado abarcan tres modelos pequeños, pruebas de ataque y capacidad seleccionadas, y un conjunto objetivo de respuestas inseguras.",
+        "El artículo no prueba conductas de seguridad específicas como la adulación."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo preprint presenta SimpleLoRIF, un método de representaciones por gradientes para localizar ejemplos de ajuste fino aparentemente inocuos asociados con conductas inseguras. Los autores informan que retirar el 20% de los ejemplos de Tulu 3 más alineados con respuestas inseguras redujo el éxito del ataque GCG en Qwen, Llama y Olmo, mientras mantuvo en gran medida las puntuaciones de capacidad seleccionadas. Son resultados acotados e informados por los autores; el artículo prueba un solo conjunto objetivo y seguridad general, y aún se requiere reproducción independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan que SimpleLoRIF clasifica ejemplos de instrucciones aparentemente inocuos según la similitud de gradientes con respuestas inseguras; retirar el 20% más similar de Tulu 3 reduce el éxito del ataque GCG en Qwen, Llama y Olmo, a la vez que mantiene las puntuaciones de capacidad seleccionadas.",
+        "demonstrated_result": "Se inspeccionaron el preprint primario completo y sus métodos, tablas, limitaciones y declaración de reproducibilidad. El código no se ejecutó y los resultados no se reprodujeron de manera independiente.",
+        "mechanism": "SimpleLoRIF calcula representaciones compactas de gradientes limitando la retropropagación a los últimos cuatro bloques del transformador. Los autores puntúan cada ejemplo de Tulu 3 frente a grupos de gradientes de 43,469 ejemplos de respuestas inseguras de SafeRLHF, retiran el 20% con mayor similitud y luego ajustan y evalúan los modelos.",
+        "regime": "Los autores usan representaciones de Qwen 3 0.6B y ajustan Qwen 3 1.7B, Llama 3.2 1B y Olmo 2 1B con Tulu 3. Informan tres semillas y evalúan GCG, ActorBreaker y pruebas seleccionadas de capacidad y rechazo excesivo. SafeTulu retira el 20% de los ejemplos.",
+        "strongest_baseline": "El artículo compara con el entrenamiento de referencia, la eliminación aleatoria, el filtrado mediante un modelo de lenguaje como juez y un método previo de filtrado por gradientes. El éxito de GCG informado baja 10.7, 7.7 y 7.3 puntos porcentuales para Qwen, Llama y Olmo, respectivamente."
+      },
+      "title": "Autores informan que filtrar datos de ajuste fino con gradientes reduce el éxito de jailbreak en tres familias de modelos",
+      "why_it_matters": "El trabajo propone detectar señales de degradación de seguridad que los filtros de texto ordinarios pueden pasar por alto, vincular conductas del modelo con ejemplos de ajuste fino y convertir esa señal en una intervención de curación de datos. Si los efectos informados se reproducen con distintos conjuntos objetivo, escalas de modelo y evaluaciones específicas de conductas, podrían orientar la curación de datos de ajuste posterior; los resultados actuales no establecen seguridad general ni impacto en producción."
+    },
     "FCMO-BF0D6D2CA00C": {
       "claims": [
         {
