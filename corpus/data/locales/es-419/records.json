@@ -31895,6 +31895,54 @@
       "title": "Un artículo de ScienceIDE informa entornos de código científico para evaluar y entrenar agentes",
       "why_it_matters": "Si el enfoque de entornos y verificadores se generaliza, los repositorios científicos podrían aportar experiencia reutilizable y comprobada por resultados, en vez de solo texto estático o tareas de benchmark hechas a mano. El artículo presenta un banco de pruebas sustancial de computación científica y resultados seleccionados de aprendizaje de modelos, pero la evidencia actual se concentra en reparación e implementación de código en física computacional y geociencias, no en descubrimiento científico abierto."
     },
+    "FCMO-C274360BFAF7": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La versión 1 del preprint Heads of Security se publicó en arXiv el 27 de octubre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que las compuertas de atención aprendidas por cabeza reducen el éxito de ataques adaptativos de inyección de instrucciones en Llama-3.3-70B-Instruct y GPT-OSS-20B, mientras conservan utilidad en pruebas de capacidad y de agentes seleccionadas. En 100 objetivos de InjecAgent reservados para evaluación, los ataques RL-Hammer más fuertes mostrados alcanzaron hasta 10.0% de ASR contra HoS en GPT-OSS-20B (frente a 85.2% con SecAlign y 97.2% en el modelo sin defensa) y 1.2% contra HoS en Llama-3.3-70B (frente a 81.6% con SecAlign y 99.4% sin defensa); cuando están disponibles, son promedios de cinco corridas."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El preprint no establece seguridad integral frente a la inyección de instrucciones, robustez contra todos los atacantes adaptativos, clasificación correcta de confianza en despliegue, generalización más allá de los modelos, pruebas comparativas y protocolos de puntuación examinados, ni rendimiento reproducido independientemente o en sistemas desplegados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se obtuvo una reproducción independiente del entrenamiento de HoS ni de los resultados de RL-Hammer o Claudini. Hay un artefacto público de compuertas para GPT-OSS-20B, pero no se verificaron la ruta exacta del código ni materiales de evaluación fijados a una revisión.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La evaluación no establece robustez en agentes desplegados, con distintas asignaciones de límites de confianza, herramientas más amplias o presupuestos adaptativos de ataque.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se confirma de manera independiente, una defensa arquitectónica ligera que aumente de forma material el costo de los ataques adaptativos y conserve la utilidad medida podría cambiar las decisiones de diseño de seguridad para agentes de pesos abiertos. La puntuación refleja esa consecuencia si la afirmación es cierta; la evidencia es un preprint reportado por sus autores, sobre dos modelos y evaluaciones acotadas de ataques y utilidad.",
+      "limitations": [
+        "Todas las cifras de rendimiento provienen de un único preprint de arXiv y no se reprodujeron independientemente en esta activación.",
+        "Los autores indican que separar instrucciones y datos no es una defensa integral: el sistema no decide qué fuentes son confiables y algunas tareas legítimamente requieren seguir instrucciones externas.",
+        "Los resultados abarcan dos familias de modelos de pesos abiertos y conjuntos de datos, presupuestos de ataque, indicaciones, canales y reglas de puntuación específicos; no demuestran despliegue en producción ni transferencia amplia.",
+        "Un atacante puede adaptarse después del despliegue y ninguna evaluación finita establece seguridad.",
+        "El repositorio de código enlazado devolvió 404. Hay una ficha y un artefacto público de compuertas para GPT-OSS-20B, pero en esta activación no se verificaron una ruta de entrenamiento y evaluación fijada a una revisión ni un artefacto para Llama."
+      ],
+      "relationships": [],
+      "summary": "El preprint presenta Heads of Security (HoS), que aprende pequeñas compuertas de atención por cabeza para separar instrucciones confiables de contenido no confiable y, a la vez, permitir que el modelo razone sobre ese contenido. En Llama-3.3-70B-Instruct y GPT-OSS-20B, los autores reportan menor éxito de ataque contra HoS que contra el modelo base sin defensa o SecAlign++ en pruebas adaptativas RL-Hammer, con utilidad similar en pruebas comparativas seleccionadas. Son resultados reportados por los autores en dos entornos de modelos de pesos abiertos; no constituyen una reproducción independiente ni un resultado de seguridad en despliegue.",
+      "technical": {
+        "claimed_result": "Los autores reportan grandes reducciones de ataques adaptativos en dos modelos de pesos abiertos y utilidad conservada en pruebas seleccionadas; los resultados no se han reproducido.",
+        "demonstrated_result": "El preprint v1 de arXiv y el método y resultados que describe están disponibles públicamente; el rendimiento reportado no quedó establecido de manera independiente en esta activación.",
+        "mechanism": "Añade sesgos aprendidos por cabeza y canal a los logits de atención, para que cada cabeza pueda reducir la atención a tokens asignados a fuentes no confiables mientras otras cabezas conservan acceso. Según el artículo, entrena solo 46,080 parámetros de compuerta para Llama-3.3-70B y 18,432 para GPT-OSS-20B.",
+        "regime": "Llama-3.3-70B-Instruct y GPT-OSS-20B; ataques adaptativos de caja negra RL-Hammer sobre InjecAgent con 100 objetivos reservados para evaluación; además, pruebas de caja blanca Claudini y pruebas estáticas de inyección en agentes.",
+        "strongest_baseline": "SecAlign++ (defensa basada en ajuste fino) y ASIDE (separación arquitectónica de instrucciones y datos), además de cada modelo base sin defensa."
+      },
+      "title": "Heads of Security reporta que las compuertas de atención mejoran la resistencia a la inyección de instrucciones en dos modelos de pesos abiertos",
+      "why_it_matters": "La inyección de instrucciones sigue siendo una barrera importante para los agentes que usan herramientas. Si se replican las mejoras reportadas, una intervención arquitectónica pequeña podría mejorar el equilibrio entre seguridad y utilidad sin ajustar todo el modelo. La técnica depende de asignar correctamente los límites de confianza y es un componente de defensa, no un sistema de seguridad integral."
+    },
     "FCMO-C2857739C953": {
       "claims": [
         {
