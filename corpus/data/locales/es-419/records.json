@@ -3248,6 +3248,58 @@
       "title": "Uni-LaDiR informa mejoras con razonamiento latente compartido en razonamiento visual y manipulación simulada",
       "why_it_matters": "Una representación latente compartida podría permitir que los modelos multimodales conserven información intermedia útil al razonar entre imágenes, datos 3D y estados robóticos. Las mejoras informadas abarcan razonamiento visual y manipulación simulada, pero no demuestran transferencia a robots físicos ni mejoras generales fuera de los protocolos evaluados."
     },
+    "FCMO-0E2FC8B9660B": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron arXiv:2610.03430, un artículo que describe JIL, un ataque contra la programación de solicitudes LLM basada en predicciones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que un sufijo optimizado reduce la longitud de salida estimada por un planificador tipo TRAIL y puede adelantar las solicitudes atacadas en el orden de cola de sus pruebas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En los controles del artículo con salida fija de 512 tokens, la velocidad de finalización objetivo fue 1.05 [0.92, 1.18] con 16 espacios y 1.00 [0.97, 1.03] con 64; la comparación de señal frente a FCFS fue 0.97 [0.95, 1.00] y 1.01 [0.99, 1.03]. En el entorno evaluado se alteró el orden de cola, pero estas comparaciones muestran poco o ningún beneficio aislado en tiempo de finalización."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra reproducción independiente, viabilidad de un ataque de caja negra, prevalencia en sistemas desplegados, efectos a escala de producción ni generalidad entre planificadores y entornos de servicio."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se completó una reproducción independiente de los controles de atención ni se verificaron el artefacto anónimo enlazado y sus hashes.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El modelo de amenaza presupone acceso de caja blanca a gradientes del modelo y la sonda, además de optimizar un sufijo para cada solicitud; se desconocen la prevalencia y el costo real para un atacante.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las solicitudes controladas por usuarios pueden sesgar estimaciones aprendidas de tiempo de servicio, ciertos pedidos podrían ganar prioridad y trasladar latencia a otros usuarios. El artículo informa de un ataque concreto y efectos controlados sobre el orden de atención, pero las mejoras de finalización con salida fija son casi nulas y están estimadas con incertidumbre; la condición de caja blanca y una sola configuración limitan cualquier inferencia de despliegue.",
+      "limitations": [
+        "Los resultados son informados por los autores y no se reprodujeron de forma independiente en esta revisión.",
+        "Las pruebas de atención extremo a extremo usan un modelo, una GPU y cinco cargas pequeñas; no se demuestra su generalidad a otros planificadores ni a producción.",
+        "La razón destacada para salida natural combina cambios en la programación y en la longitud de las respuestas; con salida fija, las estimaciones de finalización quedan cerca de la paridad y sus intervalos incluyen ese valor.",
+        "El ataque presupone acceso de caja blanca y optimización por solicitud; no se conocen la viabilidad de caja negra ni la prevalencia en sistemas desplegados."
+      ],
+      "relationships": [],
+      "summary": "Los autores de JIL informan de un ataque de caja blanca que añade un sufijo optimizado para reducir la estimación de longitud de salida utilizada por un planificador similar a TRAIL. En sus pruebas de atención extremo a extremo, las solicitudes objetivo avanzaron en el orden de la cola. Los controles del artículo muestran que la ventaja de finalización destacada de 1.53× combina cambios de prioridad y de longitud generada: con salida fija de 512 tokens, la velocidad relativa de finalización objetivo fue 1.05 [0.92, 1.18] con 16 espacios y 1.00 [0.97, 1.03] con 64; la comparación de señal con salida fija frente a FCFS fue 0.97 [0.95, 1.00] y 1.01 [0.99, 1.03]. El entorno reportado utiliza un modelo para atención, una GPU y cinco cargas pequeñas; el ataque supone acceso de caja blanca y optimización por solicitud. Son resultados reportados por los autores, no una reproducción independiente ni evidencia de prevalencia en producción.",
+      "technical": {
+        "claimed_result": "Los autores informan que un sufijo optimizado puede reducir la longitud de salida prevista y adelantar solicitudes en una cola de atención tipo TRAIL.",
+        "demonstrated_result": "El artículo informa experimentos y controles con salida fija; no se demuestra una réplica independiente ni un efecto en sistemas desplegados.",
+        "mechanism": "Un sufijo optimizado mediante gradiente cambia la representación de la solicitud que utiliza una sonda aprendida de longitud de salida. El planificador usa esa estimación para ordenar solicitudes, de modo que una subestimación puede cambiar la posición en cola.",
+        "regime": "Ataque de caja blanca reportado por los autores contra un planificador tipo TRAIL; servicio con Llama-3-8B en una GPU B200 y cinco cargas pequeñas emparejadas, además de análisis de predicción y utilidad en otros modelos y tareas.",
+        "reproducibility": "El artículo describe registros por solicitud, manifiestos y hashes, y enlaza un artefacto de código anónimo. No se recuperaron ni ejecutaron esos materiales de forma independiente.",
+        "strongest_baseline": "Los controles con salida fija y la comparación con FCFS del propio artículo aíslan la programación de los cambios en la longitud generada; muestran movimiento en el orden de cola, pero velocidades de finalización casi iguales."
+      },
+      "title": "Un estudio informa manipulación de estimaciones de longitud en la atención de solicitudes LLM; con salida fija, la mejora de finalización es casi nula",
+      "why_it_matters": "El artículo identifica una posible debilidad de integridad en sistemas de atención que usan predicciones de longitud derivadas del texto para asignar prioridad. Los resultados controlados respaldan un hallazgo acotado sobre el orden de la cola, mientras que las medidas de finalización con salida fija quedan cerca de la paridad. La reproducción independiente y la prevalencia real siguen sin resolverse."
+    },
     "FCMO-0F178F944930": {
       "claims": [
         {
@@ -7938,6 +7990,53 @@
       },
       "title": "BarrierFormer informa control predictivo de seguridad con baja latencia simulada",
       "why_it_matters": "El artículo prueba si las restricciones de seguridad de varios pasos pueden incorporarse a una política para evitar el costo de optimización en línea. Si los resultados de simulación se trasladan, el control predictivo seguro podría ser más barato en tiempo de ejecución para robots con observación parcial. La evidencia actual abarca tres dinámicas simuladas y una estación de trabajo; no demuestra seguridad física ni tiempos reales en hardware embebido."
+    },
+    "FCMO-2B06E0A961E1": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El Tesoro británico publicó el Presupuesto 2026 el 28 de octubre de 2026 y anunció 40 millones de libras para establecer una Unidad Nacional de Seguridad de Agentes de IA."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El Presupuesto indica que la unidad propuesta desarrollará capacidades para detectar, investigar y responder a incidentes con agentes de IA descontrolados o desalineados, e integrará funciones de monitoreo y respuesta a incidentes."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El anuncio no demuestra que la unidad tenga personal o esté operativa, que sus capacidades de monitoreo y respuesta funcionen, ni que hayan reducido riesgos o mejorado resultados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El Presupuesto no especifica la adscripción institucional de la unidad, su autoridad legal, dirección, personal ni relación con las instituciones británicas de seguridad e IA existentes.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No se informa una línea base, un conjunto de incidentes, un protocolo de evaluación, métricas de tiempo de respuesta ni mediciones de resultados que establezcan si la capacidad prevista detecta o mitiga incidentes con agentes de IA.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se implementa según lo descrito, una función nacional financiada para detectar y responder a incidentes con agentes de IA desalineados podría cambiar de manera sustancial las operaciones de seguridad pública y las expectativas sobre el despliegue de agentes. La consecuencia es importante, pero se limita a una capacidad nacional propuesta; el anuncio no aporta pruebas de eficacia.",
+      "limitations": [
+        "El Presupuesto describe gasto previsto y capacidades planificadas; no demuestra gasto efectivo, dotación de personal, autoridad legal, acceso técnico, procedimientos operativos ni preparación para operar.",
+        "No se informa sobre datos de incidentes, una línea base de respuesta, un diseño de evaluación ni una medición de reducción de riesgos.",
+        "No se detallan la ubicación institucional o independencia de la unidad, sus vínculos con otros organismos públicos ni su coordinación con proveedores y operadores."
+      ],
+      "relationships": [],
+      "summary": "El Presupuesto 2026 del Tesoro británico anuncia 40 millones de libras para establecer una Unidad Nacional de Seguridad de Agentes de IA. El gobierno dice que la unidad desarrollará capacidades para detectar, investigar y responder a incidentes con agentes descontrolados o desalineados, integrando monitoreo y respuesta a incidentes. Es un plan gubernamental; el anuncio no demuestra que la unidad tenga personal, opere o sea eficaz. El Presupuesto también anuncia inversiones relacionadas con seguridad de IA, bioseguridad y ciberdefensa, pero son programas separados.",
+      "technical": {
+        "claimed_result": "El gobierno afirma que la unidad desarrollará nuevas capacidades para detectar, investigar y responder a actividad de agentes desalineados y aumentará la resiliencia ante incidentes con agentes de IA.",
+        "demonstrated_result": "El documento oficial del Presupuesto se publicó y anuncia la unidad propuesta, la asignación de 40 millones de libras y su mandato previsto. No demuestra que exista una unidad operativa ni resultados de desempeño.",
+        "mechanism": "El gobierno describe una Unidad Nacional de Seguridad de Agentes de IA prevista que integraría funciones de monitoreo y respuesta a incidentes con capacidades para detectar, investigar y responder a actividad de agentes descontrolados o desalineados.",
+        "regime": "Política británica de seguridad nacional de IA y capacidad gubernamental prevista para responder a incidentes; anuncio del 28 de octubre de 2026.",
+        "reproducibility": "No aplica al anuncio. La ejecución y eficacia aún no se han evaluado de manera independiente.",
+        "strongest_baseline": "La fuente demuestra un compromiso institucional anunciado por el gobierno británico. No ofrece una medida de referencia sobre incidentes con agentes, capacidad de respuesta o monitoreo público actual."
+      },
+      "title": "El Presupuesto británico de 2026 asigna 40 millones de libras a una unidad de seguridad para agentes de IA",
+      "why_it_matters": "La unidad propuesta convertiría el monitoreo y la respuesta a incidentes con sistemas de agentes de IA en una función explícita de seguridad nacional. Su importancia práctica dependerá del diseño institucional, la autoridad, el acceso técnico, la coordinación y el desempeño demostrado, ninguno de los cuales queda establecido por este anuncio de financiación."
     },
     "FCMO-2B53E683F72E": {
       "claims": [
@@ -33453,6 +33552,62 @@
       "title": "Un estudio de Carnegie Mellon delimita cuándo TypeSafe JEV puede sustituir o aplazar jueces LLM costosos",
       "why_it_matters": "Este estudio ofrece una prueba externa y acotada por tareas de si un modelo de decisiones tipadas y bajo costo puede reservar el razonamiento costoso para evaluaciones inciertas. Si se reproduce en cargas locales, la derivación basada en confianza podría reducir el costo y la latencia recurrentes de evaluar modelos a gran escala. El artículo también muestra límites: los juicios derivados difíciles, el estilo adversarial y la factualidad sin referencia requieren controles más fuertes o abstención."
     },
+    "FCMO-C93E6B20A3AE": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El Tesoro británico publicó el Pacto para Centros de Datos el 28 de octubre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El Pacto dice que se alienta a los centros de datos a cumplir sus pruebas y que los sitios estratégicos deben cumplirlas para recibir apoyo gubernamental adicional. Las pruebas cubren los costos del sistema energético y la flexibilidad de la red, planes de beneficio local, eficiencia de energía y agua, informes anuales sobre recursos, empleos y cadenas de suministro británicas, y seguridad. Se espera que las nuevas instalaciones alcancen una PUE de 1.3 o mejor."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El Pacto señala que el gobierno estima que el Reino Unido necesitará 6 GW de capacidad de centros de datos de IA para 2030."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "A cambio del cumplimiento de las pruebas, el gobierno dice que considerará apoyar a los sitios estratégicos mediante conexiones a la red más rápidas o reasignadas y, bajo condiciones estrictas, generación temporal en el sitio para proyectos excepcionalmente estratégicos."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La publicación no establece qué proyectos recibirán apoyo adicional, si se aplicarán las medidas planificadas de energía y conexión, si las instalaciones cumplirán los requisitos ni si la política reducirá los costos de los hogares o mejorará resultados energéticos, hídricos, de emisiones, seguridad o beneficio comunitario."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La definición de centro de datos estratégico y los criterios adicionales para cada proyecto siguen pendientes; tampoco se especifican la verificación práctica ni la aplicación de varios compromisos del Pacto.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No hay líneas base ni mediciones por proyecto que demuestren agilización de conexiones, desempeño de energía, agua o emisiones, asignación de costos a hogares, beneficios locales o efectos sobre el acceso seguro a IA británica.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se implementa, condicionar el apoyo público adicional y el acceso escaso a la red para centros de datos estratégicos a compromisos energéticos, comunitarios, de recursos y de seguridad podría cambiar de forma importante la economía y los requisitos operativos de los proyectos de IA en el Reino Unido. El alcance es de importancia nacional, pero futuro; el documento no aporta pruebas de implementación ni resultados medidos.",
+      "limitations": [
+        "El Pacto y el Presupuesto establecen texto de política y planes gubernamentales, no designaciones o aprobaciones de proyectos, conexiones a la red, autorizaciones de generación temporal ni cumplimiento de las instalaciones.",
+        "La definición de los centros de datos estratégicos y los criterios adicionales aún no se han publicado; el significado y la aplicación de varios compromisos todavía no son claros.",
+        "La cifra de 6 GW es una estimación del gobierno, no un pronóstico evaluado de manera independiente ni evidencia de capacidad contratada o construida.",
+        "No se reportan resultados por instalación sobre consumo de energía o agua, emisiones, reutilización de calor, flexibilidad, costos de hogares, seguridad o beneficios locales."
+      ],
+      "relationships": [],
+      "summary": "El Tesoro británico publicó un Pacto para Centros de Datos el 28 de octubre de 2026. Se alienta a todos los centros a cumplir sus pruebas; los proyectos designados como estratégicos deben cumplirlas si solicitan apoyo gubernamental adicional. Los requisitos abarcan los costos del sistema energético y la flexibilidad de la red, planes de beneficio local, uso eficiente de energía y agua, informes anuales para sitios estratégicos, empleos y cadenas de suministro británicas, y acceso seguro a cómputo. Se espera que las nuevas instalaciones alcancen una efectividad en el uso de energía (PUE) de 1.3 o mejor. A cambio, el gobierno describe medidas para agilizar o reasignar conexiones a la red y una vía muy controlada para generar energía en el sitio temporalmente en proyectos excepcionalmente estratégicos cuando otras opciones no puedan aportar capacidad a tiempo. El gobierno estima que el Reino Unido necesitará 6 GW de capacidad de centros de datos de IA para 2030. Son condiciones de política y una estimación gubernamental, no evidencia de implementación, capacidad entregada ni resultados medidos.",
+      "technical": {
+        "claimed_result": "El gobierno afirma que el Pacto apoyará la capacidad nacional de centros de datos y, al mismo tiempo, asegurará beneficios energéticos, locales, ambientales, laborales, de suministro y seguridad. Estima que se necesitarán 6 GW de capacidad de centros de datos de IA en el Reino Unido para 2030.",
+        "demonstrated_result": "El Tesoro británico publicó el Pacto y su diseño de política. No se demuestra autorización de proyectos, aceleración de conexiones, cumplimiento de instalaciones ni resultados.",
+        "mechanism": "El Pacto alienta a todos los operadores a cumplir cinco pruebas y condiciona la acción gubernamental adicional para sitios estratégicos al cumplimiento de dichas pruebas. Combina compromisos sobre el sistema energético, planes de beneficio local, eficiencia e informes de recursos, empleo y cadenas de suministro, y cooperación en seguridad con medidas públicas para agilizar las conexiones eléctricas. La generación temporal en el sitio se reserva para proyectos excepcionalmente estratégicos cuando las otras medidas no pueden aportar capacidad a tiempo y bajo condiciones como la seguridad energética.",
+        "regime": "Proyectos de centros de datos del Reino Unido, con pruebas adicionales ligadas a la designación estratégica y a solicitudes de apoyo público reforzado; política publicada el 28 de octubre de 2026.",
+        "reproducibility": "No corresponde a la publicación de la política. El cumplimiento y los efectos requieren evidencia por proyecto y una evaluación posterior.",
+        "strongest_baseline": "El documento no ofrece una línea base sobre uso de energía o agua en centros de datos, espera para conexiones a la red, distribución de costos eléctricos a hogares, beneficios locales ni capacidad nacional de IA para evaluar sus efectos."
+      },
+      "title": "El Pacto británico para centros de datos condiciona el apoyo estratégico a requisitos de energía, comunidad, ambiente y seguridad",
+      "why_it_matters": "El Pacto vincula la expansión de infraestructura de IA con los costos del sistema energético, los beneficios locales, la publicación de datos sobre recursos, la seguridad y el acceso a apoyo público y conexiones eléctricas. Si se aplica como se describe, podría cambiar la economía de los proyectos de centros de datos y la asignación y los plazos de la capacidad de la red británica. La definición de los sitios estratégicos y los criterios adicionales siguen pendientes, y el documento no informa cumplimiento ni resultados de proyectos concretos."
+    },
     "FCMO-CA074E079EA8": {
       "claims": [
         {
@@ -40095,6 +40250,57 @@
       },
       "title": "Una coalición de 60 organizaciones fija una meta a cinco años para la IA en lenguas subrepresentadas",
       "why_it_matters": "Si la coalición convierte su objetivo declarado en recursos lingüísticos, puntos de referencia y aplicaciones utilizables, podría ampliar el acceso a la IA para numerosas comunidades y crear infraestructura compartida entre investigación, industria, gobierno y filantropía. El anuncio primario y el compromiso establecen una meta amplia y los signatarios iniciales, pero la gobernanza, las contribuciones, las líneas de base y la medición siguen sin definirse, por lo que aún se desconocen la ejecución y el impacto."
+    },
+    "FCMO-F77CB2913259": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El Departamento de Negocios, Innovación, Ciencia y Tecnología publicó una propuesta inicial de Declaración de Política Nacional para centros de datos y abrió una consulta pública el 28 de octubre de 2026, con cierre el 8 de enero de 2027."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El borrador indica que probablemente se consideren de importancia nacional y aptos para ser dirigidos al régimen NSIP conforme a la sección 35 los proyectos con al menos 100 MW de carga eléctrica nominal de TI. La Secretaría de Estado evaluaría cada proyecto individualmente y podría considerar excepciones por debajo de ese umbral indicativo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El borrador establece principios de evaluación propuestos para solicitudes de consentimiento, incluidos los enlaces de energía, impactos ambientales, seguridad, salud y efectos socioeconómicos. La decisión correspondería a la Secretaría de Estado tras el examen de la Inspección de Planificación."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El borrador no establece una Declaración de Política Nacional designada, el resultado de la consulta, ninguna dirección o autorización para un proyecto concreto, su construcción o cumplimiento, ni efectos medidos sobre energía, comunidades, ambiente o capacidad de cómputo del Reino Unido."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La propuesta podría cambiar tras la consulta y debe completar el proceso parlamentario previsto por la ley antes de su designación.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No hay decisiones ni resultados por proyecto que muestren cómo el umbral y las pruebas propuestas afectan el desarrollo de centros de datos, las conexiones de energía, los impactos locales o el uso de recursos.",
+          "kind": "baseline_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se adopta y aplica, un marco nacional de consentimiento y un umbral indicativo de 100 MW podrían influir de forma importante en qué grandes proyectos británicos pueden solicitar evaluación bajo el régimen NSIP y en la ponderación de sus efectos sobre energía, ambiente, seguridad y comunidades. La propuesta tiene relevancia nacional, pero está sujeta a consulta y aprobación parlamentaria; aún no hay pruebas de aplicación ni resultados por proyecto.",
+      "limitations": [
+        "El documento es una propuesta inicial, no una Declaración de Política Nacional designada; la consulta cierra el 8 de enero de 2027.",
+        "La cifra de 100 MW es indicativa y se refiere a la carga nominal de TI; la Secretaría de Estado conserva la evaluación caso por caso y puede considerar excepciones.",
+        "La publicación no aporta evidencia de aprobación de proyectos, construcción, cumplimiento ni efectos energéticos, económicos, ambientales, de seguridad o comunitarios ya realizados."
+      ],
+      "relationships": [],
+      "summary": "El Departamento de Negocios, Innovación, Ciencia y Tecnología publicó una propuesta inicial de Declaración de Política Nacional para centros de datos en Inglaterra y abrió una consulta hasta el 8 de enero de 2027. El borrador describe cómo se examinarían y decidirían las solicitudes de consentimiento dirigidas al régimen de Proyectos de Infraestructura de Importancia Nacional (NSIP). Señala que probablemente se consideren de importancia nacional y aptos para ser dirigidos conforme a la sección 35 los proyectos con al menos 100 MW de carga eléctrica nominal de TI, aunque permite excepciones caso por caso. La propuesta también establece principios de evaluación de energía, ambiente, seguridad e impactos locales. Es un borrador sujeto a consulta y aprobación parlamentaria; no demuestra decisiones ni efectos de proyectos.",
+      "technical": {
+        "claimed_result": "El gobierno propone un marco nacional de decisión para proyectos de centros de datos dirigidos al régimen NSIP, con un umbral indicativo de 100 MW de carga nominal de TI.",
+        "demonstrated_result": "El departamento publicó la propuesta inicial y abrió la consulta. No se demuestra la designación final ni una decisión sobre un proyecto.",
+        "mechanism": "La Declaración de Política Nacional propuesta orientaría el examen de la Inspección de Planificación y las decisiones de la Secretaría de Estado sobre solicitudes de consentimiento que entren al régimen NSIP. Las direcciones conforme a la sección 35 seguirían siendo individuales; los 100 MW de carga nominal de TI son un nivel indicativo probablemente importante a escala nacional y se admiten excepciones.",
+        "regime": "Marco de planificación propuesto para autorizar centros de datos en Inglaterra; consulta publicada el 28 de octubre de 2026 y abierta hasta el 8 de enero de 2027.",
+        "reproducibility": "No corresponde a la publicación de una propuesta de política. La aplicación y los efectos requieren registros legales y evidencia posterior por proyecto.",
+        "strongest_baseline": "El borrador describe el proceso y los criterios propuestos, pero no presenta una línea base por proyecto de plazos de autorización, capacidad construida, uso de energía o agua, impactos locales ni cumplimiento."
+      },
+      "title": "Reino Unido propone un umbral indicativo de 100 MW y un marco nacional para decidir proyectos de centros de datos",
+      "why_it_matters": "Un marco de planificación específico podría influir en cómo los grandes proyectos de centros de datos en Inglaterra solicitan consentimiento de importancia nacional y en cómo se evalúan sus impactos energéticos, ambientales y comunitarios. El umbral de 100 MW es indicativo, no una regla automática, y el borrador sigue abierto a consulta; aún no se han establecido su aplicación ni los efectos sobre proyectos."
     },
     "FCMO-F81EBA109D3B": {
       "claims": [
