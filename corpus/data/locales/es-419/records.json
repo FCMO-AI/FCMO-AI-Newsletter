@@ -15416,6 +15416,66 @@
       "title": "Reuters informa concentración de ingresos de Anthropic en canales de nube y grandes compromisos de cómputo",
       "why_it_matters": "Las cifras reportadas describen una estructura económica potencialmente relevante: grandes proveedores de nube son a la vez canales de distribución, proveedores de cómputo, inversionistas y competidores de IA. Si son correctas, esta concentración y la escala de compromisos futuros podrían afectar el flujo de caja, los márgenes, el acceso al cómputo y el poder de negociación de Anthropic. La evidencia sigue siendo un informe periodístico sobre un documento confidencial, no datos financieros verificados de forma independiente."
     },
+    "FCMO-54F0C40DF774": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores enviaron arXiv:2610.37624v1 el 27 de octubre de 2026 y presentaron CrossProfile, un diagnóstico de cómo las políticas de memoria para decisiones grupales con LLM seleccionan evidencia."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que CrossProfile usa 60 plantillas principales, cada una con ocho variantes de distribución de información (480 tareas), manteniendo fijos los textos y roles de los datos mientras cambia qué agentes poseen evidencia de apoyo, señuelos e información irrelevante. La clave de respuesta se verifica mecánicamente con una regla aditiva que no aparece en la instrucción dada al modelo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En Qwen2.5-7B y Llama-3.1-8B, los autores informan que seleccionar primero los datos menos compartidos queda aproximadamente a la par de un orden aleatorio al promediar las variantes de distribución. Su desempeño relativo cambia marcadamente según si la evidencia de apoyo o los señuelos están en manos privadas o compartidas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la condición clásica —apoyo privado, señuelos compartidos y datos irrelevantes privados—, los autores informan que priorizar relevancia reduce la exactitud frente a priorizar rareza en 22.2 puntos para Qwen y 20.0 para Llama. Un filtro de relevancia ideal también pierde 23.3 y 31.1 puntos, respectivamente. Son resultados en tareas construidas, no decisiones reales de sistemas desplegados."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En esa condición construida, los autores informan que quitar las etiquetas de autoría o reasignarlas al azar, manteniendo fijo el orden de las líneas, aumenta la exactitud en aproximadamente 13–14 puntos para Qwen y Llama. Esto muestra sensibilidad a señales de prueba social en esta configuración de instrucciones, no una afirmación general sobre grupos reales."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los efectos de CrossProfile y las respuestas de los modelos son resultados informados por los autores; no se reprodujeron de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-29T06:18:16Z"
+        },
+        {
+          "description": "La clave de respuesta definida mecánicamente no constituye una medida externa de la calidad de decisiones grupales reales, y no se ha establecido su transferencia a deliberaciones naturales.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-29T06:18:16Z"
+        }
+      ],
+      "importance_rationale": "Si se generalizan más allá de este diagnóstico construido, los efectos informados sobre quién posee la evidencia podrían cambiar de forma material las políticas de memoria y la confiabilidad de las decisiones multiagente. La relevancia para diseño e investigación es notable, pero la evidencia actual cubre cuatro variantes de modelo y no equipos desplegados.",
+      "limitations": [
+        "El benchmark usa tareas construidas y claves derivadas mecánicamente; la instrucción al modelo no incluye la regla de puntuación aditiva, por lo que la exactitud mide coincidencia con esa clave, no calidad de decisiones juzgada externamente.",
+        "Se evalúan cuatro variantes de modelo; DeepSeek-Pro cubre 30 plantillas y las pruebas con modelos alojados se describen como exploratorias.",
+        "La asignación de datos también cambia cuándo aparece cada hecho, sus etiquetas de autoría y su costo en tokens; el artículo incluye controles, pero la transferencia a discusiones grupales naturales sigue siendo incierta.",
+        "No se establecieron reproducción independiente, validación externa de las claves, estudio con equipos reales ni tasas de fallo en sistemas desplegados."
+      ],
+      "relationships": [],
+      "summary": "El preprint de arXiv presenta CrossProfile, un diagnóstico con 60 plantillas principales y 480 variantes que mantiene fijo el texto de los hechos mientras cambia qué agentes poseen información de apoyo, señuelos e información irrelevante. En Qwen2.5-7B, Llama-3.1-8B y pruebas exploratorias alojadas de DeepSeek, los autores informan que las heurísticas de priorizar rareza o relevancia pueden invertir su desempeño según quién posea evidencia señuelo. En la condición clásica de perfil oculto, priorizar relevancia reduce la exactitud aproximadamente 20–22 puntos en los dos modelos locales; quitar o barajar las etiquetas de autoría la aumenta alrededor de 13–14 puntos. El estudio usa tareas construidas y una clave de respuesta definida mecánicamente; no estima tasas de fallo en equipos desplegados.",
+      "technical": {
+        "claimed_result": "Los autores informan inversiones del efecto de seleccionar por rareza según la distribución de los señuelos, pérdidas al priorizar relevancia en la condición clásica de perfil oculto y aumentos de 13–14 puntos en dos modelos locales al quitar o aleatorizar las etiquetas de autoría.",
+        "demonstrated_result": "El artículo público v1 especifica el diseño diagnóstico con claves de respuesta verificadas mecánicamente e informa sus análisis. El equipo de investigación no ejecutó el experimento ni verificó de forma independiente el generador de tareas, las respuestas de los modelos o las métricas.",
+        "implementation_status": "Preprint y benchmark construido; no se ha establecido una implementación con equipos desplegados ni una evaluación de campo.",
+        "mechanism": "CrossProfile cruza la asignación de hechos de apoyo, señuelo e irrelevantes mientras mantiene fijos sus textos y roles de decisión. Compara selección por primera mención, rareza, relevancia, resúmenes de evidencia, orden aleatorio y memorias vacías o completas bajo presupuestos de tokens. Los controles de etiquetas de autoría y orden de líneas prueban si el modelo de decisión da peso de prueba social a afirmaciones repetidas por más agentes.",
+        "novelty": "El diagnóstico cruzado separa la rareza de la evidencia de su utilidad para decidir y muestra que la dirección del efecto de una heurística de memoria puede depender de quién tenga los hechos de apoyo frente a los señuelos.",
+        "regime": "60 plantillas principales de CrossProfile en 12 dominios de decisión; ocho variantes de propiedad por plantilla (480 tareas), cuatro agentes, tres opciones y 12 hechos por tarea. Qwen2.5-7B-Instruct y Llama-3.1-8B-Instruct usan tres semillas; DeepSeek-V4.1-Flash alojado cubre todas las plantillas y DeepSeek-V4-Pro cubre 30 como pruebas exploratorias. También se informa un análisis separado de 65 tareas de HiddenBench.",
+        "reproducibility": "El HTML completo de arXiv describe instrucciones, métricas, controles y el procedimiento de bootstrap. En esta activación no se ejecutó el experimento ni se obtuvo replicación externa; tampoco se inspeccionaron artefactos de código o datos.",
+        "strongest_baseline": "La selección aleatoria sirve como comparación directa del desempeño promedio, y la selección por primera mención sirve para contrastes de inversión según la propiedad de los hechos. Memorias con todos los hechos y sin hechos son controles adicionales."
+      },
+      "title": "Preprint informa fallos previsibles de las memorias basadas en rareza y relevancia en decisiones grupales con LLM",
+      "why_it_matters": "Si se reproducen fuera de este benchmark construido, la selección de memoria y las señales de atribución podrían cambiar la confiabilidad de decisiones multiagente. El artículo muestra por qué la exactitud promedio puede ocultar grandes fallos que dependen de quién conserva la evidencia, pero su clave sintética y el conjunto acotado de modelos limitan la transferencia."
+    },
     "FCMO-5557CC74BD5B": {
       "claims": [
         {
