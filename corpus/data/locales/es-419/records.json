@@ -39183,6 +39183,76 @@
       "title": "Artículo informa que relatos narrativos incluidos en binarios pueden cambiar los veredictos de modelos de triaje de malware",
       "why_it_matters": "El triaje de malware asistido por IA puede influir en qué alertas investigan primero los analistas. Si el comportamiento informado se generaliza, las cadenas y metadatos que aporta un archivo bajo análisis pueden cambiar la evaluación del modelo aunque el código sospechoso no cambie. El estudio apunta a sistemas de evidencia que mantengan separados los atributos verificados y las afirmaciones incrustadas en artefactos; se desconoce la prevalencia en condiciones reales."
     },
+    "FCMO-ED5EEF58A206": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El informe de Mistral se envió a arXiv el 2026-10-27 y describe una familia Timestral de cuatro tamaños, su método de pronóstico y la configuración de evaluación y benchmarks. Esto acredita el informe y su contenido, no la validez ni la verificación independiente de sus resultados."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que Timestral-209M quedó primero entre los modelos comparados en las seis métricas agregadas de GIFT-Eval, TIME y fev-bench; los modelos 123M, 28M y 5M también quedan en la frontera reportada de tamaño y rendimiento. Son resultados del protocolo del artículo, no una auditoría independiente de los rankings. En una evaluación IND-Eval realizada por los autores sobre 187 tareas industriales, informan para Timestral-209M 0.646 nmase y 0.435 ncrps, frente a 0.697 y 0.469 para t0-gamma; esto tampoco constituye confirmación independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para un pronóstico univariado de 96 pasos desde un contexto de 2,048 pasos, los autores informan latencias medianas con 8 hilos de CPU de 17, 31, 85 y 113 ms para los modelos 5M, 28M, 123M y 209M. La prueba usó un servidor AMD EPYC 9454 de 48 núcleos, pesos bfloat16, torch.compile y promedio simétrico. Estas cifras no establecen el costo total comparativo en cargas de producción."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El informe enlaza pesos públicos para los cuatro tamaños y un repositorio de código de inferencia; la página del repositorio oficial muestra archivos fuente, pruebas y una licencia Apache-2.0. La disponibilidad no demuestra que esta activación haya reproducido los benchmarks."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Las fuentes examinadas en esta activación no establecen una reproducción independiente, una auditoría de fuga de datos, una mejora de pronósticos operativos ni ahorros realizados de costo o energía."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan una evaluación adicional de cero disparo en las 187 tareas industriales del benchmark público IND-Eval, comparando Timestral con 11 modelos conforme al protocolo del benchmark. Timestral-209M obtiene métricas agregadas reportadas de 0.646 nmase y 0.435 ncrps, frente a 0.697 y 0.469 de t0-gamma. Son resultados evaluados por los autores, no una reproducción independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se repitieron ni auditaron de forma independiente las seis métricas reportadas en GIFT-Eval, TIME y fev-bench.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La latencia de CPU reportada no es una comparación equivalente de costo total o energía en producción, y no se midió una mejora de pronósticos operativos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "En la evidencia revisada no se midieron independientemente el costo de tokens de entrenamiento de DHF ni su generalización ante cambios de dominio.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce en los benchmarks públicos e industriales indicados, una familia de 5M–209M de parámetros que supera a alternativas mayores en los resultados reportados y funciona en CPU podría cambiar decisiones de modelos e implementación para una tarea especializada relevante. El resultado se limita a pronósticos de series temporales y proviene de los propios autores; no establece ahorros operativos realizados.",
+      "limitations": [
+        "Todas las cifras de rendimiento e inferencia son de autores de Mistral y no se reprodujeron de manera independiente en esta activación.",
+        "El liderazgo en seis métricas depende del conjunto de modelos, los protocolos, el checkpoint y la agregación del artículo; no hubo una auditoría independiente de las tablas de posiciones.",
+        "La medición de CPU corresponde a una carga univariada, longitud de contexto, hardware, precisión, ruta de software y procedimiento de promedio simétrico específicos. No mide una carga de producción comparable, consumo energético, precio de nube ni costo total.",
+        "Los modelos se preentrenan solo con datos sintéticos y luego se ajustan con una mezcla de datos reales y sintéticos; en esta revisión no se midió su transferencia a dominios operativos ni ante cambios de distribución.",
+        "DHF conserva observaciones como contexto y objetivos de pronóstico, pero según los autores requiere aproximadamente el doble de tokens de entrenamiento; no se cuantificó el cómputo total de entrenamiento en las secciones examinadas.",
+        "La página oficial del 15 de octubre identifica la fecha del lanzamiento inicial. El 27 de octubre corresponde al informe técnico de arXiv, no a un nuevo lanzamiento de los modelos.",
+        "El cuadro comparativo de GIFT-Eval, TIME y fev-bench incluye modelos graficados en la fecha de lanzamiento del 15 de octubre, no una tabla de posiciones actualizada al informe técnico del 27 de octubre; el liderazgo reportado se limita a ese conjunto comparativo fechado."
+      ],
+      "relationships": [],
+      "summary": "Un informe de arXiv del 27 de octubre describe Timestral, una familia de cuatro modelos probabilísticos de pronóstico de series temporales, de 5M a 209M de parámetros. Los autores informan que Timestral-209M ocupa el primer lugar en seis métricas agregadas de GIFT-Eval, TIME y fev-bench, y que las variantes más pequeñas quedan en la frontera reportada de tamaño y precisión. El método separa los tokens de pronóstico del contexto causal y asigna roles para objetivos, covariables solo pasadas y covariables futuras conocidas. Para un pronóstico univariado de un día a partir de 2,048 pasos de historial, el artículo informa una latencia de 17–113 ms con ocho hilos de CPU. Mistral anunció la familia el 15 de octubre; los modelos, el informe y el código de inferencia están disponibles. Los resultados de benchmarks y latencia son reportados por los autores; no se ha establecido una reproducción independiente ni una ventaja observada en costos operativos. En una evaluación adicional realizada por los autores en IND-Eval, con 187 tareas industriales de pronóstico, el artículo también informa que Timestral-209M lideró a once modelos comparados en dos métricas agregadas (0.646 nmase y 0.435 ncrps, frente a 0.697 y 0.469 para t0-gamma). Esta evaluación no es independiente.",
+      "technical": {
+        "claimed_result": "Los autores de Mistral informan que el modelo 209M lidera seis métricas agregadas, que los cuatro tamaños quedan en la frontera reportada de tamaño y precisión, y que alcanzan las latencias y el rendimiento de CPU descritos. Todas las métricas de resultado son reportadas por los autores. En la evaluación IND-Eval hecha por los autores en 187 tareas industriales, el artículo informa 0.646 nmase y 0.435 ncrps para Timestral-209M, frente a 0.697 y 0.469 para t0-gamma.",
+        "compute_or_cost": "La latencia de CPU reportada es una medición de benchmark con AMD EPYC 9454, ocho hilos, bfloat16 y torch.compile; no se revisaron precios de nube, energía, trazas de producción ni un estudio comparable de costo total.",
+        "demonstrated_result": "Las fuentes revisadas permiten comprobar que el informe describe el método y que la colección de modelos y el repositorio de inferencia son públicos. Esta activación no ejecutó el código ni reprodujo los resultados.",
+        "implementation_status": "Mistral anunció la familia el 2026-10-15. El informe técnico está fechado 2026-10-27; hay checkpoints públicos y un repositorio de código de inferencia. No se instaló ni ejecutó el sistema localmente.",
+        "mechanism": "Decoupled Horizon Forecasting (DHF) asigna tokens propios a las posiciones que se pronostican y conserva los valores observados en un contexto codificado causalmente. Así puede entrenar varios horizontes sin ocultar contexto. Cada variable recibe uno de tres roles: objetivo, covariable solo pasada o covariable futura conocida, con máscaras de atención asimétricas; el modelo predice 21 cuantiles. Según el artículo, DHF requiere aproximadamente el doble de tokens durante el entrenamiento porque cada segmento observado también sirve como objetivo.",
+        "regime": "Cuatro modelos con 5.2M, 27.8M, 122.6M y 209.3M de parámetros. El preentrenamiento usa solo datos sintéticos con 8,192 pasos; el ajuste posterior combina datos reales y sintéticos con un contexto de 32,768 pasos. La precisión reportada usa GIFT-Eval, TIME y fev-bench, además del benchmark industrial IND-Eval descrito por separado. La latencia se mide para un pronóstico univariado de 96 pasos con 2,048 pasos de contexto.",
+        "reproducibility": "El artículo, los checkpoints públicos y el repositorio de inferencia están disponibles. Esta activación revisó sus páginas públicas, pero no fijó una revisión del repositorio ni ejecutó el código de inferencia o evaluación.",
+        "strongest_baseline": "El artículo compara modelos públicos de series temporales, entre ellos Chronos-2, Toto-2.0, TimesFM-3, Falcon-2.0 y t0-gamma. Las puntuaciones y el protocolo exactos están en el informe; esta activación no repitió la comparación. La Tabla 3 fija explícitamente el conjunto comparador GIFT-Eval/TIME/fev-bench en la fecha de lanzamiento del 15 de octubre, doce días antes del informe técnico; no es un ranking actualizado al 27 de octubre. La comparación IND-Eval separada, realizada por los autores, usa el protocolo oficial en 187 tareas y compara 11 modelos."
+      },
+      "title": "Un preprint de Mistral informa que modelos pequeños de series temporales lideran tres benchmarks de pronóstico",
+      "why_it_matters": "Si se reproduce de forma independiente, la precisión reportada con 5M–209M de parámetros y la inferencia en CPU podrían cambiar la elección de modelos de pronóstico para operaciones que hoy ajustan modelos separados o dependen de aceleradores mayores. La evidencia se limita a los regímenes de benchmark del artículo y a una carga de latencia definida; no establece mejores resultados ni menores costos en producción."
+    },
     "FCMO-ED6526B13300": {
       "claims": [
         {
