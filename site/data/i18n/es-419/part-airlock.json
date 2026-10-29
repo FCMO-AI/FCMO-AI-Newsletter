@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "e3cda0c86a0a5475dfb95864445be9f89d106b1f4f703a20bb5fc2dbbf93c51c",
+  "canonical_source_sha256": "770c15b7bed3087360e382514c8dfd6f83ffd792cb78db10eb5d933c125b49d3",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -15418,6 +15418,66 @@
       "title": "Reuters informa concentración de ingresos de Anthropic en canales de nube y grandes compromisos de cómputo",
       "why_it_matters": "Las cifras reportadas describen una estructura económica potencialmente relevante: grandes proveedores de nube son a la vez canales de distribución, proveedores de cómputo, inversionistas y competidores de IA. Si son correctas, esta concentración y la escala de compromisos futuros podrían afectar el flujo de caja, los márgenes, el acceso al cómputo y el poder de negociación de Anthropic. La evidencia sigue siendo un informe periodístico sobre un documento confidencial, no datos financieros verificados de forma independiente."
     },
+    "FCMO-54F0C40DF774": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores enviaron arXiv:2610.37624v1 el 27 de octubre de 2026 y presentaron CrossProfile, un diagnóstico de cómo las políticas de memoria para decisiones grupales con LLM seleccionan evidencia."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que CrossProfile usa 60 plantillas principales, cada una con ocho variantes de distribución de información (480 tareas), manteniendo fijos los textos y roles de los datos mientras cambia qué agentes poseen evidencia de apoyo, señuelos e información irrelevante. La clave de respuesta se verifica mecánicamente con una regla aditiva que no aparece en la instrucción dada al modelo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En Qwen2.5-7B y Llama-3.1-8B, los autores informan que seleccionar primero los datos menos compartidos queda aproximadamente a la par de un orden aleatorio al promediar las variantes de distribución. Su desempeño relativo cambia marcadamente según si la evidencia de apoyo o los señuelos están en manos privadas o compartidas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la condición clásica —apoyo privado, señuelos compartidos y datos irrelevantes privados—, los autores informan que priorizar relevancia reduce la exactitud frente a priorizar rareza en 22.2 puntos para Qwen y 20.0 para Llama. Un filtro de relevancia ideal también pierde 23.3 y 31.1 puntos, respectivamente. Son resultados en tareas construidas, no decisiones reales de sistemas desplegados."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En esa condición construida, los autores informan que quitar las etiquetas de autoría o reasignarlas al azar, manteniendo fijo el orden de las líneas, aumenta la exactitud en aproximadamente 13–14 puntos para Qwen y Llama. Esto muestra sensibilidad a señales de prueba social en esta configuración de instrucciones, no una afirmación general sobre grupos reales."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los efectos de CrossProfile y las respuestas de los modelos son resultados informados por los autores; no se reprodujeron de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-10-29T06:18:16Z"
+        },
+        {
+          "description": "La clave de respuesta definida mecánicamente no constituye una medida externa de la calidad de decisiones grupales reales, y no se ha establecido su transferencia a deliberaciones naturales.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-10-29T06:18:16Z"
+        }
+      ],
+      "importance_rationale": "Si se generalizan más allá de este diagnóstico construido, los efectos informados sobre quién posee la evidencia podrían cambiar de forma material las políticas de memoria y la confiabilidad de las decisiones multiagente. La relevancia para diseño e investigación es notable, pero la evidencia actual cubre cuatro variantes de modelo y no equipos desplegados.",
+      "limitations": [
+        "El benchmark usa tareas construidas y claves derivadas mecánicamente; la instrucción al modelo no incluye la regla de puntuación aditiva, por lo que la exactitud mide coincidencia con esa clave, no calidad de decisiones juzgada externamente.",
+        "Se evalúan cuatro variantes de modelo; DeepSeek-Pro cubre 30 plantillas y las pruebas con modelos alojados se describen como exploratorias.",
+        "La asignación de datos también cambia cuándo aparece cada hecho, sus etiquetas de autoría y su costo en tokens; el artículo incluye controles, pero la transferencia a discusiones grupales naturales sigue siendo incierta.",
+        "No se establecieron reproducción independiente, validación externa de las claves, estudio con equipos reales ni tasas de fallo en sistemas desplegados."
+      ],
+      "relationships": [],
+      "summary": "El preprint de arXiv presenta CrossProfile, un diagnóstico con 60 plantillas principales y 480 variantes que mantiene fijo el texto de los hechos mientras cambia qué agentes poseen información de apoyo, señuelos e información irrelevante. En Qwen2.5-7B, Llama-3.1-8B y pruebas exploratorias alojadas de DeepSeek, los autores informan que las heurísticas de priorizar rareza o relevancia pueden invertir su desempeño según quién posea evidencia señuelo. En la condición clásica de perfil oculto, priorizar relevancia reduce la exactitud aproximadamente 20–22 puntos en los dos modelos locales; quitar o barajar las etiquetas de autoría la aumenta alrededor de 13–14 puntos. El estudio usa tareas construidas y una clave de respuesta definida mecánicamente; no estima tasas de fallo en equipos desplegados.",
+      "technical": {
+        "claimed_result": "Los autores informan inversiones del efecto de seleccionar por rareza según la distribución de los señuelos, pérdidas al priorizar relevancia en la condición clásica de perfil oculto y aumentos de 13–14 puntos en dos modelos locales al quitar o aleatorizar las etiquetas de autoría.",
+        "demonstrated_result": "El artículo público v1 especifica el diseño diagnóstico con claves de respuesta verificadas mecánicamente e informa sus análisis. El equipo de investigación no ejecutó el experimento ni verificó de forma independiente el generador de tareas, las respuestas de los modelos o las métricas.",
+        "implementation_status": "Preprint y benchmark construido; no se ha establecido una implementación con equipos desplegados ni una evaluación de campo.",
+        "mechanism": "CrossProfile cruza la asignación de hechos de apoyo, señuelo e irrelevantes mientras mantiene fijos sus textos y roles de decisión. Compara selección por primera mención, rareza, relevancia, resúmenes de evidencia, orden aleatorio y memorias vacías o completas bajo presupuestos de tokens. Los controles de etiquetas de autoría y orden de líneas prueban si el modelo de decisión da peso de prueba social a afirmaciones repetidas por más agentes.",
+        "novelty": "El diagnóstico cruzado separa la rareza de la evidencia de su utilidad para decidir y muestra que la dirección del efecto de una heurística de memoria puede depender de quién tenga los hechos de apoyo frente a los señuelos.",
+        "regime": "60 plantillas principales de CrossProfile en 12 dominios de decisión; ocho variantes de propiedad por plantilla (480 tareas), cuatro agentes, tres opciones y 12 hechos por tarea. Qwen2.5-7B-Instruct y Llama-3.1-8B-Instruct usan tres semillas; DeepSeek-V4.1-Flash alojado cubre todas las plantillas y DeepSeek-V4-Pro cubre 30 como pruebas exploratorias. También se informa un análisis separado de 65 tareas de HiddenBench.",
+        "reproducibility": "El HTML completo de arXiv describe instrucciones, métricas, controles y el procedimiento de bootstrap. En esta activación no se ejecutó el experimento ni se obtuvo replicación externa; tampoco se inspeccionaron artefactos de código o datos.",
+        "strongest_baseline": "La selección aleatoria sirve como comparación directa del desempeño promedio, y la selección por primera mención sirve para contrastes de inversión según la propiedad de los hechos. Memorias con todos los hechos y sin hechos son controles adicionales."
+      },
+      "title": "Preprint informa fallos previsibles de las memorias basadas en rareza y relevancia en decisiones grupales con LLM",
+      "why_it_matters": "Si se reproducen fuera de este benchmark construido, la selección de memoria y las señales de atribución podrían cambiar la confiabilidad de decisiones multiagente. El artículo muestra por qué la exactitud promedio puede ocultar grandes fallos que dependen de quién conserva la evidencia, pero su clave sintética y el conjunto acotado de modelos limitan la transferencia."
+    },
     "FCMO-5557CC74BD5B": {
       "claims": [
         {
@@ -25258,6 +25318,77 @@
       },
       "title": "NVIDIA y Meta anuncian una colaboración ampliada en Muse y un despliegue previsto de infraestructura de IA",
       "why_it_matters": "Si se lleva a cabo, la optimización conjunta y el plan de infraestructura podrían influir en el costo y la escala de los modelos de agentes de Meta. El anuncio demuestra la intención de las empresas, pero siguen sin verificarse la entrega del hardware, la conclusión de la transacción, los efectos técnicos y económicos medidos y los resultados de seguridad."
+    },
+    "FCMO-8F8AE4B57EEC": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Anthropic aportó a Hexagon un preprint en su primera versión, fechado el 27 de octubre de 2026, y su repositorio oficial de GitHub ofrece el manuscrito y los materiales de Lean 4."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Anthropic afirma que un modelo interno Claude encontró un algoritmo determinista de tiempo subexponencial para contar exactamente soluciones de #3-SAT; si el argumento y el alcance del manuscrito son correctos, el resultado refutaría ETH."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La declaración de procedencia del manuscrito dice que un modelo interno Claude encontró el algoritmo central el 16 de octubre con 14 millones de tokens de salida y sin intervención humana; después, investigadores de Anthropic trabajaron con Claude para mejorar la presentación."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El README de Anthropic informa una compilación con Lean 4.33.1, enumera los tres axiomas estándar de Lean para las declaraciones principales y describe una comprobación Comparator con un segundo kernel; esta activación no ejecutó ni verificó esos controles de forma independiente."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Las fuentes revisadas en esta activación no establecen rendimiento práctico en SAT, aceleración algorítmica medida ni aceptación matemática independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En las fuentes revisadas no se estableció una evaluación independiente de complejidad ni aceptación matemática de este manuscrito.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El README de Anthropic indica que Lean comprueba el enunciado codificado, pero no que coincida con el manuscrito; esta activación no revisó el mapeo completo ni ejecutó Comparator.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "No se informa rendimiento medido en instancias SAT prácticas; el repositorio caracteriza el resultado como puramente asintótico.",
+          "kind": "other",
+          "state": "not_available"
+        }
+      ],
+      "importance_rationale": "Si fuera correcto, el conteo exacto determinista en tiempo subexponencial para k-CNF de ancho fijo contradiría ETH y obligaría a reevaluar muchas cotas inferiores condicionales. La puntuación refleja la consecuencia potencial, no la confianza; falta revisión independiente y no se demuestra impacto práctico.",
+      "limitations": [
+        "Es una afirmación de un preprint atribuida a Anthropic, no un teorema aceptado de forma independiente.",
+        "El README informa una compilación y un proceso de comparación, pero esta activación no ejecutó Lean, no inspeccionó registros de CI ni auditó la prueba de forma independiente.",
+        "Lean comprueba una afirmación formal; el propio repositorio deja a una persona la revisión de si coincide con el manuscrito.",
+        "La fuente indica que el resultado es asintótico y no demuestra que resuelva fórmulas en la práctica.",
+        "La afirmación similar de OpenAI es un evento separado y no corrobora este resultado."
+      ],
+      "relationships": [
+        {
+          "summary": "El preprint de Anthropic del 27 de octubre es una afirmación concurrente y atribuida por separado de un algoritmo subexponencial para SAT exacto. La similitud no demuestra que compartan evidencia, que usen el mismo método ni que exista validación cruzada.",
+          "target_id": "FCMO-0935C3E70341",
+          "type": "related"
+        }
+      ],
+      "summary": "El 27 de octubre, Anthropic aportó a Hexagon una versión inicial de un manuscrito que describe un algoritmo determinista de tiempo subexponencial para contar asignaciones satisfactorias en fórmulas CNF de ancho fijo, incluido #3-SAT. El texto atribuye el algoritmo central a un modelo interno de investigación Claude. El repositorio oficial de Anthropic incluye el manuscrito y una formalización en Lean 4. Su README informa que la compilación local de Lean terminó correctamente y enumera solo los tres axiomas estándar de Lean para las declaraciones principales; también explica que Lean comprueba la afirmación formal y su prueba, mientras que una persona debe confirmar que esa afirmación coincide con el manuscrito. Esta activación no ejecutó la compilación ni evaluó la prueba de manera independiente. El README aclara que el resultado es asintótico y no demuestra rendimiento práctico en SAT.",
+      "technical": {
+        "claimed_result": "Anthropic afirma que su modelo interno de investigación Claude encontró un algoritmo determinista de tiempo subexponencial para el conteo exacto de #3-SAT, lo que refutaría ETH. El manuscrito plantea una cota temporal 2^{O(n log log n / sqrt(log n))} para conteo con ancho fijo; la corrección y su correspondencia precisa con ETH estándar requieren revisión independiente.",
+        "compute_or_cost": "En el README revisado no se informa costo de cómputo aparte de la afirmación de procedencia de 14 millones de tokens de salida del modelo; esta cifra no se midió de manera independiente aquí.",
+        "demonstrated_result": "El preprint de primera edición aportado por Anthropic y su repositorio oficial de formalización ETH están disponibles públicamente. El README documenta versiones fijadas de Lean 4.33.1 y Mathlib, comandos de compilación, una compilación que la fuente informa como exitosa, los axiomas estándar que reporta y una comprobación separada con Comparator/nanoda. Estos son datos informados por la fuente; esta activación no ejecutó las comprobaciones.",
+        "implementation_status": "El artículo de investigación y la formalización en Lean 4 son públicos. No se establece el despliegue de un solucionador práctico ni un resultado de tiempo de ejecución medido.",
+        "mechanism": "El manuscrito describe un método de contracción de redes tensoriales y deriva una cota asintótica de tiempo subexponencial para el conteo exacto de #k-SAT. El README resume el argumento de contracción, pero esta activación no inspeccionó la demostración completa ni derivó la cota de forma independiente.",
+        "novelty": "La publicación es distinta de la afirmación concurrente de OpenAI sobre ETH. La coincidencia no establece corrección independiente ni que los algoritmos sean idénticos.",
+        "regime": "Ancho de cláusula fijo, conteo exacto de asignaciones satisfactorias y tamaño de entrada asintótico. El README indica expresamente que el resultado no establece rendimiento práctico.",
+        "reproducibility": "El README oficial proporciona versiones fijadas de Lean 4.33.1/Mathlib y comandos, e informa una compilación de aproximadamente ocho minutos con 24 CPU virtuales. Menciona dos advertencias sorry en Challenge.lean, que enuncia objetivos para Comparator, y documenta un comparador que coteja las afirmaciones y usa nanoda. Esta activación no ejecutó esas comprobaciones ni inspeccionó sus registros.",
+        "strongest_baseline": "ETH es la conjetura estándar de que 3-SAT requiere tiempo 2^{Ω(n)} en el peor caso. El manuscrito plantea una contradicción asintótica, no una comparación de rendimiento en fórmulas prácticas."
+      },
+      "title": "Anthropic publica una afirmación de algoritmo subexponencial para #3-SAT atribuida a Claude, con materiales en Lean",
+      "why_it_matters": "Si el algoritmo de conteo exacto es correcto en el régimen indicado, contradice la Hipótesis del Tiempo Exponencial y afectaría investigaciones que dependen de cotas inferiores basadas en ETH. La consecuencia sería considerable, pero se trata de un preprint sin revisión matemática independiente establecida, y la fuente no demuestra utilidad práctica."
     },
     "FCMO-8FADF99E8A28": {
       "claims": [
@@ -53305,6 +53436,48 @@
         "source_sha256": "d30a98a7a2f1484349d33f201c4f7f1720bfa6884d6756d9b3c96380e5b06b9d"
       }
     },
+    "FCMO-54F0C40DF774": {
+      "claims": {
+        "locale_sha256": "7e263e898cc0090b0d78b201908d0fbc7aecd2df93f02862eb15d2e7ab004207",
+        "source_sha256": "196af1c517f2934c9385edf74048bd5317115f6ccf7ba5c02d3920de08f7cae1"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "c4e66b714509d1e17a6e8967184714b7fa6874dce3c7ccc67e7c6281b6606888",
+        "source_sha256": "f3760c2cd0adfcda3c3f7d1fb126e7684db816b633320fcc3bf84c358683e805"
+      },
+      "importance_rationale": {
+        "locale_sha256": "c17af029199b75231c8980317bd5829cab19eeb0e07ff4caab85ed23a04b2667",
+        "source_sha256": "379947af86144e39be826e265fe502119129acde55c95baab8ec087c4c9d4aa0"
+      },
+      "limitations": {
+        "locale_sha256": "2f561e8e2fcf41a8d024be2d47c5c166c00d3442fde7e08c400eb6ea3a1378b5",
+        "source_sha256": "8ec77da7f39bcf8c456317e28c7be17bd991f2ed9cc2901c9ed126136f0804b8"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "3fbe158c6dbb102aba911a860eae20d33a292b1652b2d953c197265d093a1a94",
+        "source_sha256": "f5f5334a2d7b1fcc46fdbc6154173a33e045271fa8c553083eb08378a0a465bf"
+      },
+      "technical": {
+        "locale_sha256": "c0eac78e58005af13daf18a46b36839b191d269529bfb3f8f83be311e748771b",
+        "source_sha256": "ea4c916e56fd98d25aa06537d8ade13ce63bb04e46884c0c3be71eb2ba5faa8a"
+      },
+      "title": {
+        "locale_sha256": "a7576c3cbacb8dda9894336d259f0ce4216f6fd1182b8a584ea41c2fe021fe20",
+        "source_sha256": "48263cc9ee6795ed37333407a0b8f8bde52cab31c8f2cb9dde466f6a6efbbe47"
+      },
+      "why_it_matters": {
+        "locale_sha256": "6434fb4564e5b5fbe5d24dc369381e25466b13cab988ec05495daf24f5cabd78",
+        "source_sha256": "487084e15614f01ea12376c7fe11ce5e311317f8b9f9b04a55814c5b2feac48f"
+      }
+    },
     "FCMO-5557CC74BD5B": {
       "claims": {
         "locale_sha256": "d75f6f2e6965d80960e49f91ad40a23c4f9d6b144e7bf4cb402fe0686cfc425e",
@@ -60681,6 +60854,48 @@
       "why_it_matters": {
         "locale_sha256": "e0cd95e795ea542c74098fce9b635a348a9e2c70dd9ad065ccbb92dc028aff94",
         "source_sha256": "49d6a98ae188c698439bcc59a12e680ec67341542900e4abd33e5a8a44f70386"
+      }
+    },
+    "FCMO-8F8AE4B57EEC": {
+      "claims": {
+        "locale_sha256": "1f75588248b8007f1d065c54313ad6bb74264b74211f9c649c9e639d95633344",
+        "source_sha256": "6b2d2a7042bcc4be8da24e626583cdb8e2e9f9072f18e17278df2c4671e9bccf"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "e6c07b916313466cbf79afdeb08ea286e55f667d240704578a00288f6352e0ee",
+        "source_sha256": "8bd8fcdd86d80dde31b6b6011bc4f4f41793cc12c1da6e2f0178745394169f69"
+      },
+      "importance_rationale": {
+        "locale_sha256": "c194bee374f80a7caea9a868c3e9cca0b8264348add6ec20d55a2aff1c54836c",
+        "source_sha256": "26a1b5dffba8185a343fc7e5e8d817ece46bef61d80db57ca61862452da1ea05"
+      },
+      "limitations": {
+        "locale_sha256": "8f04dbf3d7d60e466318fc7af8c1ed9f1cba23ff5a141b635cd0aed4c6146aee",
+        "source_sha256": "bba23c8072434736e93e6a72185a5e618f622c96dc0bffe25b9e6b7f243e62ad"
+      },
+      "relationships": {
+        "locale_sha256": "da0ff1479f35478ec7a765cf792dfa51d37356b91e77f127a707c05618cd6f11",
+        "source_sha256": "aad9f758a93aac432b865beffc7f8f846ffdcf795419c13f5905465fa45168d1"
+      },
+      "summary": {
+        "locale_sha256": "4215748bff67dfe6f5ae6cc2ddf46743dbbca803eda5dcecb5997d86ae11fc01",
+        "source_sha256": "f3bc81d2d5deab9d321d7ae3781c6e61884a38e47496dc054e20b32f29af45a5"
+      },
+      "technical": {
+        "locale_sha256": "ff7e8794a76a9cd130060fa66ea45ec0c624112206d515f8acc274f780f626ff",
+        "source_sha256": "b89a5ba13809919d80460b294056a96045d9a3ed2bd6e0f7942d5b26e89cc6db"
+      },
+      "title": {
+        "locale_sha256": "bb68d80226fab6069b8fd6521ba0bc3d567e09bac49f2ee5447042ad22680301",
+        "source_sha256": "f1ed376fcf65577b735b62b87242a8fb6f0235ede754139d69e2bf29443e7882"
+      },
+      "why_it_matters": {
+        "locale_sha256": "c137734a74469cab9b3f7e1df84b655764e23fbd4c7bd8b9758ee6304dc41b4b",
+        "source_sha256": "6247e924958151a5b7c450ef59e58edf5caf09f6bfd1b39d6db1c37d90eb6961"
       }
     },
     "FCMO-8FADF99E8A28": {
