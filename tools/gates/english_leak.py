@@ -14,6 +14,10 @@ ENGLISH_WORDS = {
     "new", "not", "of", "on", "or", "our", "should", "that", "the", "their", "this", "to",
     "was", "we", "were", "what", "when", "which", "while", "will", "with", "without", "you",
 }
+SPANISH_WORDS = {
+    "el", "los", "las", "del", "de", "que", "y", "en", "por", "para", "con", "una", "se", "su", "sus",
+    "al", "fue", "como", "más", "entre", "sobre", "según", "porque", "pero", "también", "durante",
+}
 WORDS = re.compile(r"[^\W\d_]+(?:['’-][^\W\d_]+)?", re.UNICODE)
 BLOCKS = {"h1", "h2", "h3", "h4", "li", "p", "figcaption", "blockquote"}
 STRUCTURED_FIELDS = {"organizations", "models", "products", "source-domain", "quotation"}
@@ -101,6 +105,12 @@ def looks_english(text: str) -> bool:
     if len(words) < 4:
         return False
     hits = sum(word in ENGLISH_WORDS for word in words)
+    # A Spanish sentence that names an English title (a paper, a model card) is Spanish:
+    # its own function words outnumber the title's. Words ambiguous with English are not
+    # counted, and English prose has none of these, so unmarked English still fails.
+    spanish = sum(word in SPANISH_WORDS for word in words)
+    if spanish >= 3 and spanish >= hits:
+        return False
     # Three function words and a material fraction avoids flagging product names.
     return (hits >= 2 and hits / len(words) >= 0.40) or (hits >= 3 and hits / len(words) >= 0.18)
 
