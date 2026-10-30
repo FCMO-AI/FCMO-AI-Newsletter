@@ -7691,6 +7691,62 @@
       "title": "MemCalib mide si los agentes de lenguaje dan a los recuerdos almacenados la influencia adecuada",
       "why_it_matters": "Un sistema de memoria puede recuperar un dato pertinente y aun así darle demasiada o muy poca influencia. Las etiquetas por elemento Ignore/Bound/Control de MemCalib permiten medir este comportamiento y separar el uso excesivo de las omisiones. Los autores reportan mejoras de un método de entrenamiento en su benchmark y en un pequeño conjunto externo, pero los ejemplos son construidos y los jueces son modelos; no se ha establecido el desempeño en producción."
     },
+    "FCMO-2887BE11D4BC": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El registro v1 de arXiv identifica un artículo enviado el 2026-10-29 por Ziyi Guan, Yael Tauman Kalai, Ron Rothblum y Zoe Xi. El texto completo define las pruebas interactivas con retroceso (RIP), que permiten al verificador restaurar al modelo demostrador a un estado previo guardado y plantear nuevas preguntas desde allí."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores demuestran una RIP relativizante para circuitos robustos con oráculos: tras un preprocesamiento único, el Teorema 1.1 informal da un verificador con tiempo Õ(n+m+1/ε) y O(1/ε) consultas al oráculo, y un demostrador honesto con tiempo O(n+m+S)+Õ(1/ε); la probabilidad de aceptar un resultado incorrecto es como máximo 1/3 incluso frente a un demostrador tramposo sin límite computacional. La garantía requiere que el cálculo sea ε-robusto y que el verificador pueda restaurar el estado del demostrador."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una prueba de concepto con 50 circuitos derivados de MNIST y vistas dispersas aleatorias fijadas de antemano, los autores informan entre 74 y 80 consultas del verificador mientras el circuito crece hasta 2^26 vistas; en ese tamaño, el verificador tardó 0.12 veces lo que demoró la evaluación directa mediante consultas a una tabla. Los autores señalan que esto no representa una evaluación realista de supervisión escalable ni mide el preprocesamiento general."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para una carga de prueba BLAKE3, los autores informan que su conversión con retroceso del IOP de Flock tardó 1.8–2.1 veces más rápido que el demostrador SNARG de Flock en los tamaños probados, con medianas de tres ejecuciones en un solo núcleo Graviton 4. La comparación usa parámetros de seguridad interactiva modificados y un campo base de 64 bits que la versión publicada de Flock no ofrece."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que las pruebas con retroceso mejoren la supervisión de IA en producción, que el preprocesamiento general se amortice ni que el costo de guardar y restaurar el estado completo de un modelo conserve la eficiencia informada. En el caso MNIST más grande, el demostrador es aproximadamente 60 veces más lento que la evaluación directa mediante tabla y los experimentos suponen que retroceder no cuesta tiempo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación no hubo revisión independiente de la demostración ni reproducción fijada de la implementación de los autores.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los experimentos usan circuitos seleccionados y fijados de antemano y omiten el costo de guardar y restaurar el estado completo de un modelo real; tampoco miden el preprocesamiento general.",
+          "kind": "missing_artifact",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se verifica de forma independiente y llega a ser práctico, un protocolo de pruebas sólido que permita a un verificador débil comprobar cálculos robustos haciendo retroceder a un modelo no confiable podría mejorar la supervisión escalable sin suponer que el modelo dice la verdad ni depender de compromisos criptográficos. El resultado es una construcción teórica con experimentos de prueba de concepto acotados; no se ha establecido su utilidad en producción.",
+      "limitations": [
+        "Es un único preprint v1; en esta activación no se revisó ni reprodujo de manera independiente la prueba formal ni la implementación experimental.",
+        "El experimento MNIST es una prueba de concepto en 50 circuitos seleccionados con vistas dispersas aleatorias fijadas de antemano, no una evaluación realista de supervisión escalable. Los autores señalan que el verificador podría estimar esos resultados de mayoría sin un demostrador.",
+        "El experimento no mide ni amortiza el preprocesamiento requerido para circuitos generales. La implementación usa aperturas Ligero cuyo costo de verificación crece con la raíz cuadrada de la traza, en vez del comportamiento polilogarítmico del teorema.",
+        "En el caso MNIST más grande, el demostrador cuesta unas 60× más que la evaluación directa mediante tabla; el protocolo trata como gratuito guardar y restaurar el estado de un modelo real.",
+        "La comparación BLAKE3 usa parámetros interactivos modificados y tres ejecuciones en un núcleo; no mide costos de extremo a extremo bajo supuestos de seguridad equivalentes a los de producción."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo artículo presenta las pruebas interactivas con retroceso: el verificador puede restaurar al modelo que demuestra un resultado a un estado guardado de la interacción y continuar desde allí. Para cálculos robustos con oráculos, los autores demuestran un protocolo relativizante con verificador sucinto y demostrador honesto de tiempo lineal, sin presuponer que algún demostrador sea veraz ni recurrir a criptografía. El artículo incluye un experimento preliminar derivado de MNIST y una comparación con BLAKE3, pero aclara que no son una evaluación realista de supervisión escalable. Las mediciones usan circuitos seleccionados y cableados de antemano; siguen sin resolverse el costo de preprocesamiento general y el de restaurar el estado real de un modelo, por lo que no se demuestra un beneficio en supervisión desplegada.",
+      "technical": {
+        "claimed_result": "El Teorema 1.1 informal de los autores construye una RIP relativizante para circuitos con oráculos ε-robustos. Después del preprocesamiento, el verificador tarda Õ(n+m+1/ε) y hace O(1/ε) consultas; el demostrador honesto tarda O(n+m+S)+Õ(1/ε), con probabilidad de aceptar un resultado incorrecto de hasta 1/3 frente a un demostrador tramposo sin límite computacional. Los experimentos informan 74–80 consultas del verificador en circuitos seleccionados derivados de MNIST de hasta 2^26 vistas y una mejora de 1.8–2.1× en el demostrador de BLAKE3 frente a SNARG de Flock, con medianas de tres ejecuciones.",
+        "demonstrated_result": "La fuente primaria revisada es un preprint v1 que presenta una construcción formal y mediciones reportadas por sus autores. En esta activación no se verificó el teorema de manera independiente, no se reprodujo el código ni se midió la restauración integral del estado del modelo. Los autores describen los experimentos como una prueba de concepto.",
+        "mechanism": "El verificador guarda el estado de interacción del modelo demostrador cuando se fija una cadena de prueba y luego restaura ese estado para consultar partes de la cadena. Como la respuesta guardada no puede depender de mensajes posteriores del verificador, la capacidad de retroceder sustituye los compromisos criptográficos en el protocolo de los autores. La prueba cubre cálculos cuyo resultado tolera cambios en una pequeña fracción de respuestas al oráculo.",
+        "regime": "Prueba interactiva relativizante formal para circuitos booleanos con oráculos robustos, más una implementación en Rust evaluada en circuitos de mayoría derivados de MNIST y una carga de prueba BLAKE3 adaptada. El teorema supone que se puede restaurar el estado del demostrador; los experimentos no incluyen inferencia real de modelos ni el costo de copiar su estado.",
+        "strongest_baseline": "Para BLAKE3, los autores comparan su conversión RIP con el demostrador SNARG desplegado de Flock e informan 1.8–2.1× menos tiempo, con medianas de tres ejecuciones en un solo núcleo Graviton 4. La comparación modifica los parámetros de seguridad interactiva, la configuración del campo y el mecanismo de compromisos; es una comparación de implementación acotada, no una medición de costos de producción con supuestos equivalentes. En los circuitos MNIST seleccionados, la referencia es la consulta directa a la tabla: el verificador solo es más rápido en los tamaños máximos y el demostrador sigue siendo unas 60× más lento que esa evaluación directa."
+      },
+      "title": "Las pruebas con retroceso ofrecen otra vía para verificar cálculos robustos",
+      "why_it_matters": "Si se verifica de forma independiente y resulta práctico, poder retroceder un modelo controlado por el verificador podría ofrecer una nueva forma de comprobar ciertos cálculos robustos sin confiar en quien los demuestra ni usar compromisos criptográficos. El resultado formal se limita a cálculos robustos con oráculos; los experimentos no muestran que los costos reales de guardar y restaurar el estado de un modelo ni las tareas realistas mantengan la eficiencia informada."
+    },
     "FCMO-2890D6042567": {
       "claims": [
         {
