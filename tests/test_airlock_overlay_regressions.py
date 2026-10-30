@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from tools import validate_localizations as vl
+from tools import story_layer
 from tools.gates import english_leak
 
 
@@ -29,6 +30,18 @@ class SpanishSentenceNamingAnEnglishTitleTests(unittest.TestCase):
     def test_unmarked_english_prose_still_fails(self):
         self.assertTrue(english_leak.looks_english("This is English prose that remains a release defect."))
         self.assertTrue(english_leak.looks_english("The authors posted the preprint when we asked, and it is on the site de la"))
+
+
+class StoryLayerReadsObjectContradictoryEvidenceTests(unittest.TestCase):
+    """FCMO-6EAE0A44CEEB (2026-10-30): {description, source_ids} objects made the whole pair PENDING in both locales."""
+
+    def test_description_objects_are_read_as_text(self):
+        values = [{"description": " Uno. ", "source_ids": ["S1"]}, "Dos."]
+        self.assertEqual(story_layer._texts(values), ["Uno.", "Dos."])
+
+    def test_claims_still_read_their_text_key_and_blank_items_still_reject(self):
+        self.assertEqual(story_layer._texts([{"label": "CLAIMED", "text": "A."}]), ["A."])
+        self.assertIsNone(story_layer._texts([{"description": " "}]))
 
 
 if __name__ == "__main__":

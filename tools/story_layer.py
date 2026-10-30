@@ -356,7 +356,11 @@ def _texts(values: Any, key: str | None = None) -> list[str] | None:
         return None
     out = []
     for item in values:
-        text = item.get(key or "text") if isinstance(item, dict) else item
+        if isinstance(item, dict):
+            # contradictory_evidence objects carry {"description", "source_ids"} (airlock 2026-10-30).
+            text = item.get(key) if key else (item.get("text") or item.get("description"))
+        else:
+            text = item
         if not isinstance(text, str) or not text.strip():
             return None
         out.append(text.strip())
