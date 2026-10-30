@@ -1469,6 +1469,67 @@
       "title": "Un preprint mide errores correlacionados entre jueces LLM y muestra cuándo el consenso exagera la evidencia",
       "why_it_matters": "El acuerdo entre jueces LLM suele tratarse como señales independientes para evaluar modelos y datos de preferencias. Si los patrones se replican, los votos pueden exagerar la evidencia estadística y una regla única puede fallar cuando cambia la estructura de error. La correlación global no detecta ciertos fallos de subgrupo y los filtros probados no mejoran sistemáticamente a la mayoría. Las estimaciones se limitan a los jueces, tareas y calibraciones evaluados."
     },
+    "FCMO-06A1C0E3D9F0": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Un preprint v1 sobre VeriCUA: Learning Proactive Verification for Reliable GUI Agent Rewards se envió a arXiv el 2026-10-19; el artículo enlaza un repositorio de código de los autores."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que VeriCUA-4B alcanza 74.08% de concordancia promedio macro en OSWorld, MobileWorld y WebArena-Verified, frente a 68.72% de GPT-5.4 con ejemplos, y usa 47.6%–59.8% menos tokens de la sonda."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una comparación de aprendizaje por refuerzo de agente posterior, los autores reportan que Pass@4 sube de 43.93% con la política inicial a 47.14% usando recompensas del VeriCUA entrenado; el subconjunto MultiApp reservado sube de 17.57% a 22.97%."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El estudio no establece reproducción independiente, transferencia amplia más allá de los entornos y modelos evaluados, ni costo-efectividad en producción."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se revisó una reproducción independiente de la concordancia de referencia ni de las mejoras de aprendizaje por refuerzo del agente posterior.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La reducción reportada cuenta tokens de la sonda; no combina tokens del juez, cómputo de SFT y RL, costo del entorno ni precios completos de servicio.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Las afirmaciones dependen de conjuntos de evaluación y etiquetas ejecutables seleccionados; no se establecen la transferencia ni el efecto sobre recompensas fuera del agente y entornos reportados.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, un verificador que aprende a seleccionar comprobaciones de estado útiles y detenerse oportunamente podría mejorar la fiabilidad de las recompensas de agentes GUI y las políticas que se entrenan con ellas. Las mejoras reportadas abarcan tres entornos de evaluación y un experimento acotado de entrenamiento posterior, pero siguen siendo afirmaciones de un solo artículo y una configuración de entrenamiento.",
+      "limitations": [
+        "Los resultados provienen de un preprint v1 de los autores; no se realizó una reproducción ni auditoría externa.",
+        "La evaluación del verificador abarca 414 trayectorias de OSWorld, 100 de MobileWorld y 100 de WebArena-Verified seleccionadas mediante seis reejecuciones estables; no constituyen una muestra amplia de producción.",
+        "El verificador se entrena con 280 tareas de OSWorld. La transferencia se reporta únicamente en los conjuntos seleccionados de MobileWorld y WebArena-Verified.",
+        "El resultado de aprendizaje posterior corresponde a una política Qwen3-VL-4B-Thinking en 206 tareas de OSWorld; no demuestra efectos con otros agentes, distribuciones de tareas o sistemas de producción.",
+        "La comparación de ahorro de tokens de la sonda no incluye el costo total de tokens del juez, entrenamiento, infraestructura ni precios de modelos. El apéndice señala que la facturación y tokenización dificultan una comparación completa.",
+        "Se inspeccionaron el repositorio público y sus instrucciones, pero no se ejecutaron; tampoco se descargaron los pesos enlazados."
+      ],
+      "relationships": [],
+      "summary": "Un artículo distinto de arXiv del 19 de octubre, 2610.26469, presenta VeriCUA como un agente de recompensas de GUI que aprende; no es el artículo posterior del 29 de octubre con el mismo acrónimo y otros autores (arXiv:2610.40578). Un juez entrenable selecciona comprobaciones y decide cuándo detenerse, mientras una sonda fija inspecciona el estado activo de la interfaz. Los autores reportan mayor concordancia que verificadores pasivos y basados en instrucciones en OSWorld, MobileWorld y WebArena-Verified, además de una mejora acotada en el aprendizaje posterior del agente. El artículo enlaza código y detalles de configuración, pero no se realizó una reproducción independiente. La comparación de tokens cuenta el uso de la sonda, no el costo total del juez, el entrenamiento o la infraestructura.",
+      "technical": {
+        "claimed_result": "Los autores reportan una concordancia promedio macro de 74.08% para VeriCUA-4B en OSWorld, MobileWorld y WebArena-Verified, frente a 68.72% para GPT-5.4 con ejemplos, usando 47.6%–59.8% menos tokens de la sonda. Tras entrenarse solo en OSWorld, VeriCUA-4B y VeriCUA-1B ocupan el primer y segundo lugar en los dos entornos no vistos. En una comparación de aprendizaje por refuerzo de agente posterior, Pass@4 sube de 43.93% para la política inicial Qwen3-VL-4B-Thinking a 47.14% al usar recompensas del verificador entrenado; el subconjunto MultiApp reservado sube de 17.57% a 22.97%.",
+        "compute_or_cost": "La reducción reportada de 47.6%–59.8% cuenta únicamente los tokens de la sonda. El Apéndice D indica que no incluye los tokens del juez en la misma comparación porque las familias de modelos y los conteos de razonamiento informados por proveedores no son comparables. El RL del juez usa ocho GPU NVIDIA A800-SXM4 para actualizaciones y ocho GPU adicionales para generación de ejecuciones; el SFT usa ocho GPU. El artículo no demuestra el costo total de entrenamiento o servicio.",
+        "demonstrated_result": "El registro de arXiv demuestra que los autores enviaron el 2026-10-19 un artículo v1 que describe este método. Esta revisión no reprodujo de forma independiente los resultados de rendimiento ni de aprendizaje posterior que reportan.",
+        "mechanism": "Un juez entrenable propone comprobaciones de éxito y decide si la evidencia permite declarar éxito, fallo o incertidumbre. Si persiste la incertidumbre, una sonda fija inspecciona el estado activo de la interfaz gráfica y devuelve evidencia sobre los requisitos no resueltos. El juez se inicializa con trazas docentes filtradas y luego se entrena en línea con REINFORCE++ usando resultados ejecutables y una recompensa que considera la corrección del veredicto y el uso de la sonda. Durante el entrenamiento, cada estado terminal del agente permite un solo intento de verificación.",
+        "novelty": "La contribución que describe el artículo es aprender la estrategia de verificación —qué inspeccionar y cuándo detenerse— bajo la restricción de un intento por estado terminal, y después usar el verificador entrenado como proveedor de recompensas para RL. Otro artículo del 29 de octubre usa el mismo acrónimo para un marco distinto de verificación en línea y fuera de línea.",
+        "regime": "La evaluación del verificador usa 414 trayectorias de OSWorld, 100 de MobileWorld solo GUI y 100 de WebArena-Verified. Los autores conservan trayectorias cuyas seis reejecuciones desde una instantánea limpia concuerdan en el resultado ejecutable y superan un umbral de similitud de capturas finales. El juez se entrena solo con 280 tareas de OSWorld y se evalúa sin reentrenamiento en MobileWorld y WebArena-Verified. El aprendizaje posterior del agente usa una política Qwen3-VL-4B-Thinking en 206 tareas de OSWorld de una sola aplicación. Son configuraciones informadas por los autores en un único artículo.",
+        "reproducibility": "El artículo enlaza un repositorio público de GitHub con código, scripts de evaluación e instrucciones de entrenamiento, e incluye detalles de prompts y configuración. El README del repositorio señala que los pesos se publicarán en Hugging Face. En esta revisión solo se inspeccionaron el README y el artículo; no se clonó ni ejecutó el código, no se descargaron los pesos ni se reprodujeron los resultados.",
+        "strongest_baseline": "Para concordancia, el artículo compara con GPT-5.4 con ejemplos, jueces guiados por instrucciones y verificadores pasivos/activos en los mismos conjuntos de evaluación; cada veredicto se coteja con etiquetas de resultado ejecutables. En el aprendizaje por refuerzo posterior, las fuentes de recompensa inicial, ZeroGUI y VeriCUA con instrucciones usan el mismo agente, conjunto de tareas, presupuesto de ejecuciones y ajustes de optimización; solo cambia el proveedor de recompensas."
+      },
+      "title": "El VeriCUA anterior reporta verificación de GUI aprendida y mejoras en recompensas",
+      "why_it_matters": "Las recompensas de entrenamiento dependen de distinguir tareas completadas de intentos plausibles pero incompletos. Este artículo reporta cómo aprender qué evidencia consultar y cuándo detenerse, con transferencia informada a dos interfaces no vistas durante el entrenamiento y mejores resultados posteriores de política. Se trata de un estudio acotado de los autores y no establece transferencia general ni impacto en producción."
+    },
     "FCMO-06D643023122": {
       "claims": [
         {
@@ -21468,6 +21529,72 @@
       },
       "title": "La planificación diferenciable neuro-simbólica conecta la incertidumbre visual con planes sujetos a reglas",
       "why_it_matters": "El método aborda un problema real de interfaz en la planificación encarnada: una separación rígida entre percepción y planificación impide que el razonamiento posterior corrija relaciones visuales inciertas. Su propagación suave, sujeta a reglas, conserva la incertidumbre y devuelve gradientes de la tarea a la percepción. Los avances informados son prometedores en dominios simbólicos compactos, pero no establecen rendimiento con percepción de mundo abierto, esquemas complejos de acciones ni ejecución física de robots."
+    },
+    "FCMO-744436767194": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El preprint v1 que describe VeriCUA se envió a arXiv el 2026-10-29."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan mayor concordancia con ciertos métodos comparados en varias evaluaciones en línea y fuera de línea de verificación de agentes que usan computadoras, con hallazgos de evidencia vinculados a sus fuentes y una opción para abstenerse."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan un uso sustancialmente mayor de llamadas de modelo y tokens que con un único juicio; en la modalidad fuera de línea, los requisitos no resueltos pueden recibir como alternativa un juicio inicial de un modelo visual."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece una reproducción independiente, transferencia más allá de los conjuntos de datos y configuraciones evaluados, ni mejoras en el entrenamiento de agentes al utilizar las etiquetas de VeriCUA."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó una reproducción independiente de las comparaciones de referencia reportadas.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "No se verificó una implementación pública ni un artefacto ejecutable; tampoco se auditó de forma independiente el uso reportado de llamadas y tokens.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no establece que las etiquetas con fuentes explícitas se transfieran al aprendizaje de políticas; en la modalidad fuera de línea, la alternativa puede emitir un juicio aunque falte evidencia concluyente.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce más allá de estos entornos evaluados, la verificación activa que reúne evidencia del estado y se abstiene cuando esta es insuficiente podría mejorar la selección de trayectorias de uso de computadora para evaluación, curación de datos y asignación de recompensas. El resultado actual proviene de un único estudio v1 de los autores y requiere muchas más llamadas y tokens para lograr mayor concordancia.",
+      "limitations": [
+        "Es un único preprint v1 con resultados informados por sus autores; no se revisó una reproducción independiente ni una evaluación en producción.",
+        "Las evaluaciones usan conjuntos de datos seleccionados, verificadores oficiales o etiquetas humanas existentes, y configuraciones específicas de modelos e interfaces; no demuestran un rendimiento general de verificación para el uso de computadoras.",
+        "El procedimiento fuera de línea puede recurrir a un juicio visual inicial del modelo cuando la exploración no resuelve algún requisito; por ello, abstenerse no elimina todos los juicios alternativos sin evidencia suficiente.",
+        "El artículo reporta un uso de tokens y una latencia sustancialmente mayores que los de un juicio único, lo que podría limitar su uso fuera del filtrado o la asignación de recompensas.",
+        "El trabajo no mide si las etiquetas del verificador mejoran el aprendizaje posterior de agentes ni el éxito de tareas operativas."
+      ],
+      "relationships": [
+        {
+          "summary": "Un artículo distinto del 19 de octubre, de otro grupo de autores, usa el mismo acrónimo VeriCUA para un agente de recompensas de GUI con un juez y una sonda entrenables (arXiv:2610.26469). El nombre compartido no significa que sean el mismo evento o versiones de un mismo trabajo.",
+          "target_id": "FCMO-06A1C0E3D9F0",
+          "type": "related"
+        }
+      ],
+      "summary": "Un artículo distinto de arXiv del 29 de octubre, 2610.40578, de autores afiliados a Google y The University of Hong Kong presenta VeriCUA, un marco multiplataforma. Un artículo anterior del 19 de octubre, de otro grupo de autores, usa el mismo acrónimo para un verificador de recompensas de GUI que aprende; son trabajos separados. El marco posterior reúne evidencia mediante comprobaciones gráficas y de código, vincula los hallazgos con fuentes observadas y puede abstenerse cuando la evidencia no resuelve un requisito. En cinco configuraciones de evaluación, los autores reportan mayor concordancia con las etiquetas de referencia que ciertos verificadores comparados. Los resultados son de los autores y se limitan a los entornos y modelos estudiados; los casos fuera de línea sin resolver pueden recurrir a un juicio inicial de un modelo visual y el artículo informa costos de tokens y llamadas muy superiores a los de un solo juicio.",
+      "technical": {
+        "claimed_result": "El artículo informa mayor concordancia que ciertos métodos comparados en tareas en línea de AndroidWorld, OSWorld y ScienceBoard, y en trayectorias fuera de línea de OSReward, WebArena, AndroidWorld y OSWorld. La precisión en línea reportada es 90.5% frente a 78.4% para un evaluador visual en AndroidWorld, 79.5% frente a 73.4% en OSWorld y 86.4% frente a 71.6% en ScienceBoard; el verificador se abstiene en 18–30% de estos episodios. La precisión fuera de línea reportada es 70.4% en OSReward-Hard, 87.2% en OSReward completo, 82.7% en WebArena, 94.3% en AndroidWorld y 86.3% en OSWorld.",
+        "compute_or_cost": "El Apéndice C.5 informa 150K–208K tokens por trayectoria fuera de línea de WebArena y 345K–378K por trayectoria de OSReward, frente a 25K–61K tokens para los grupos indicados de tres evaluadores. En la primera prueba en línea de AndroidWorld, VeriCUA usa 39.2K tokens y tarda 97 segundos por episodio, frente a 16.2K tokens y 60 segundos para el verificador generado. El Apéndice E caracteriza el método como uno que requiere aproximadamente un orden de magnitud más de llamadas que un evaluador de una sola llamada.",
+        "demonstrated_result": "El registro de arXiv demuestra que los autores enviaron el 2026-10-29 un artículo v1 que describe este método. Esta revisión no demuestra de manera independiente los resultados de evaluación que reportan.",
+        "mechanism": "VeriCUA inspecciona el contexto de la tarea, construye una rúbrica de requisitos obligatorios y complementarios, y después selecciona de forma adaptativa comprobaciones gráficas o de código para los requisitos aún no resueltos. Vincula cada hallazgo con una lectura ejecutada y atributos de su fuente, como si la evidencia fue afirmada u observada, si un fotograma corresponde a antes o después de una acción y si el estado de la máquina es persistente o volátil. Una adjudicación basada en reglas puede dar éxito, fallo o abstención.",
+        "novelty": "El artículo presenta un flujo común para verificación en línea y fuera de línea que adapta la recopilación de evidencia y registra sus fuentes en interfaces gráficas, trayectorias grabadas y estados accesibles de la máquina. Un artículo distinto del 19 de octubre, escrito por otro grupo, usa el mismo acrónimo VeriCUA para un agente de recompensas de GUI con un juez y una sonda entrenables; el presente artículo no es una revisión de ese trabajo.",
+        "regime": "Evaluación informada por los autores con Gemini 3 Flash como modelo principal del verificador y como agente ejecutor en los entornos en línea: AndroidWorld (116 episodios), OSWorld en línea (361), ScienceBoard (169) y trayectorias grabadas de OSReward y WebArena. El conjunto WebArena combina 715 ejecuciones de tres agentes. Es un artículo v1; los resultados se limitan a los conjuntos de datos, etiquetas, interfaces y configuraciones indicados.",
+        "reproducibility": "No se realizó una reproducción independiente. Se revisaron la página del artículo en arXiv y su versión HTML; en esta revisión no se verificó un enlace a implementación pública ni un artefacto ejecutable. No se volvieron a ejecutar las evaluaciones ni las llamadas a modelos.",
+        "strongest_baseline": "El artículo compara ciertos evaluadores visuales de una llamada, scripts generados para revisar el estado en línea y CUAJudge/OS-Themis fuera de línea. Son las configuraciones implementadas por los autores; el Apéndice B indica que OS-Themis usa un presupuesto reducido de cuatro hitos y ocho fotogramas, frente a los seis y doce de su versión original."
+      },
+      "title": "Google y HKU presentan verificación de evidencia para agentes que usan computadoras",
+      "why_it_matters": "La calidad de la verificación determina qué trayectorias de agentes se aceptan para evaluación, curación de datos y asignación de recompensas. VeriCUA reporta un método que reúne evidencia y reconoce sus fuentes en entornos de uso de computadora, tanto en línea como fuera de línea, y expone el costo práctico de ese enfoque. El preprint no establece una reproducción independiente, una transferencia general ni mejoras posteriores en el aprendizaje de agentes."
     },
     "FCMO-7445DAC8132B": {
       "claims": [
