@@ -30848,6 +30848,62 @@
       "title": "Bennet y Welch proponen una agencia federal con autoridad para revisar modelos de IA antes de su lanzamiento",
       "why_it_matters": "Si se promulgara como se describe, la propuesta añadiría revisión federal previa y una facultad de pausa para algunos modelos de frontera, lo que cambiaría la planificación de cumplimiento y la vía al mercado. Por ahora solo consta el anuncio de dos senadores; se desconocen la probabilidad de aprobación y los detalles jurídicos operativos."
     },
+    "FCMO-B036440F69F2": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan una colección de 1,788 ejecuciones de ajuste fino y 405 de servicio en GPU NVIDIA L40S, A100, H100 y H200, con telemetría de potencia del dispositivo a intervalos nominales de 100 ms y metadatos de configuración y eventos de cada ejecución."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para las configuraciones medidas, los autores reportan un error mediano de aproximadamente 2.7% en la potencia media del nodo y errores de 1.3% a 6.1% en conjuntos de prueba retenidos. Son resultados reportados en el artículo y no se reprodujeron de manera independiente aquí."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores describen un explorador público con trazas de referencia seleccionadas y señalan que el conjunto de datos completo se publicará después de la aceptación. En esta revisión no se inspeccionó la colección completa de datos sin procesar."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El preprint no demuestra reproducción independiente, generalización más allá de las GPU y cargas de trabajo medidas, consumo eléctrico de instalaciones, efectos en la red eléctrica ni un método validado para convertir trazas de dispositivo en consumo del sitio."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Se indica que el conjunto completo de trazas sin procesar se publicará después de la aceptación; el explorador accesible solo describe trazas públicas de referencia seleccionadas. Durante esta revisión, el punto de acceso al código anonimizado respondió con error HTTP 403.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "No se encontró ni se realizó una reproducción independiente de los ajustes del modelo o de los resultados de recopilación de datos reportados.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Las trazas reportadas corresponden a mediciones en GPU para configuraciones seleccionadas de entrenamiento y servicio; no se midieron la potencia de servidores, la refrigeración, la carga de las instalaciones ni la respuesta de la red eléctrica.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se sostienen las trazas y los ajustes del modelo de potencia reportados, las mediciones temporales de cargas de entrenamiento y servicio podrían mejorar la contabilidad energética de GPU y la programación del cómputo de IA. El estudio se limita a GPU NVIDIA y regímenes seleccionados de software y cargas de trabajo; quedan preguntas abiertas sobre medición y validación externa, y no se establecen efectos a nivel de instalaciones o de la red eléctrica.",
+      "limitations": [
+        "Es un preprint de arXiv con resultados reportados por sus autores; en esta revisión no se reprodujeron de manera independiente.",
+        "El artículo señala que los datos completos se publicarán después de la aceptación; la colección completa sin procesar no estaba disponible para inspección aquí.",
+        "Los errores de ajuste reportados corresponden a configuraciones evaluadas; el artículo describe errores mayores durante transitorios de aumento de potencia y para un modelo fuera de la familia evaluada.",
+        "Las trazas de GPU no demuestran el consumo eléctrico de servidores o instalaciones, la carga de refrigeración ni efectos en la red eléctrica."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv del 28 de octubre presenta LLM-PowerTrace, una colección reportada de trazas de potencia de GPU para ajuste fino y servicio de modelos. Los autores describen 1,788 ejecuciones de ajuste fino y 405 de inferencia en GPU NVIDIA L40S, A100, H100 y H200, con telemetría del dispositivo a intervalos nominales de 100 ms, y reportan errores de ajuste de potencia media en porcentajes bajos de un dígito para los regímenes evaluados. Indican que el conjunto de datos completo se publicará después de la aceptación; el explorador descrito actualmente muestra trazas de referencia seleccionadas. El preprint no demuestra reproducción independiente, mediciones de energía a nivel de instalaciones ni efectos en la red eléctrica.",
+      "technical": {
+        "claimed_result": "Los autores reportan 1,788 ejecuciones de ajuste fino y 405 de servicio en cuatro familias de GPU NVIDIA, telemetría nominal de 100 ms, un error mediano de alrededor de 2.7% en el ajuste de potencia media del nodo y errores de 1.3–6.1% en las condiciones evaluadas. Estos valores provienen del artículo y no deben extrapolarse fuera de las configuraciones medidas.",
+        "demonstrated_result": "El preprint de arXiv accesible presenta el diseño del conjunto de datos y los resultados reportados. El conjunto completo no estuvo disponible para inspección y no se hicieron mediciones ni reproducciones independientes.",
+        "mechanism": "El artículo registra telemetría de GPU sincronizada en el tiempo durante ejecuciones seleccionadas de ajuste fino y servicio con vLLM, y ajusta modelos que relacionan las características de la carga de trabajo y su configuración con la potencia media de la GPU. Propone extensiones para programar el cómputo según la potencia; en esta revisión no se reprodujeron el método de recopilación ni el proceso de modelado.",
+        "regime": "Cargas seleccionadas de ajuste fino e inferencia en NVIDIA L40S, A100, H100 y H200, incluidas ejecuciones de servicio con vLLM; telemetría nominal de potencia de GPU a 100 ms. El artículo identifica como limitaciones los transitorios de potencia y los modelos fuera de la familia evaluada. No mide la potencia total de servidores o instalaciones.",
+        "strongest_baseline": "El artículo compara sus estimaciones ajustadas con las mediciones de potencia de sus datos retenidos para prueba. En esta revisión no se inspeccionó una comparación independiente con otro modelo o con medidores externos de instalaciones."
+      },
+      "title": "LLM-PowerTrace: trazas temporales de potencia de GPU para el cómputo de IA",
+      "why_it_matters": "Las trazas de potencia con resolución temporal podrían mejorar las estimaciones del consumo energético de aceleradores y ayudar a evaluar la programación de cargas de trabajo, si se sostienen la cobertura y la precisión del ajuste reportadas. La evidencia se limita a GPU seleccionadas y a regímenes específicos de software y cargas de trabajo; no demuestra consumo energético de servidores o instalaciones ni consecuencias para la red eléctrica."
+    },
     "FCMO-B0C0165FEDD8": {
       "claims": [
         {
@@ -40462,6 +40518,67 @@
       },
       "title": "Un referente de investigación informa fallas de integridad en agentes de IA que intentan continuar trabajos científicos",
       "why_it_matters": "El referente examina la diferencia entre redactar un artículo de investigación con IA y producir un seguimiento completo, científicamente orientado y respaldado por ejecución verificable. Si los hallazgos se mantienen, la integridad y la trazabilidad de la evidencia son obstáculos centrales para los agentes de investigación autónoma. El resultado se limita a 15 tareas computacionales y una calificación automatizada; el total de entregas incluye cuatro ejecuciones de GLM-5.3 que no produjeron un PDF."
+    },
+    "FCMO-EDF4FE4B76B7": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que analizaron 45 sesiones reales del modo agente de VS Code Copilot de una sola persona, entre 23 April y 5 October de 2026, con 102,233 registros de transcripción y 20,577 ejecuciones de herramientas. El corpus original es privado y no se inspeccionó en esta revisión."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con su clasificador final auditado basado en reglas, los autores reportan una estimación corregida por sesgo de 23.4% de episodios de edición de código sin una comprobación independiente registrada tras la última edición (IC del 95%: 17.1–35.7). El resultado describe el corpus y el clasificador del artículo, no la prevalencia poblacional."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que 186 de 322 tareas pendientes vinculadas a ediciones (57.8%) y marcadas como completadas no tuvieron una verificación registrada entre la última edición de código y el estado de finalización. Su definición incluye comprobaciones de ejecución e interfaz, no solo pruebas formales."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el mismo corpus, los autores reportan que el registro local, sin contenido y encadenado mediante hashes ocupó cerca de 20% del tamaño de las transcripciones originales, permitió la reproducción determinista y detectó una prueba de manipulación. En esta revisión no se reprodujeron de manera independiente ni la implementación ni su rendimiento."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que las tasas reportadas se generalicen a otros desarrolladores, productos de agentes o dominios de trabajo; que la etiqueta de verificación implique corrección; ni que mostrar la interfaz propuesta cambie las decisiones de supervisión. El corpus privado no se publicó."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El estudio utiliza el historial de sesiones de VS Code Copilot de una sola persona. No se encontró una reproducción independiente con varios desarrolladores; los autores presentan el trabajo como un piloto, no como una estimación poblacional.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo describe scripts del prototipo y resultados agregados congelados, pero en esta revisión no se ejecutó el prototipo ni se reprodujeron el tamaño del registro, el rendimiento, la clasificación o la detección de manipulaciones.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "Una comprobación independiente registrada no equivale a corrección, y el artículo no mide si su interfaz propuesta mejora las decisiones de supervisión.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se generalizan las brechas observadas y el registro de evidencia de bajo costo, las interfaces de finalización y el historial duradero de agentes de programación podrían basarse en pruebas independientes en lugar del estado reportado por el agente. El corpus empírico proviene de una persona que usa un solo producto de agente de VS Code, por lo que no se establece la prevalencia poblacional ni el impacto operativo en otros contextos.",
+      "limitations": [
+        "El corpus contiene 45 sesiones de una persona y un producto: el modo agente de VS Code Copilot. Los hallazgos no establecen prevalencia poblacional.",
+        "El clasificador de pruebas se basa en reglas. La auditoría final de precisión muestreó 30 episodios por etiqueta, y la estimación reportada depende de la versión del clasificador y de la definición de verificación.",
+        "Los autores definen la verificación como una comprobación independiente después de la última edición; esto no demuestra que el cambio sea correcto.",
+        "El corpus de sesiones es privado y no se publicó; en esta revisión no se realizó una reproducción independiente de los resultados empíricos ni del prototipo."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de arXiv del 29 de octubre presenta Soei, un diseño de observabilidad para la procedencia y la verificación, junto con un estudio piloto de un prototipo aplicado a 45 sesiones reales del modo agente de VS Code Copilot de una sola persona. Los autores reportan 102,233 registros y 20,577 ejecuciones de herramientas. Su clasificador auditado basado en reglas estima, tras corregir el sesgo, que 23.4% de los episodios de edición de código terminaron sin una comprobación independiente después de la última edición (IC del 95%: 17.1–35.7); 57.8% de las tareas pendientes vinculadas a ediciones y marcadas como completadas no tuvieron una comprobación registrada entre la última edición y el cierre. Los autores también informan que su registro de contenido excluido y encadenado mediante hashes ocupó cerca de 20% del tamaño de las transcripciones originales y detectó una prueba de manipulación. El corpus privado no se publicó. Son resultados reportados por los autores en un piloto de una sola persona, no estimaciones poblacionales ni evidencia de que una comprobación clasificada demuestre corrección.",
+      "technical": {
+        "claimed_result": "En 45 sesiones del modo agente de VS Code Copilot de una persona, los autores reportan que 23.4% de episodios con edición de código terminó sin una comprobación independiente registrada después de la última edición (IC del 95% corregido por sesgo: 17.1–35.7) y que 186/322 tareas editadas y marcadas como completadas (57.8%) carecían de una acción de verificación entre la edición y el cierre. Son resultados reportados por los autores y específicos de ese corpus y clasificador.",
+        "demonstrated_result": "Se inspeccionaron el preprint v1.2 de arXiv y sus métodos, tablas y limitaciones. En esta revisión no se accedió a transcripciones privadas ni se ejecutó el prototipo, se hicieron etiquetas independientes o se reprodujeron los resultados.",
+        "mechanism": "Soei propone eventos normalizados con estado de acuse, un registro local de solo anexado y encadenado mediante hashes, un grafo de evidencias y un verificador que distingue el informe de finalización del agente de las pruebas observadas. El prototipo piloto de los autores agrega eventos registrados para reconstruir la procedencia de artefactos y aplica un clasificador versionado basado en reglas; en esta revisión no se ejecutó el prototipo.",
+        "regime": "Historial real de sesiones del modo agente de VS Code Copilot de una persona, entre April y October de 2026: 45 sesiones, 102,233 registros originales, 20,577 ejecuciones de herramientas y 2,336 episodios de interacción humana-agente. Es un corpus privado de una sola persona; no se estudiaron otros productos, usuarios ni dominios.",
+        "reproducibility": "El artículo describe un prototipo basado solo en la biblioteca estándar, resultados agregados congelados, scripts de figuras y hojas de auditoría. El corpus fuente no se comparte porque es el historial privado de trabajo de los autores e incluye material sensible. En esta revisión no se ejecutaron los artefactos ni se reprodujeron los resultados.",
+        "strongest_baseline": "En el artículo, los autores comparan cuatro versiones sucesivas del clasificador e informan auditorías a ciegas de 30 episodios por etiqueta muestreada; la tasa sin verificación cambia de 42.1% en v1 a 25.1% en v4 y luego a una estimación corregida por auditoría de 23.4%. No se examinó una comparación de un equipo independiente."
+      },
+      "title": "Soei: un preprint mide brechas de verificación en las sesiones de un agente de programación",
+      "why_it_matters": "Si se replica con distintos desarrolladores y productos de agentes, vincular las pruebas a versiones de artefactos podría ayudar a los supervisores a distinguir entre la afirmación de que un agente terminó y una comprobación que realmente se ejecutó. El estudio aporta mediciones concretas y un prototipo en el flujo de trabajo de una persona, pero no establece prevalencia en equipos ni demuestra que el sistema propuesto mejore las decisiones humanas."
     },
     "FCMO-EEA068A9FCB5": {
       "claims": [
