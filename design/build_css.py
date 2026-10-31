@@ -116,6 +116,16 @@ def main() -> int:
             problems.append("paper.css token region is not generated from design/tokens.json")
     else:
         OUTPUT.write_text(synced, encoding="utf-8")
+    d_path = ROOT / "site-src/assets/css/d/d-base.css"
+    d_current = d_path.read_text(encoding="utf-8")
+    begin, end = "/*d-tokens:begin*/", "/*d-tokens:end*/"
+    region = begin + "\n:root{" + ";".join(f"--d-{k}:{v}" for k, v in tokens["d"]["color"].items()) + "}\n" + end
+    d_synced = d_current[:d_current.index(begin)] + region + d_current[d_current.index(end)+len(end):]
+    if args.check:
+        if d_synced != d_current:
+            problems.append("D tokens are not generated from design/tokens.json")
+    else:
+        d_path.write_text(d_synced, encoding="utf-8")
     css = synced
     if problems:
         print("CSS FAIL: " + "; ".join(problems), file=sys.stderr)

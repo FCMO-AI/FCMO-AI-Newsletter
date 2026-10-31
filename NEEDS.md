@@ -763,3 +763,150 @@ para respetar la compuerta pública `NO_MACHINE_PATHS`.
 - `Hub:disciplines/COMMUNICATION.md`: comunicar en español la causa, el resultado y la frontera no verificada sin presentar trabajo local como publicación.
 - `Hub:governance/KNOWLEDGE_FRESHNESS.md`: un digest posterior no invalida una corrección ya admitida; conservar la versión histórica y distinguir el corpus recibido del publicado.
 - `Hub:ecosystem/repositories.json`: confirmó la autoridad local de Newsletter pese al preámbulo genérico de Claudex; las pruebas y contratos aplicados son los de este repo.
+# nl-d-core
+
+## Límite de entrega
+
+Núcleo D implementado desde registros reales, sin despliegue. No se declara coincidencia 1:1 ni preparación para producción: falta inspección de navegador y juicio visual de Claude contra R4. No hay Playwright ni Chromium instalados accesibles; el ejecutor de captura devuelve `BROWSER_UNAVAILABLE`, salida 2. No se instalaron dependencias ni se usó red.
+
+## Continuación exacta de las capturas
+
+Desde la raíz del worktree, con un Playwright **ya instalado** en el host:
+
+```sh
+python3 tools/paper/build.py --stories contracts/fixtures/stories.v2.json --status contracts/fixtures/newsroom-status.fresh.json --editorial tests/fixtures/editorial --out /tmp/nl-d-core-fixture-site --base /paper/
+PLAYWRIGHT_MODULE=/ruta/absoluta/al/playwright/index.js python3 tests/test_d_visual.py --site /tmp/nl-d-core-fixture-site --base /paper/ --capture design/d-libro/capturas/core
+```
+
+La batería usa intercepción de archivos locales, sin servidor ni acceso externo. Captura EN/ES/中文 a 1440/390/320, cada tipo disponible de página, PNG ≤400 KB (recorte vertical sin reescalar). Comprueba desbordamiento horizontal, encabezado, nav/pie, controles de 44 px, menú móvil, búsqueda y recursos ausentes. Guarda `battery.json`; cualquier fallo devuelve salida 1. Sus pruebas unitarias verifican el plan, **no** que el navegador o el diseño hayan pasado. Comparar cada PNG con R4-portada, R4-historia, R4-archivo, R4-metodo y R4-movil-portada y corregir proporciones sólo después de observarlas.
+
+## Integración fuera de propiedad
+
+- **Plates — integrador / propietario de `tools/paper/plates.py` y activos.** El contrato pide reutilizar `plates.py`, y se cumplió. El proveedor existente genera SVG procedurales abstractos, con acentos naranjas propios; el raster de referencia muestra material fotográfico. La diferencia queda para el juicio visual contra R4: no se fingió equivalencia ni se inventó autorización para nuevos activos. Si ese juicio exige cambiar el proveedor, corresponde al propietario de plates y activos, fuera de este carril.
+- **Cartas — nl-d-cartas + integrador.** La portada continúa usando las salidas reales de `essays.render_shelf` y `render_issue_shelf`; no se inventaron tarjetas. La salida Ghost sin edición localizada no entra en la portada. El nuevo índice `/letters/` evita un destino muerto en el nav y utiliza ese mismo contenido publicado, con estado vacío localizado. Integrar `render_letters_shelf(letters, locale_code)` cuando el otro carril concrete módulo y estructura de datos; sustituir sólo la composición de tarjetas/índice, preservando autorización y localización. `tools/paper/redirects.py:LEGACY_FRONT_ROUTES` aún contiene `cartas/`: decidir y corregir ahí si el índice D final será `/cartas/`, para que el escritor final no lo sobrescriba con la redirección heredada. Este archivo y los del otro carril no se tocaron.
+- **Relaciones de evidencia — propietario del esquema/datos.** El registro actual contiene listas de afirmaciones y fuentes, sin aristas por afirmación. `.d-claims-sources` presenta ambas listas completas sin inventar atribuciones individuales; el mapa agrupa fuentes, afirmaciones y huecos reales. Un grafo de relaciones 1:1 requiere aristas explícitas verificables en el esquema, ingestión y fixtures. No inferirlas por posición ni conectar cada fuente con cada afirmación como si estuviera demostrado.
+- **Oráculos anteriores — integrador de pruebas.** El contrato D exige retirar Source Serif y el layout C6 anterior. No se modificó ni debilitó ninguna prueba existente. `test_paper_build` todavía exige tres precargas tipográficas; D precarga las dos familias autorizadas. Los oráculos C6 que busquen estructura/medidas del diseño sustituido requieren una decisión de contrato y nuevos oráculos D, manteniendo intactos privacidad, localización, atribución y frescura. Se detallarán abajo los resultados exactos.
+- **Generador CSS — integrador.** `python3 design/build_css.py --check` falla por `paper.css exceeds 114688 bytes` tanto en `origin/main` como en este carril. Los tokens D sí están sincronizados. No se elevó el límite ni se cambió `paper.css` para ocultarlo.
+
+## Evidencia conservada durante el trabajo
+
+Se observaron rojas antes de corregir: cuatro comprobaciones iniciales de integración D; número duplicado y mapa de una sola columna; pérdida del prefijo en cambio de idioma y enlace Cartas sin destino; ausencia de nodos de afirmación; pérdida de autor/medio/fecha de una fuente. Los tests nuevos conservan las aserciones y pasan después. Logs temporales: `/tmp/nl-d-core-red.log`, `components-red.log`, `nav-red.log`, `map-red.log`, `attribution-red.log` (los últimos cuatro con prefijo `/tmp/nl-d-core-`). El build por CLI con fixtures y tres ediciones produjo 210 rutas, 57 feeds y 210 redirecciones. No se verificó producción porque el brief prohíbe desplegar.
+
+## CANON leído y aplicado
+
+Rutas relativas al checkout canónico de FCMO-Agent-Hub, revisión requerida `63ad43b033265dbb17f1b4653d612a972fdbf357`:
+
+- `standard/CORE.md`: autoridad y evidencia; no despliegue ni afirmación de 1:1 sin navegador.
+- `runtime/FCMO_RUNTIME_V1.txt`: limitar cada afirmación a la evidencia; separar generación, inspección y producción.
+- `AGENTS.md`: cargar disciplinas pertinentes y buscar decisiones anteriores en la única vault; CLI KB ausente, búsqueda directa de procedencia de traducciones.
+- `disciplines/SOFTWARE_ENGINEERING.md`: reproducir antes de corregir y verificar por la entrada CLI real, con fixtures y el corpus comprometido.
+- `disciplines/VISUAL_ENGINEERING.md`: referencias R4 como criterio visual; batería de tamaños e idiomas, sin sustituir inspección por tests HTML.
+- `identity/README.md`: jerarquía de fuentes canónicas; usar la identidad FCMO AI existente, sin crear otra marca.
+- `identity/readable/original/FCMO_Design_Current_V4.0.1_UNCHANGED.txt`: Ink/Bone, dos familias tipográficas, reglas rectas y Mêtis limitado a los acentos autorizados.
+- `identity/readable/original/Desglose_de_la_simbologia_de_FCMO_UNCHANGED.txt`: conservar el símbolo existente, sin redibujarlo ni reinterpretarlo ornamentalmente.
+- `identity/FCMO_TECHNICAL_EXPOSURE_GRADIENT_v0.1.md`: evidencia legible y detalle técnico bajo divulgación progresiva, sin exponer maquinaria interna como contenido editorial.
+- `disciplines/WORTHY_WORK.md`: priorizar navegación utilizable, evidencia completa y prueba reproducible sobre adornos sin inspección.
+- `disciplines/HIGH_CONSEQUENCE.md`: evidencia proporcional; un build no acredita el resultado público ni autoriza publicación.
+- `disciplines/COMMUNICATION.md`: reportar el resultado y su límite concreto, conservando los avisos de automatización y traducción.
+- `identity/FCMO_EDITORIAL_SOCIAL_OS_v0.1.md`: no cambió copy editorial porque este carril sólo compone la interfaz con registros/catálogos existentes; no creó promesas comerciales ni publicaciones sociales.
+
+Revalidación local: al cierre de la inspección del Hub, HEAD era `1eb9b9f2486875d73c3ab7494a5c72900c3a8074`, posterior al `63ad43b` del brief. La comparación de los trece documentos requeridos sólo encontró añadidos en VISUAL_ENGINEERING e identity/README; se leyeron. Se cargaron también `governance/KNOWLEDGE_FRESHNESS.md`, el índice selectivo `commons/knowledge_registry.json`, `identity/galeria/README.md` y las fichas de Newsletter D R4 e imágenes c6. Confirmaron la necesidad de comparar contra R4 y la diferencia entre fotografía material D y plates abstractas c6; no justifican declarar acabado el diseño sin capturas.
+
+## Verificación adicional de integración
+
+- Comprobación estática del build de fixtures: 210 rutas, 10 575 destinos locales de enlaces/recursos comprobados, 0 ausentes.
+- `python3 tools/gates/run_all.py /tmp/nl-d-core-fixture-site`: con el prefijo de prueba `/paper/`, la compuerta de referencias asume el montaje canónico y rechaza los iconos. La comprobación directa de destinos anterior sí los encuentra. No se cambió la compuerta.
+- Se reconstruyó con `--base /FCMO-AI-Newsletter/` en `/tmp/nl-d-core-gate-site`: las primeras diez compuertas pasan; `NO_MACHINE_PATHS` bloquea el conjunto por rutas del servidor en los dos `design/d-libro/BRIEF-nl-d-*.md` preexistentes. Esos briefs están fuera de propiedad; el integrador debe sustituir esas rutas por referencias relativas o trasladar esas instrucciones fuera del árbol público, sin crear una excepción al gate. La sección añadida aquí no contiene esas rutas prohibidas. `AGENT_LAYER`, `NO_FCMO_GROUP` y `PIECE_VALID` se ejecutaron individualmente y pasan; el conjunto global **no** se reporta aprobado.
+- La ejecución inicial de las 65 pruebas C6 encontró cuatro fallos y un error por retirar la celda de apertura. Se conservó su comportamiento de lectura dentro de la columna D: el cuerpo continúa tras la bajada en escritorio y conserva la apertura en móvil. Dos nuevas pruebas reprodujeron la ausencia del componente antes de corregirlo. Se mantiene íntegro el texto restante, incluso cuando la bajada se corta por presupuesto. Se amplió también la batería del navegador a todos los enlaces visibles del nav/pie; la altura real de 44 px sigue pendiente de navegador.
+
+## Aceptación final del carril
+
+| Comando / comprobación | Resultado observado |
+| --- | --- |
+| `python3 -m unittest discover -s tests -p 'test_d_*.py'` | 26 pruebas, OK (22,266 s; después de las correcciones de contenido). Build del corpus comprometido: 5 622 rutas, 57 feeds y 3 731 redirecciones. |
+| `python3 -m unittest discover -s tests -p 'test_c6_*.py'` | Resumen literal: `Ran 65 tests`, `OK (skipped=4)`; omisiones por navegador no disponible, incluida una clase completa; 0 fallos/errores. Las pruebas de DOM sin navegador no acreditan las métricas visuales omitidas. |
+| `python3 -m unittest discover -s tests -p test_paper_build.py` | 31 pruebas: 30 pasan, 1 falla por exigir tres precargas frente a las dos familias D. Prueba existente intacta, decisión de contrato pendiente del integrador. |
+| `python3 -m unittest discover -s tests -p test_paper_listing_pagination.py` | 3 pruebas, OK. |
+| `python3 design/check_contrast.py` | OK, 24 parejas. Además la prueba D verifica Bone/Fog/Stone sobre Ink e Ink/Body sobre Bone, todas AA. |
+| `python3 design/build_css.py --check` | Fallo preexistente en `origin/main` y candidato: tamaño de `paper.css` supera 114 688 bytes; tokens D sincronizados. |
+| `python3 tests/test_d_visual.py --site /tmp/nl-d-core-fixture-site --base /paper/ --capture design/d-libro/capturas/core` | Salida 2, `BROWSER_UNAVAILABLE`; 0 capturas. Comando de continuación arriba. |
+| JavaScript de filtros de producción ejecutado con Node y DOM controlado | 6/6: estado sin filtros, clase de evidencia, tema + organización, OR dentro de un grupo, cero resultados, restablecer; agrupaciones vacías y contador coherentes. No es prueba de navegador. |
+| `git diff --check` y revisión de propiedad | OK; sólo archivos autorizados y esta sección añadida de `NEEDS.md`. |
+
+Base completa observada: `Ran 1270 tests in 2133.167s`, `OK (skipped=9)`. Primer candidato completo: `Ran 1294 tests in 2160.548s`, `FAILED (failures=29, errors=30, skipped=9)`. Esos rojos motivaron las correcciones siguientes; la aceptación completa del candidato final se agrega abajo al terminar. Base real: `origin/main` = `81536f52da12e7816dc1b0e85a75d46efb1ad74e`; inicio del carril = `6bfa4524e445b610ccb0f18e00cb70b71cf14977`. La base se ejecuta en un worktree propio con metadatos git reales, sin red. Las ejecuciones intermedias canceladas no se presentan como suites completas.
+
+Corrección intermedia: `aa83132c2` conserva el cero numérico en el escape HTML. Se amplió la prueba de estadísticas existente a 0/12, se observó el fallo del cero y se corrigió; las 23 pruebas D vuelven a pasar (31,372 s). Después se añadió `43f2baf36`: una corrección sin traducción muestra el aviso localizado de traducción pendiente, no una falsa ausencia de correcciones. El corpus actual tiene cinco correcciones completas; la nueva prueba reproduce la variante faltante antes del cambio. Ese log acredita el primer candidato completo, anterior a `9a3fc6597` y `1ee9f7c5c`; no acredita el código final. El resultado final fragmentado y sus límites se detallan abajo. La batería D final independiente pasó las 24 pruebas en 19,870 s (`/tmp/nl-d-core-d-acceptance.log`).
+
+Cambio exacto solicitado al integrador para tipografía: en `tests/test_paper_build.py`, `test_fonts_are_woff2_subsetted_and_first_paint_preloads_only_latin`, actualizar la expectativa de tres precargas a las dos familias que autoriza CONTRATO.md, comprobando explícitamente Inter Tight y JetBrains Mono y ausencia de Source Serif en las precargas. Conservar las comprobaciones de WOFF2, archivos locales y subconjuntos. Este carril no puede modificar ese test existente y no añadió una precarga innecesaria para satisfacer el conteo antiguo.
+
+
+## Correcciones surgidas de la comparación completa
+
+- `9a3fc6597`: vuelve el agregado real del corpus a la leyenda D (historias/temas/organizaciones y las tres clases, sin ascender evidencia ausente); no se añade un segundo panel C6. Se conservan los identificadores semánticos de portada, cuerpo y navegación que usan los lectores. Fecha, fuentes, correcciones y sumario nativo completo siguen trazables al registro; `NewsArticle.articleBody` exporta el resumen completo sólo cuando la edición está completa. Se retira del frente el fallback de Ghost sin localización. La nota de traducción pendiente sobre Bone usa Body, AA 9,93:1, frente al Fog/Bone incorrecto 1,28:1 anterior.
+- Se observaron rojos en la suite completa antes de esas correcciones. Una nueva prueba del agregado también se ejecutó contra `d_components.py` de `43f2baf36` y falló, antes de pasar con el componente corregido. Las dos pruebas nuevas elevan D a 26. Las pruebas existentes no se modificaron.
+- `1ee9f7c5c`: la batería pendiente de navegador comprueba ambas dimensiones de 44 px, incluyendo fechas del calendario y etiquetas de filtro. Se corrige el caso geométrico de siete fechas a 320 px (288 px interiores menos separaciones no permiten siete blancos de 44 px): sin gutters a ese ancho, la retícula cabe en 320 px. Nav móvil, pie y feeds tienen también mínimo horizontal. Esto no sustituye la comprobación física del navegador.
+- Los tres fallos de Studio de la primera suite completa se rastrearon a `NO_MACHINE_PATHS`, con los dos briefs identificados en el resultado de privacidad. No se relajó la compuerta, el chequeo de aprobación ni el de publicación simulada.
+- Suite final, código congelado en `1ee9f7c5c`: `python3 -m unittest discover -s tests -v`, log temporal `nl-d-core-final-suite.log`. La base ya terminó; las ejecuciones canceladas anteriores no cuentan.
+
+Verificación estática final del build de fixtures en `1ee9f7c5c`: 11 481 destinos locales, 0 ausentes; las cinco filas D coinciden con `front_order` en EN/ES/中文. `node --check` acepta el programa real de la batería de navegador. Su ejecución vuelve a terminar con salida 2 por `BROWSER_UNAVAILABLE`, sin capturas. Las pruebas unitarias del plan de capturas pasan 2/2; no acreditan el navegador.
+
+
+## Matriz completa de capturas y oráculos D pendientes
+
+El fixture pequeño no tiene una página Temas: su matriz honesta es 99 casos. Para los 108 casos, incluidos 9 de Temas, usar el corpus público comprometido; esta construcción ya pasó en el carril (5 622 rutas, 57 feeds, 3 731 redirecciones).
+
+```sh
+python3 tools/paper/build.py --stories site/data/stories.v2.json --status site/data/newsroom-status.json --editorial tests/fixtures/editorial --out /tmp/nl-d-core-corpus-site --base /paper/
+PLAYWRIGHT_MODULE=/ruta/absoluta/al/playwright/index.js python3 tests/test_d_visual.py --site /tmp/nl-d-core-corpus-site --base /paper/ --capture design/d-libro/capturas/core
+```
+
+No se pidió ni usó red. El ejecutor bloquea recursos externos. Las capturas todavía no existen.
+
+Los oráculos C6 existentes que requieren migración de contrato, por el propietario de pruebas, son:
+- `test_v4_front_freshness` / `test_v4_front_plan`: localizar `.d-rank` y sus `li[data-story-id]`; contrastar sus cinco filas con `front_order[:5]`, el héroe con `front_order[0]`, el wire con los siguientes treinta y su ausencia de duplicados respecto a las cinco filas. D repite el titular principal como fila 01, como exige R4; no convertir esa presentación en dos historias distintas ni relajar orden/frescura/idiomas/rutas. El selector C6 de cuatro `plate-card` sobre Bone ya no describe la tabla D sobre Ink.
+- `test_v4_mobile_first_viewport`: el contrato D tiene Today/Letters/Topics/Archive/Method/Search, menú nativo en móvil y Correcciones en el pie. Comprobar esos destinos, idiomas, un encabezado y menú utilizable; no exigir la barra inferior C6 retirada por el diseño aprobado.
+- `test_paper_build` tipografía: se detalla arriba el reemplazo autorizado por las dos familias D, sin quitar las comprobaciones de archivos/subconjuntos ni cambiar el presupuesto de página.
+
+Los documentos de brief con rutas del servidor deben sanearse fuera de este carril; los gates y sus pruebas permanecen íntegros. La aceptación «sin fallos nuevos frente a origin/main» no se declarará cumplida mientras esos errores y la migración de oráculos sigan abiertos.
+
+Comprobación de propiedad: los 445 renglones originales de `NEEDS.md` siguen como prefijo exacto del archivo; sólo se añadió esta sección. No se modificó ninguna prueba existente ni archivos del carril de cartas.
+
+
+## Resultado final y entrega — código `1ee9f7c5c`
+
+**No se cumplió la aceptación sin fallos nuevos ni se verificó el 1:1.** Todo el código y las pruebas nuevas están dentro de la propiedad del carril; los pendientes tienen propietario y cambio concreto en las secciones anteriores.
+
+| Verificación | Resultado final |
+| --- | --- |
+| Base `origin/main` (`81536f52da12e7816dc1b0e85a75d46efb1ad74e`), `python3 -m unittest discover -s tests -v` | `Ran 1270`, `OK (skipped=9)`; 2 133,167 s. |
+| Candidato final, mismo comando | Terminó con señal 15 / salida 143, sin resumen. Causa de la señal no identificada. No se reporta como suite completada. |
+| Verificación final en dos tramos | **1 296 métodos contabilizados; 7 fallos, 17 errores, 9 omisiones.** Prefijo observado: 1 126 métodos completos, 4 fallos/7 errores/7 omisiones; continuación: `Ran 170 tests in 877.448s`, 3 fallos/10 errores/2 omisiones. |
+| Pruebas D | 26, OK; ninguna omitida. |
+| Contraste | 24 parejas, OK; además 5 parejas del vocabulario D verificadas por las pruebas. |
+| Build de fixtures / corpus | 210 / 5 622 rutas; 57 feeds en ambos, 210 / 3 731 redirecciones. |
+| Destinos locales del fixture | 11 481 comprobados, 0 ausentes; orden de cinco filas correcto en los tres idiomas. |
+| `git diff --check` / propiedad | OK; 19 archivos autorizados, incluido el añadido de este reporte. |
+| Capturas | Salida 2, `BROWSER_UNAVAILABLE`; 0 PNG. Matriz preparada: 108 casos con el corpus completo. |
+
+La continuación se derivó del descubrimiento completo de `unittest`: se descontó cada identificador completado del log, se excluyeron únicamente las dos clases con `setUpClass` omitido ya registrado, y quedaron exactamente 170 identificadores. Se descartó la última prueba iniciada, que había quedado incompleta, y se ejecutó de nuevo en la continuación. La clase de frescura recreó sus fixtures temporales; las dos pruebas previas de esa clase sólo leen resultados. No se cambiaron archivos de código o pruebas entre tramos. El inventario y los resultados temporales se guardan como `nl-d-core-interrupted-manifest.json`, `nl-d-core-tail-result.json` y `nl-d-core-final-results.json`; logs `nl-d-core-final-suite.log` y `nl-d-core-tail.log`. Esta cobertura fragmentada **no** se presenta como éxito del comando único.
+
+Clasificación final de las incidencias (son resultados de pruebas/subpruebas, no un conteo de problemas independientes):
+- **Privacidad de los dos briefs:** 11 errores de compuertas y 3 fallos de Studio. `no_machine_paths.check()` se reprodujo directamente en el código final: sólo señala `design/d-libro/BRIEF-nl-d-core.md` y `design/d-libro/BRIEF-nl-d-cartas.md`. Integrador: sustituir el prefijo absoluto del Hub en ambos briefs por un alias relativo `FCMO-Agent-Hub/`, explicado al principio como el checkout canónico externo; conservar el resto del contrato. No exceptuar los briefs de la compuerta.
+- **Oráculos C6 frente al contrato D:** 6 errores por selectores de la tabla vieja, 3 fallos de navegación móvil por exigir Correcciones y tabs inferiores en lugar de Cartas/menú D, 1 fallo de tres precargas. Los cambios exactos de contrato están arriba; este carril no puede editar esos tests existentes.
+- **Omisiones:** ocho entradas por navegador no disponible (incluyen clases completas) y una condicional de renderer ausente porque el renderer sí está integrado. La comparación de preview/build byte por byte pasó. Los tres oráculos reales de refresco diario también pasaron en copia temporal: crecimiento del generador, historia nueva publicada y ediciones nativas completas.
+
+**UNVERIFIED:** ejecución completa en un solo proceso en el código final; medidas DOM, controles físicos, tipografía CJK y comparación R4 en 1440/390/320; las 108 capturas; juicio visual de Claude y producción. No hubo despliegue. El límite de tamaño del generador CSS antiguo y la integración de Cartas quedan como se describió arriba.
+
+**COMMITS de código** (todos con el coautor requerido):
+- `51c664326` Add the D evidence grammar and data-driven components
+- `6cf91da22` Render the publication core with the D evidence layout
+- `d29679e82` Preserve opening facts across D story breakpoints
+- `aa83132c2` Keep known zero counts visible in D evidence statistics
+- `43f2baf36` Keep untranslated corrections visible as pending
+- `9a3fc6597` Preserve publication facts across the D core
+- `1ee9f7c5c` Check both dimensions of mobile control targets
+# nl-d-cartas
+
+- `tools/paper/build.py`, page-route generation in `PaperBuilder.build` (the loop that currently writes the `cartas/` redirect): replace the redirect with a data-backed letters index in EN, ES and ZH from published Ghost cartas plus published editorial pieces. Use `community.render_letters_shelf` for the home-page section; generate the reference-matched index markup from the same letter records. The current redirect prevents `/cartas/` from meeting this lane's first-class index requirement, and this file is outside the lane's ownership.
+- `tools/paper/build.py`, stylesheet assembly for front-page output: include `assets/css/d/d-letters.css` on the home page so the exported `community.render_letters_shelf` markup receives its owned styles.
+- `design/d-libro/BRIEF-nl-d-cartas.md` and `design/d-libro/BRIEF-nl-d-core.md` (outside this lane's ownership): replace private absolute filesystem references with repository-relative paths. The full suite's `NO_MACHINE_PATHS` gate flags both briefs; the same finding cascades into Studio preview tests returning 409. Keep the gate enabled.
