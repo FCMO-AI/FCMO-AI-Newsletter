@@ -1,6 +1,17 @@
 """D story: a reading column beside its visible evidence ledger."""
+import re
 from . import d_components as d
 from .reader import layer, unknowns_box, LAYER_SCRIPT, rest_after, first_sentence, _same
+
+
+_SPLIT = re.compile(r'(?<=[。！？])|(?<![A-Z]\.)(?<=[.!?])\s+(?=[A-Z0-9“"¿¡(])')
+
+
+def paragraphs(text, per=2):
+    """Sentence pairs as paragraphs (R4 reads in short blocks); the words are exactly the record's."""
+    parts = [x.strip() for x in _SPLIT.split(text or '') if x and x.strip()]
+    sep = '' if text and re.search(r'[\u4e00-\u9fff]', text) else ' '
+    return [sep.join(parts[i:i + per]) for i in range(0, len(parts), per)]
 
 
 def opening(summary, header_dek, full_dek, catalog):
@@ -12,7 +23,7 @@ def opening(summary, header_dek, full_dek, catalog):
         happened = whole[len(header_dek)-1:].lstrip()
     opener = header_dek if happened != whole else ''
     phone_only = bool(header_dek) and _same(first_sentence(summary,10_000),header_dek) and happened == whole
-    content = (f'<span class="brief-open">{d.e(opener)} </span>' if opener else '') + d.e(happened)
+    content = (f'<span class="brief-open">{d.e(opener)} </span>' if opener else '') + ' <i class="d-pb"></i>'.join(d.e(x) for x in paragraphs(happened))
     return (f'<ol class="d-story-opening"><li class="read20-cell{" read20-phone" if phone_only else ""}">'
             f'<b>{d.e(catalog["strings"]["design"]["happened"])}</b><span class="brief-val">{content}</span></li></ol>')
 
@@ -26,13 +37,13 @@ def render(*, story, catalog, code, title, dek_text, beat_label, home_href,
     p = st['proof']
     argument = opening(summary,dek_text,dek_full,catalog)
     if why:
-        argument += f'<section><h2>{d.e(text["why_it_matters"])}</h2><p>{d.e(why)}</p></section>'
+        argument += f'<section><h2>{d.e(text["why_it_matters"])}</h2>{"".join(f"<p>{d.e(x)}</p>" for x in paragraphs(why))}</section>'
     tech = ''.join(f'<section><h3>{d.e(st["technical_field"].get(k,k))}</h3><p>{d.e(v)}</p></section>' for k,v in technical.items() if v)
     plate_block = f'<div class="d-story-plate">{plate_html}</div>' if plate_html else ''
     header = (f'<div class="story-cover d-story-cover"><header class="story-header"><div class="frame"><p class="d-kicker">'
-              f'<a href="{d.e(home_href)}">{d.e(st["nav"]["today"])}</a> / {d.e(beat_label)} / {d.topic(story,catalog)}</p>'
-              f'<h1>{d.e(title)}</h1><p class="story-dek">{d.e(dek_text)}</p>'
-              f'{d.signals(story,catalog,evidence=evidence)}<p class="story-meta">{d.e(dates_line)}</p>{note_html}</div></header>'
+              f'<span><a href="{d.e(home_href)}">{d.e(st["nav"]["today"])}</a> / {d.e(beat_label)} / {d.topic(story,catalog)}</span><span class="d-story-dates">{d.e(dates_line)}</span></p>'
+              f'<h1>{d.e(title)}</h1>'
+              f'{d.signals(story,catalog,evidence=evidence)}<p class="story-dek">{d.e(dek_text)}</p>{note_html}</div></header>'
               f'{plate_block}</div>')
     corrections = []
     for c in story.get('corrections', []):

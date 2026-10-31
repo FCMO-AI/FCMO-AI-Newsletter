@@ -142,13 +142,18 @@ def _source(source):
 
 
 def claims_sources(story, evidence, catalog):
+    """R4 «Sources and claims»: claims at the left (short, the full text is in the ledger), sources and
+    open gaps (dashed) at the right. The schema has no claim-to-source edges, so no individual edge is drawn."""
     st = catalog['strings']['story']
-    claims = ''.join(f'<li><b>{i:02d}</b><span>{e(c.get("text"))}</span></li>' for i, c in enumerate(rows(evidence.get('claims')), 1))
-    sources = ''.join(f'<li>{_source(s)}' + (f'<small>{e(st["primary_source"])}</small>' if s.get('primary') else '') + '</li>' for s in rows(story.get('sources')))
+    claims = ''.join(f'<li><b>{i:02d}</b><span class="d-clamp">{e(c.get("text"))}</span></li>' for i, c in enumerate(rows(evidence.get('claims')), 1))
+    letter = story.get('evidence_class')
+    mark = f'<b class="d-src-grade">{e(letter)}</b>' if letter in ('A', 'B', 'C', 'D') else ''
+    sources = ''.join(f'<li class="d-src">{_source(s)}' + (f'<small>{mark}{e(st["primary_source"])}</small>' if s.get('primary') else '') + '</li>' for s in rows(story.get('sources')))
+    gaps = ''.join(f'<li class="d-gap"><span class="d-clamp">{e(g.get("description", "") if isinstance(g, dict) else g)}</span></li>' for g in (evidence.get('gaps') or []))
     if not claims and not sources:
         return ''
     return (f'<section class="d-claims-sources" id="sources">{section(st["sources"] + " / " + st["evidence"])}'
-            f'<div><div><h3>{e(st["evidence"])}</h3><ol>{claims}</ol></div><div><h3>{e(st["sources"])}</h3><ol class="source-list">{sources}</ol></div></div></section>')
+            f'<div><div><h3>{e(st["evidence"])}</h3><ol>{claims}</ol></div><div><h3>{e(st["sources"])}</h3><ol class="source-list">{sources}{gaps}</ol></div></div></section>')
 
 
 def evidence_map(story, catalog, *, evidence, title):
