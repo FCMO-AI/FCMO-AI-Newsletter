@@ -87,7 +87,7 @@ class PaperEditorialDepthTests(unittest.TestCase):
                 from tools.paper.front_plan import class_counts
                 counts = class_counts(live_rows)
                 self.assertEqual(sum(counts.values()), len(live_ids))
-                band = front.split('class="band-trio"', 1)[1].split('class="band-note"', 1)[0]
+                band = front.split('class="band-trio"', 1)[1].split('</section>', 1)[0]
                 for n in counts.values():
                     self.assertIn(str(n), band)
                 self.assertIn('class="method-steps"', method)

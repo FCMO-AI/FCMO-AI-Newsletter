@@ -78,7 +78,7 @@ class DesignV2Build(unittest.TestCase):
             self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}empieza/', landing)
             # R4: the Bone band is the legend only; the counts row is retired and the trio (3 classes) remains.
             self.assertNotIn('class="band-counts"', landing)
-            self.assertEqual(landing.split('class="band-trio"', 1)[1].split('class="band-note"', 1)[0].count("<p>"), 3)
+            self.assertEqual(landing.split('class="band-trio"', 1)[1].split('</section>', 1)[0].count("<p>"), 3)
 
     def test_404_has_all_three_locale_destinations(self):
         page = (self.out / "404.html").read_text(encoding="utf-8")

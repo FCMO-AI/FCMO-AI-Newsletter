@@ -228,23 +228,22 @@ def _band(stories: list[dict], ctx: _Ctx, method_href: str) -> str:
 # R4 retired the EARLIER wire block from the front (its builder and filter script were removed with it).
 
 
+TOPIC_INDEX_MAX = 12
 TOPIC_PAGE_MIN = 3  # build.py writes topic/<slug>/ only for topics with at least this many stories
 
 
 def _topics(stories: list[dict], ctx: _Ctx) -> str:
-    tiles = "".join(
-        f'<li><a href="{_e(ctx.topic_href(topic))}"><b>{_e(ctx.topic_labels[topic])}</b>'
-        f'<span class="rubric">{_e(plural(ctx.catalog, "story", count))}</span></a></li>'
-        for topic, count in plan_mod.topic_counts(stories, ctx.topic_labels) if count >= TOPIC_PAGE_MIN)  # a tile only for a topic that has a page
+    ranked = sorted(((t, c) for t, c in plan_mod.topic_counts(stories, ctx.topic_labels) if c >= TOPIC_PAGE_MIN),  # a link only for a topic that has a page
+                    key=lambda tc: -tc[1])[:TOPIC_INDEX_MAX]
+    tiles = "".join(f'<li><a href="{_e(ctx.topic_href(topic))}">{_e(ctx.topic_labels[topic])}</a></li>' for topic, count in ranked)
     if not tiles:
         return ""
     # R4 has no TOPICS block after the Bone band; the nav's «Topics» link still needs a real, visible target, so the
     # tiles live in one closed disclosure row above the Letters strip. It opens when the nav (or a link) targets #topics.
-    return (f'<section class="frame d-front-topics" id="topics" aria-labelledby="topics-title"><details>'
-            f'<summary><span id="topics-title">{_e(ctx.s["topics"]["title"])}</span></summary>'
-            f'<p>{_e(ctx.s["topics"]["dek"])}</p><ul class="topic-tiles">{tiles}</ul></details>'
-            "<script>(function(){function o(){if(location.hash==='#topics'){var d=document.querySelector('#topics details');if(d)d.open=true}}"
-            "o();addEventListener('hashchange',o)})()</script></section>")
+    # R4 has no Topics block between the board and Letters. The nav's «Topics» link still needs a real, visible target:
+    # a quiet index of the busiest topics closes the page above the footer, like a table of contents.
+    return (f'<section class="d-front-topics" id="topics" aria-labelledby="topics-title"><div class="frame">'
+            f'<h2 id="topics-title">{_e(ctx.s["topics"]["title"])}</h2><ul>{tiles}</ul></div></section>')
 
 
 def _trio(home: str, ctx: _Ctx) -> str:
@@ -265,6 +264,11 @@ def _subscribe(home: str, base: str, ctx: _Ctx) -> str:
             f'<div><p class="rubric rubric-accent">{_e(u["way_title"])}</p><h2 id="follow-title">{_e(u["headline"])}</h2>'
             f'<p>{_e(u["body"])}</p><p class="rubric">{_e(u["by_feed"])} · {_e(u["for_agents"])}</p>'
             f'<ul class="feeds">{feeds}</ul></div><div>{subscribe_block("all", ctx.code)}</div></div></section>')
+
+
+def _cm_copy(code):
+    from ..community import COPY
+    return COPY.get(code, COPY['en'])
 
 
 def front_context(*, order: list[dict], base: str) -> dict:
@@ -295,16 +299,25 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
     if cartas:
         letters = f'<section class="frame d-front-letters">{cartas}</section>'
     else:
-        # R4's Letters strip with no letters yet: the heading, the link and an honest line. No names, no titles.
+        # R4's Letters strip with no letters yet: the same two-card grid, built only from our own interface strings and
+        # material plates. No person, title, date or quote appears, because none exists.
         from ..community import _LETTERS_EMPTY
-        head, none = _LETTERS_EMPTY[ctx.code][0], _LETTERS_EMPTY[ctx.code][8]
         from .essay import COPY as _EC
+        l = _LETTERS_EMPTY[ctx.code]
+        head, none, email_title = l[0], l[8], l[7]
+        inactive = _cm_copy(ctx.code).get("inactive_title", "")
         letters = (f'<section class="frame d-front-letters d-front-letters--empty"><div class="d-letters-head"><h2>{_e(head)}</h2>'
-                   f'<a href="{_e(home)}letters/">{_e(_EC[ctx.code]["back"])} →</a></div><p class="d-letters-none" data-letters-empty>{_e(none)}</p></section>')
+                   f'<a href="{_e(home)}letters/">{_e(_EC[ctx.code]["back"])} →</a></div><div class="d-letters-cards">'
+                   f'<a class="d-letters-card" href="{_e(home)}letters/"><span class="d-letters-card-art d-letters-card-art--a" aria-hidden="true"></span>'
+                   f'<span class="d-letters-card-body"><span class="d-letters-card-kicker">FCMO AI · {_e(head)}</span>'
+                   f'<strong data-letters-empty>{_e(none)}</strong></span></a>'
+                   f'<a class="d-letters-card" href="{_e(home)}letters/"><span class="d-letters-card-art d-letters-card-art--b" aria-hidden="true"></span>'
+                   f'<span class="d-letters-card-body"><span class="d-letters-card-kicker">{_e(email_title)}</span>'
+                   f'<strong>{_e(inactive)}</strong></span></a></div></section>')
     return '<div class="landing d-front">' + "".join([
         d_front.cover(feature, slots["cover"], ctx),
         d_front.rank(([slots["cover"]] if slots["cover"] else []) + slots["board"], ctx),
-        _topics(order, ctx),
         letters,
         d_front.follow(home, base, ctx, order),
+        _topics(order, ctx),
     ]) + "</div>"

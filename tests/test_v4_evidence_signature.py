@@ -35,7 +35,7 @@ BAND = re.compile(r'<section class="method-band" id="method-band".*?</section>',
 FRONT_ITEM = re.compile(r'<li data-story-id="([^"]+)"[^>]*><article class="d-rank-entry">(.*?)</article></li>', re.S)
 RANK_CLASS = re.compile(r'd-claim--(shown|claimed|not-established)')
 EVROW = re.compile(r'<(p|div) class="[^"]*\bevrow\b[^"]*" data-evidence-class="([^"]*)">(.*?)</\1>', re.S)
-BAND_TRIO = re.compile(r'<div class="band-trio">(.*?)</div><p class="band-note">', re.S)
+BAND_TRIO = re.compile(r'<div class="band-trio"[^>]*>(.*?)</div></div></section>', re.S)
 BAND_NUMS = re.compile(r'<li>([0-9]+)<span>', re.S)
 CLASSES = ("shown", "claimed", "not_established")
 SHOWN_CONFIDENCE = {"confirmed", "strongly_supported", "supported"}

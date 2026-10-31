@@ -3,6 +3,21 @@ from . import d_components as d
 from ..i18n import field, plural, label
 from ..front_plan import evidence_class
 from .. import d_plates
+from ..i18n import visual_width
+from .reader import rest_after, _SENTENCE
+
+BRIEF_BUDGET = 230  # visual columns per brief cell (R4 cells run 4-6 short lines)
+
+
+def whole_sentences(text, budget):
+    """Leading whole sentences of ``text`` that fit ``budget`` columns; the first one is always kept whole."""
+    parts = [x for x in _SENTENCE.split(' '.join(str(text or '').split())) if x]
+    out = []
+    for part in parts:
+        if out and visual_width(' '.join(out + [part])) > budget:
+            break
+        out.append(part)
+    return ' '.join(out)
 
 
 def rank(stories, ctx):
@@ -40,11 +55,15 @@ def cover(feature, story, ctx):
     evidence = ctx.evidence(story)
     text = ctx.s['design']
     cells = []
-    # The twenty-second brief is derived, never composed from the mockup copy.
-    gap_text = ' '.join(str(g.get('description', '') if isinstance(g, dict) else g) for g in evidence.get('gaps', []))
-    for heading, value in [(text['brief_title'], feature['dek']), (text['happened'], field(story,ctx.code,'summary')),
-                           (text['matters'], field(story,ctx.code,'why_it_matters')), (text['not_established'], gap_text or text['none_recorded'])]:
-        cells.append(f'<div><h2>{d.e(heading)}</h2><p>{d.e(value)}</p></div>')
+    # The twenty-second brief is derived, never composed from the mockup copy. Every cell closes on a whole sentence
+    # (R4): the text is fitted by sentences, never cut mid-phrase with an ellipsis, and the block grows when the first
+    # sentence is long. The complete text stays on the story page.
+    gaps = [str(g.get('description', '') if isinstance(g, dict) else g) for g in evidence.get('gaps', [])]
+    happened = rest_after(field(story, ctx.code, 'summary'), feature['dek'])
+    for heading, value, budget in [(text['brief_title'], feature['dek'], BRIEF_BUDGET), (text['happened'], happened, BRIEF_BUDGET),
+                                   (text['matters'], field(story, ctx.code, 'why_it_matters'), BRIEF_BUDGET),
+                                   (text['not_established'], ' '.join(gaps[:1]) or text['none_recorded'], BRIEF_BUDGET)]:
+        cells.append(f'<div><h2>{d.e(heading)}</h2><p>{d.e(whole_sentences(value, budget))}</p></div>')
     plate = d_plates.html(story, "16:9", ctx.s, ctx.base, ctx.__dict__.setdefault('d_plates', {})) if story.get("media") else ""
     plate_block = f'<div class="d-cover-plate">{plate}</div>' if plate else ""
     date = (f'<time datetime="{d.e(feature["datetime"])}">{d.e(feature["date"])}</time>'

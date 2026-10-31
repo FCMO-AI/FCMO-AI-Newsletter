@@ -11,7 +11,8 @@ import math
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from ..i18n import format_date, label, plural
+from ..i18n import format_date, label, plural, visual_width
+from .reader import _SENTENCE
 from ..front_plan import evidence_class, class_counts
 
 
@@ -107,9 +108,9 @@ def legend(catalog, *, stories=None, method_href=''):
         cells = ''.join(f'<div><b>{e(p[k])} · {e(plural(catalog,"story",counts[k]))}</b>'
                         f'{sample(k.replace("_","-"))}<p>{e(p[k+"_desc"])}</p></div>'
                         for k in ('shown','claimed','not_established'))
-        # R4: legend only (trio + one note). The counts row and the ordering link are not part of the approved band.
+        # R4: legend only (the trio). No counts row, ordering link or extra note; the counting rule rides as the trio's tooltip.
         return (f'<section class="method-band" id="method-band"><div class="d-legend"><h2>{e(title)}</h2>'
-                f'<div class="band-trio">{cells}</div><p class="band-note">{e(p["count_note"])}</p></div></section>')
+                f'<div class="band-trio" title="{e(p["count_note"])}">{cells}</div></div></section>')
     return f'<section class="d-legend"><h2>{e(title)}</h2><div class="d-legend-items">{items}</div></section>'
 
 
@@ -158,21 +159,26 @@ def claims_sources(story, evidence, catalog):
     letter = story.get('evidence_class')
     mark = f'<b class="d-src-grade">{e(letter)}</b>' if letter in ('A', 'B', 'C', 'D') else ''
     grade_text = label(catalog, 'evidence_short', letter) if letter in ('A', 'B', 'C', 'D') else ''
+    # Each box carries its claim's whole opening sentence (no ellipsis); the row height follows the longest one so every
+    # connector still lands on the box centre. The full claim text is in the ledger above.
+    shorts = [_first_sentence(c.get('text')) for c in claim_rows]
+    hs = [max(_CH, _lines(t, 520, 14, .52) * 19 + 20) for t in shorts]
+    offs = [sum(hs[:i]) + i * _CG for i in range(len(hs))]
     claims = ''.join(
-        f'<li class="d-cl d-cl--{proof_kind(c.get("label"))}" title="{e(c.get("text"))}"><b>{i:02d}</b><span class="d-clamp">{e(c.get("text"))}</span></li>'
+        f'<li class="d-cl d-cl--{proof_kind(c.get("label"))}" style="min-height:{hs[i-1]}px"><b>{i:02d}</b><span class="d-cl-text">{e(shorts[i-1])}</span></li>'
         for i, c in enumerate(claim_rows, 1))
     sources = ''.join(
         f'<li class="d-src">{_source(s)}' + (f'<small>{mark}{e(grade_text or st["primary_source"])}</small>' if s.get('primary') else '') + '</li>'
         for s in source_rows)
     k = min(len(gap_rows), 3)
     gaps = ''.join(
-        f'<li class="d-gap{" d-gap--top" if i < k else ""}" title="{e(g)}"><span class="d-clamp">{e(g)}</span></li>'
+        f'<li class="d-gap{" d-gap--top" if i < k else ""}"><span class="d-gap-text">{e(g)}</span></li>'
         for i, g in enumerate(gap_rows))
     # connectors: x runs 0..100 across the gutter (stretched), y is real px
     primaries = [j for j, s in enumerate(source_rows) if s.get('primary')] or list(range(len(source_rows)))
     sy = lambda j: j * (_SH + _SG) + _SH / 2
-    cy = lambda i: i * (_CH + _CG) + _CH / 2
-    height = max(len(claim_rows) * (_CH + _CG) - _CG, len(source_rows) * (_SH + _SG) - _SG, 1)
+    cy = lambda i: offs[i] + hs[i] / 2
+    height = max((offs[-1] + hs[-1]) if hs else 0, len(source_rows) * (_SH + _SG) - _SG, 1)
     solid, dashed = [], []
     if source_rows:
         for i, c in enumerate(claim_rows):
@@ -264,20 +270,38 @@ def evidence_map(story, catalog, *, evidence, title):
             f'<title>{e(title)}</title><desc>{e(" / ".join(descriptions))}</desc>{"".join(edges+nodes)}</svg>')
 
 
+def _lines(text, width, font, factor=.56):
+    """Rough line count of ``text`` set at ``font`` px in ``width`` px (CJK counts double). Errs on the tall side."""
+    per = max(6, int(width / (font * factor)))
+    n, used = 1, 0
+    for word in str(text).split():
+        w = visual_width(word)
+        if used and used + 1 + w > per:
+            n, used = n + 1, 0
+        used += (1 if used else 0) + w
+        while used > per:
+            n, used = n + 1, used - per
+    return n
+
+
+def _first_sentence(text):
+    return next(iter(_SENTENCE.split(' '.join(str(text or '').split()), maxsplit=1)), '')
+
+
 def evidence_glance(story, catalog, *, evidence, title, max_sources=2, max_gaps=2):
-    """Front-page map in the approved R4 form: a few short boxes joined by lines.
+    """Front-page map in the approved R4 form: a few boxes joined by lines, nothing else.
 
     primary source(s) -> the headline claim (never a fabricated claim) -> open gaps (dashed).
-    Boxes have fixed heights and clamp their text; what does not fit is counted, never dropped silently
-    (the full record is on the story page and in the SVG description). Nothing is invented: no source,
-    gap or date appears unless it is in the data.
+    Boxes grow to their text (no clamping, no ellipsis): a gap shows its whole first sentence. When there are more
+    sources or gaps than boxes, the last box says so inside itself («+ 2»); the full record is on the story page
+    and in the SVG description. Nothing is invented: no source, gap or date appears unless it is in the data.
     """
     st = catalog['strings']['story']
     sources = rows(story.get('sources'))
     primaries = [s for s in sources if s.get('primary')] or sources
     shown_sources = primaries[:max_sources]
     gaps = [g.get('description', '') if isinstance(g, dict) else str(g) for g in (evidence.get('gaps') or [])]
-    shown_gaps = gaps[:max_gaps]
+    shown_gaps = [_first_sentence(g) for g in gaps[:max_gaps]]
     W, G = 600, 20
     out, desc, y = [], [], 4
     letter = story.get('evidence_class')
@@ -289,48 +313,45 @@ def evidence_glance(story, catalog, *, evidence, title, max_sources=2, max_gaps=
                 f'<div xmlns="http://www.w3.org/1999/xhtml" class="d-map-node d-map-node--{kind}">{inner}</div></foreignObject>')
     n = len(shown_sources)
     sw = 340 if n == 1 else (W - G) // 2
-    sh = 124
+    names = [s.get('title') or s.get('domain') or s.get('url') or '' for s in shown_sources]
+    extra = len(primaries) - n
+    sh = 24 + 22 + max([_lines(t, sw - 70, 26) * 32 for t in names] or [0]) + (30 if extra else 0) + 8
     xs = []
-    for i, src in enumerate(shown_sources):
+    for i, name in enumerate(names):
         x = (W - sw) // 2 if n == 1 else i * (sw + G)
-        name = src.get('title') or src.get('domain') or src.get('url') or ''
         mark = f'<b class="d-map-grade">{e(letter)}</b>' if letter else ''
-        out.append(box('source', x, y, sw, sh, st['primary_source'] if src.get('primary') else st['sources'], name, mark=mark))
-        desc.append(name); xs.append(x + sw // 2)
+        src = shown_sources[i]
+        foot = ('+ ' + plural(catalog, 'primary_source', extra)) if (extra and i == n - 1) else ''
+        out.append(box('source', x, y, sw, sh, st['primary_source'] if src.get('primary') else st['sources'], name, foot=foot, mark=mark))
+        xs.append(x + sw // 2)
+    for src in primaries:
+        desc.append(src.get('title') or src.get('domain') or src.get('url') or '')
     if n:
         y += sh
-    extra = len(primaries) - n
     claim_y = y + (34 if n else 0)
-    ch = 150
-    head = title
-    claim_x, claim_w = 40, W - 80
+    claim_w = W - 80
+    ch = 24 + _lines(title, claim_w - 32, 26) * 32 + 12
     if n:
         edges = ''.join(f'M{x} {y}V{y+17}' for x in xs)
         out.append(f'<path class="d-map-edge" d="{edges}M{xs[0]} {y+17}H{xs[-1]}M{W//2} {y+17}V{claim_y}"/>')
-    out.append(box('claim', claim_x, claim_y, claim_w, ch, '', head))
+    out.append(box('claim', 40, claim_y, claim_w, ch, '', title))
     desc.insert(0, title)
     y = claim_y + ch
     gy = y + 38
     if shown_gaps:
         gw = 340 if len(shown_gaps) == 1 else (W - G) // 2
         gxs = []
-        gh = 196
+        gextra = len(gaps) - len(shown_gaps)
+        gfoot = lambda i: catalog['strings']['proof']['not_established'] + (f' · + {gextra}' if (gextra > 0 and i == len(shown_gaps) - 1) else '')
+        gh = 24 + 24 + max(_lines(t, gw - 32, 22, .5) * 28 for t in shown_gaps) + 6 + 24 + 4
         for i, text in enumerate(shown_gaps):
             x = (W - gw) // 2 if len(shown_gaps) == 1 else i * (gw + G)
-            out.append(box('gap', x, gy, gw, gh, plural(catalog, 'open_gap_noun', 1),
-                           text, foot=catalog['strings']['proof']['not_established']))
-            desc.append(text); gxs.append(x + gw // 2)
+            out.append(box('gap', x, gy, gw, gh, plural(catalog, 'open_gap_noun', 1), text, foot=gfoot(i)))
+            gxs.append(x + gw // 2)
+        desc.extend(gaps)
         edges = ''.join(f'M{x} {gy-17}V{gy}' for x in gxs)
         out.append(f'<path class="d-map-edge d-map-edge--gap" d="M{W//2} {y}V{gy-17}{"M%d %d" % (gxs[0], gy-17)}H{gxs[-1]}{edges}"/>')
         y = gy + gh
-    notes = []
-    if extra > 0:
-        notes.append(plural(catalog, 'primary_source', extra))
-    if len(gaps) > len(shown_gaps):
-        notes.append(plural(catalog, 'open_gap', len(gaps) - len(shown_gaps)))
-    if notes:
-        out.append(f'<foreignObject x="0" y="{y+8}" width="{W}" height="28"><div xmlns="http://www.w3.org/1999/xhtml" class="d-map-more">+ {e(" · + ".join(notes))}</div></foreignObject>')
-        y += 40
     edges = [o for o in out if o.startswith('<path')]
     nodes = [o for o in out if not o.startswith('<path')]
     return (f'<svg xmlns="http://www.w3.org/2000/svg" class="d-evidence-map d-evidence-glance" viewBox="0 0 {W} {y+4}" role="img" aria-label="{e(st["evidence"])}">'
