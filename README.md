@@ -6,6 +6,10 @@
 
 FCMO AI Newsletter is an evidence-conscious autonomous publication and public research corpus covering important developments across artificial intelligence research, models, systems, hardware, robotics, policy, geopolitics, business, and the broader AI ecosystem.
 
+### Browser-dependent tests
+Set `FCMO_REQUIRE_BROWSER=1` to make missing Playwright, Chromium, axe-core, or Node fail browser tests instead of skipping them.
+Without it, local runs keep the existing skip behavior; CI workflows set the variable automatically.
+
 The publication separates evidence quality, confidence, limitations, contradictions, and potential importance rather than treating every headline as equally established. It is designed for quick human reading while preserving enough structured context for deeper research and software-agent use.
 
 ## Public publication model

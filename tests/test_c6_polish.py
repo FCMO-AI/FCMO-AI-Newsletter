@@ -18,8 +18,9 @@ oracle = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(oracle)
 
 from tools.paper.i18n import visual_width  # noqa: E402
-from tools.paper.playwright_module import browser_unavailable, resolve_playwright_module  # noqa: E402
+from tools.paper.playwright_module import browser_unavailable, missing_playwright_message, resolve_playwright_module  # noqa: E402
 from tools.paper.templates.reader import brief20, first_sentence, rest_after  # noqa: E402
+from tests._browser import browser_available, skip_or_fail  # noqa: E402
 
 BASE = "/FCMO-AI-Newsletter/"
 
@@ -86,8 +87,9 @@ class BuiltPageBehaviour(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.module = resolve_playwright_module()
-        if not cls.module:
-            browser_unavailable()
+        if not browser_available(cls.module):
+            cls.tmp = None
+            return
         cls.tmp = tempfile.TemporaryDirectory(prefix="c6-polish-")
         out = Path(cls.tmp.name) / "site"
         built = subprocess.run([sys.executable, str(ROOT / "tools/paper/build.py"),
@@ -112,7 +114,12 @@ class BuiltPageBehaviour(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.tmp.cleanup()
+        if cls.tmp is not None:
+            cls.tmp.cleanup()
+
+    def setUp(self):
+        if not getattr(self, "tmp", None):
+            skip_or_fail(self, missing_playwright_message())
 
     def measure(self, width):
         jobs = [{"file": str(page), "width": width} for page in self.pages]
@@ -339,6 +346,9 @@ const jobs = JSON.parse(process.argv[2]);
     @classmethod
     def setUpClass(cls):
         cls.module = resolve_playwright_module()
+        if not browser_available(cls.module):
+            cls.tmp = None
+            return
         cls.tmp = tempfile.TemporaryDirectory(prefix="c6-phone-")
         cls.out = Path(cls.tmp.name) / "site"
         built = subprocess.run([sys.executable, str(ROOT / "tools/paper/build.py"),
@@ -353,7 +363,12 @@ const jobs = JSON.parse(process.argv[2]);
 
     @classmethod
     def tearDownClass(cls):
-        cls.tmp.cleanup()
+        if cls.tmp is not None:
+            cls.tmp.cleanup()
+
+    def setUp(self):
+        if not getattr(self, "tmp", None):
+            skip_or_fail(self, missing_playwright_message())
 
     def test_every_story_page_has_a_labelled_non_empty_what_happened_cell(self):
         locales = set()
@@ -379,8 +394,8 @@ const jobs = JSON.parse(process.argv[2]);
                 self.assertTrue(re.sub(r"<[^>]+>|\s", "", opener.group(1)), row["path"])
 
     def _phone(self, locale_code, width=390, count=6):
-        if not self.module:
-            browser_unavailable()
+        if not browser_available(self.module):
+            skip_or_fail(self, missing_playwright_message())
         css = "".join(f.read_text(encoding="utf-8") for f in [self.out / "assets/css/paper.css", *sorted((self.out / "assets/css/d").glob("*.css"))])
         files = []
         for row in [r for r in self.stories if r["locale"] == locale_code][:count]:
@@ -410,8 +425,8 @@ const jobs = JSON.parse(process.argv[2]);
 
     def test_the_phone_only_cell_is_visible_at_390_and_hidden_at_820_and_1440(self):
         # The committed corpus has no one-sentence summary, so build the page shape from brief20 itself.
-        if not self.module:
-            browser_unavailable()
+        if not browser_available(self.module):
+            skip_or_fail(self, missing_playwright_message())
         css = "".join(f.read_text(encoding="utf-8") for f in [self.out / "assets/css/paper.css", *sorted((self.out / "assets/css/d").glob("*.css"))])
         sentence = "A one sentence summary that is also the header dek."
         brief = brief20({}, _catalog(), summary=sentence, why="Why it matters.", evidence={}, header_dek=sentence)

@@ -27,6 +27,7 @@ for entry in (ROOT, ROOT / "tests"):
 from harness.clock import FakeClock  # noqa: E402
 from harness.validate import validator_for  # noqa: E402
 from tools import edition_banner, verify_live_newsroom, wire_status  # noqa: E402
+from tests._browser import skip_unless_browser  # noqa: E402
 
 FIXTURES = ROOT / "contracts" / "fixtures"
 SCHEMAS = ROOT / "contracts"
@@ -501,7 +502,7 @@ class EditionBannerTests(Workspace):
         self.assertIn('data-status-updated-at="2026-09-23T12:47:10Z"', block)
         self.assertIn(edition_banner.WATCH_SCRIPT, block)
 
-    @unittest.skipUnless(shutil.which("node"), "node is not installed")
+    @skip_unless_browser(lambda: shutil.which("node"), "node is not installed")
     def test_reader_clock_reveals_the_stale_notice_after_36h(self) -> None:
         harness = (
             "const status=Date.parse(process.argv[2]);const results=[];"

@@ -8,7 +8,7 @@
     "confidence": "credible_unconfirmed",
     "importance": 7,
     "tier": "Very major",
-    "summary": "The paper constructs encrypted computations that can be embedded in model weights and conditionally hidden from polynomial-time elicitation under stated cryptographic assumptions. Its PyTorch proof of concept tests a small chemistry classifier: authors report resistance to supervised fine-tuning and latent adversarial training, while 8-bit gradient-based trigger search exhaustively enumerated 256 candidates and matched random search; the evaluated 16-bit query budget remained near chance. Correct-trigger chemistry accuracy was 73.5%. The authors verified individual compiled GLU units in Gemma 3 270M, but not the complete construction in a pretrained model. They also report raw compiled weights are anomalous, while obfuscation leaves possible within-layer correlation signals. This is a conditional construction and limited experiment, not evidence of hidden capabilities in deployed frontier models.",
+    "summary": "The paper constructs encrypted computations that can be embedded in model weights and conditionally hidden from polynomial-time elicitation under stated cryptographic assumptions. Its PyTorch proof of concept tests a small chemistry classifier: authors report resistance to supervised fine-tuning and latent adversarial training, while 8-bit gradient-based trigger search exhaustively enumerated 256 candidates and matched random search; the evaluated 16-bit query budget remained near chance. Correct-trigger chemistry accuracy was 73.5%. The authors report individual compiled GLU units in Gemma 3 270M and a separate small experiment using Gemma 4 E4B architecture, a 64-bit trigger and 12-round Keccak-p[1600]; they do not report a full evaluation in an actual pretrained checkpoint. The v2 arXiv record states that the paper was accepted at NeurIPS 2026. They also report raw compiled weights are anomalous, while obfuscation leaves possible within-layer correlation signals. This is a conditional construction and limited experiment, not evidence of hidden capabilities in deployed frontier models.",
     "topics": [
       "model security",
       "capability evaluation",
@@ -31,7 +31,7 @@
       },
       {
         "label": "NOT_ESTABLISHED",
-        "text": "The paper does not demonstrate a complete hidden-capability construction integrated into a pretrained model: only individual compiled GLU units were tested within Gemma 3 270M; it also does not establish independent reproduction or deployment impact."
+        "text": "The paper reports that individual compiled GLU units execute within Gemma 3 270M and adds a small experiment using a model with Gemma 4 E4B architecture, 64-bit triggers and a 12-round Keccak-p[1600] locker, reporting unelicitability results on small experiments. The full construction has not been evaluated in an actual pretrained checkpoint; independent reproduction and deployment impact are not established."
       }
     ],
     "confidence": "credible_unconfirmed",
@@ -41,13 +41,14 @@
     ],
     "development_type": "paper",
     "editions": [
-      "2026-10-12"
+      "2026-10-12",
+      "2026-10-31"
     ],
     "event_at": "2026-10-09T00:00:00Z",
     "evidence_class": "A",
     "evidence_gaps": [
       {
-        "description": "The paper’s proof and experiments have not been independently audited or reproduced; the full construction has not been integrated into a pretrained model.",
+        "description": "The cryptographic proof and experiments have not been independently audited or reproduced. The v2 paper reports small experiments using a Gemma 4 E4B architecture, but no full construction evaluation in an actual pretrained checkpoint.",
         "kind": "missing_independent",
         "state": "open"
       }
@@ -58,17 +59,17 @@
     "importance_scale_version": 2,
     "importance_score": 7,
     "importance_tier": "Very major",
-    "last_verified_at": "2026-10-12T09:20:11Z",
+    "last_verified_at": "2026-10-31T12:17:59Z",
     "limitations": [
       "The guarantee is conditional on stated cryptographic assumptions, compiler correctness and the specified threat model; the paper does not claim ordinary training creates these compiled structures.",
-      "The chemistry demonstration is a small classifier, not a frontier-scale language model or deployed system. Individual compiled GLU units were verified in Gemma 3 270M, but full integration into a pretrained model remains future work.",
+      "The chemistry demonstration is a small classifier, not a frontier-scale language model or deployed system. The authors report individual compiled GLU units in Gemma 3 270M and a small experiment using Gemma 4 E4B architecture with a 64-bit trigger and 12-round Keccak-p[1600]. The paper does not report a full evaluation integrated into an actual pretrained checkpoint.",
       "For chemistry, the encrypted classifier reached 73.5% with the correct trigger; 8-bit GCG search enumerated all 256 candidates and matched query-matched random search, while the evaluated 16-bit query budget remained near chance. This is not evidence against unconstrained attacks.",
       "The paper reports raw compiled weights are statistically anomalous; its weight obfuscation only approaches selected Gaussian-initialization statistics and unusual within-layer correlations remain a possible detection signal.",
       "the research desk has not audited the proof or independently reproduced the experiments."
     ],
     "organizations": [],
     "primary_desk": "evaluation_science",
-    "recorded_at": "2026-10-12T09:20:11Z",
+    "recorded_at": "2026-10-31T12:17:59Z",
     "regions": [
       "global"
     ],
@@ -77,14 +78,15 @@
       "en"
     ],
     "source_urls": [
-      "https://arxiv.org/html/2610.13928"
+      "https://arxiv.org/html/2610.13928v2",
+      "https://neurips.cc/Downloads/2026"
     ],
     "status": "active",
-    "summary": "The paper constructs encrypted computations that can be embedded in model weights and conditionally hidden from polynomial-time elicitation under stated cryptographic assumptions. Its PyTorch proof of concept tests a small chemistry classifier: authors report resistance to supervised fine-tuning and latent adversarial training, while 8-bit gradient-based trigger search exhaustively enumerated 256 candidates and matched random search; the evaluated 16-bit query budget remained near chance. Correct-trigger chemistry accuracy was 73.5%. The authors verified individual compiled GLU units in Gemma 3 270M, but not the complete construction in a pretrained model. They also report raw compiled weights are anomalous, while obfuscation leaves possible within-layer correlation signals. This is a conditional construction and limited experiment, not evidence of hidden capabilities in deployed frontier models.",
+    "summary": "The paper constructs encrypted computations that can be embedded in model weights and conditionally hidden from polynomial-time elicitation under stated cryptographic assumptions. Its PyTorch proof of concept tests a small chemistry classifier: authors report resistance to supervised fine-tuning and latent adversarial training, while 8-bit gradient-based trigger search exhaustively enumerated 256 candidates and matched random search; the evaluated 16-bit query budget remained near chance. Correct-trigger chemistry accuracy was 73.5%. The authors report individual compiled GLU units in Gemma 3 270M and a separate small experiment using Gemma 4 E4B architecture, a 64-bit trigger and 12-round Keccak-p[1600]; they do not report a full evaluation in an actual pretrained checkpoint. The v2 arXiv record states that the paper was accepted at NeurIPS 2026. They also report raw compiled weights are anomalous, while obfuscation leaves possible within-layer correlation signals. This is a conditional construction and limited experiment, not evidence of hidden capabilities in deployed frontier models.",
     "technical": {
       "claimed_result": "The authors report a cryptographically locked chemistry classifier resisted supervised fine-tuning, latent adversarial training and tested trigger search under the reported settings; their 8-bit trigger search exhaustively enumerated all 256 candidates and matched random search.",
       "demonstrated_result": "The authors report the construction, proof-of-concept implementation and elicitation results. Table 2 reports 73.5% correct-trigger accuracy for the encrypted chemistry classifier; the 8-bit GCG result is exhaustive enumeration and matches query-matched random search. the research desk has not independently verified these results.",
-      "implementation_status": "The paper provides PyTorch models and code for its model organisms. Individual compiled GLU units were tested inside Gemma 3 270M, but the complete construction has not been integrated into a pretrained model.",
+      "implementation_status": "The paper reports that individual compiled GLU units work inside Gemma 3 270M and that a separate small experiment using Gemma 4 E4B architecture, a 64-bit trigger and 12-round Keccak-p[1600] retains unelicitability on the tested setup. It does not report full evaluation of the construction integrated into an actual pretrained checkpoint. The arXiv v2 record says accepted at NeurIPS 2026.",
       "mechanism": "Encrypted neural networks are embedded in host weights and activated by a secret trigger; cryptographic assumptions support hardness of elicitation and interpretation even with weight access.",
       "regime": "Cryptographic guarantee under the stated locker/security and compiler assumptions; empirical tests use a small 64-bit Morgan-fingerprint chemistry classifier, a 2.07-billion-parameter host construction, and three-run 95% confidence intervals for reported chemistry results.",
       "strongest_baseline": "A separately trained password-locked classifier performs the same chemistry task but has a different correct-trigger accuracy (92.7% vs 73.5%). Random-network locker control shows no observed SFT/LAT benefit. The 8-bit trigger search enumerates all candidates, so it is not evidence that gradient search beats random search."
