@@ -535,7 +535,10 @@ class MergeRecordingTests(unittest.TestCase):
             shutil.copytree(CORPUS, corpus)
             rows = taxonomy.read_jsonl(corpus / "data/developments.jsonl")
             base = next(r for r in rows if r["id"] not in MERGES and r["id"] not in MERGES.values()
-                        and r["id"] != FDBE and r["status"] == "active")
+                        and r["id"] != FDBE and r["status"] == "active"
+                        # Duplicates need a lead source and a shared organization; a base
+                        # without them (e.g. 2026-10-30 FCMO-D2CC53FB8BD7) cannot merge by rule.
+                        and r.get("organizations") and story_layer._lead_url(r))
             first = dict(base, id="FCMO-00000000AAA1")
             second = dict(base, id="FCMO-00000000AAA2")
             (corpus / "data/developments.jsonl").write_text(

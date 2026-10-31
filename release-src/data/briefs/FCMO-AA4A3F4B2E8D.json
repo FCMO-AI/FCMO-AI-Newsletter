@@ -1,0 +1,126 @@
+{
+  "record": {
+    "id": "FCMO-AA4A3F4B2E8D",
+    "title": "LRMoE reports faster memory-constrained training for two sparse MoE models",
+    "desk": "Compute Hardware",
+    "event_at": "2026-10-27T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "A preprint introduces LRMoE, which selects backward token–expert contributions using a local gradient-impact score, plans expert placement under memory and communication constraints, then compacts retained rows before communication and grouped GEMMs. On eight Hopper GPUs with an 80 GiB per-GPU budget, the authors report 21.2–44.8% lower cumulative MoE-layer time to four matched loss targets than SYMI for Qwen3-30B-A3B and GLM4.5-106B-A12B, despite additional training steps. These are author-reported results on two configurations and a locally reused Alpaca corpus; they exclude non-MoE layers and are not whole-model end-to-end savings. The appendix proves optimality only for a fixed-count, equal-row-cost additive sum of isolated projection-gradient perturbations. No independent reproduction was performed.",
+    "topics": [
+      "mixture-of-experts",
+      "distributed training",
+      "GPU memory",
+      "training efficiency"
+    ],
+    "organizations": [
+      "JD.com"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-AA4A3F4B2E8D.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-AA4A3F4B2E8D.json",
+    "citation": {
+      "id": "FCMO-AA4A3F4B2E8D",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-AA4A3F4B2E8D.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors introduce LRMoE, which jointly plans retained backward token–expert quotas and expert placement, ranks routed pairs using routing weight, incoming gradient magnitude and saved expert-state magnitude, then physically compacts retained rows before communication and grouped expert-backward computation."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In the paper’s evaluation on eight NVIDIA Hopper GPUs with EP8, an 80 GiB per-GPU memory budget and two named sparse-MoE models, LRMoE reaches four stated loss targets in 21.2–44.8% less cumulative MoE-layer time than SYMI, despite requiring more optimization steps. The reported timing excludes execution outside MoE layers."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Under the paper’s modeled 80 GiB GPU scenario with 64 GiB resident footprint, the authors report 100% effective backward throughput at 20× offered batch for LRMoE; this is a modeled memory-capacity result, not a production-serving measurement."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The evidence reviewed does not establish independent reproduction, whole-model end-to-end training savings, production-scale cost reductions, transfer beyond the two evaluated models and declared setup, or an optimal aggregate gradient error or future optimizer/model-quality outcome."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "compute_hardware",
+      "training_data",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-30"
+    ],
+    "event_at": "2026-10-27T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction or implementation audit was obtained; all measured performance figures remain author-reported.",
+        "kind": "reproduction_missing",
+        "state": "open"
+      },
+      {
+        "description": "Only two model configurations on eight Hopper GPUs and the paper’s locally reused Alpaca input were reported; transfer to different scales, corpora, hardware and full-model training is unknown.",
+        "kind": "regime_unclear",
+        "state": "open"
+      },
+      {
+        "description": "The appendix proves optimality for fixed-cardinality equal-cost selection under an additive sum of isolated projection-gradient perturbations; it explicitly does not prove minimum aggregate shared-parameter gradient error or optimizer-trajectory quality.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-AA4A3F4B2E8D",
+    "importance_effective_score": 5,
+    "importance_rationale": "If independently reproduced beyond this bounded setup, reducing memory-constrained sparse-MoE training time could change accelerator allocation and training-system choices across large-model programs. The paper reports two models on eight Hopper GPUs and does not establish whole-model savings, production economics, or generality.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-30T11:12:12Z",
+    "limitations": [
+      "Performance results come from one first-party preprint and were not independently reproduced.",
+      "The measured training-time endpoint covers MoE layers rather than the whole model.",
+      "The exact theorem is local to an additive isolated-projection objective under fixed-route, equal-cost, fixed-cardinality conditions.",
+      "The models, hardware, sequence, memory budget and data setup are bounded as stated in the paper."
+    ],
+    "organizations": [
+      "JD.com"
+    ],
+    "primary_desk": "compute_hardware",
+    "recorded_at": "2026-10-30T11:12:12Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2610.37720"
+    ],
+    "status": "active",
+    "summary": "A preprint introduces LRMoE, which selects backward token–expert contributions using a local gradient-impact score, plans expert placement under memory and communication constraints, then compacts retained rows before communication and grouped GEMMs. On eight Hopper GPUs with an 80 GiB per-GPU budget, the authors report 21.2–44.8% lower cumulative MoE-layer time to four matched loss targets than SYMI for Qwen3-30B-A3B and GLM4.5-106B-A12B, despite additional training steps. These are author-reported results on two configurations and a locally reused Alpaca corpus; they exclude non-MoE layers and are not whole-model end-to-end savings. The appendix proves optimality only for a fixed-count, equal-row-cost additive sum of isolated projection-gradient perturbations. No independent reproduction was performed.",
+    "technical": {
+      "claimed_result": "LRMoE uses contribution-aware backward selection, quota-constrained expert placement and physical compaction. Authors report lower cumulative MoE-layer time to common loss targets than SYMI for Qwen3-30B-A3B and GLM4.5-106B-A12B.",
+      "demonstrated_result": "The arXiv v1 paper, experiment tables, system setup and appendix scope were inspected. These support that the authors report the stated experiments and proof; no independent reproduction or artifact execution was performed.",
+      "mechanism": "Forward planning sets per-expert retained counts and placements under HBM and communication limits. During backward execution, a score based on routing weight, gradient norm and saved projection-input norm ranks token–expert pairs within each quota. The retained rows are physically compacted for variable-size grouped GEMMs and rerouted to eligible instances.",
+      "regime": "Eight NVIDIA Hopper GPUs with EP8, PyTorch 2.11.0, CUDA 13.0, BF16, 80 GiB per GPU, 128 experts, top-8 routing, 8,192-token sequences and per-GPU microbatch four. The two model configurations are Qwen3-30B-A3B and GLM4.5-106B-A12B, using locally preprocessed and cyclically reused Alpaca records.",
+      "reproducibility": "The paper is an arXiv preprint. No code repository was inspected or independent reproduction performed during this review.",
+      "strongest_baseline": "The paper compares cumulative MoE-layer time at matched loss targets to SYMI, with four model/target rows. LRMoE reports 21.2–44.8% lower times while reaching targets in more steps. The measure includes complete MoE-layer forward/backward execution and communication but excludes non-MoE layers and is not whole-model time."
+    },
+    "title": "LRMoE reports faster memory-constrained training for two sparse MoE models",
+    "topics": [
+      "mixture-of-experts",
+      "distributed training",
+      "GPU memory",
+      "training efficiency"
+    ],
+    "why_it_matters": "Sparse-MoE training is constrained by uneven expert load, communication, and GPU memory. If reproduced at broader scales, reducing the measured MoE-layer path while reaching matched loss targets could affect accelerator throughput and training cost. The paper’s exact selection theorem applies to a local additive proxy, not aggregate gradient error or future model quality."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

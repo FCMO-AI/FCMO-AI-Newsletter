@@ -253,9 +253,23 @@ def check_strict(source: dict[str, Any], overlay: dict[str, Any], locale: str, r
 # ---------------------------------------------------------------------------
 
 def normalize_record(row: dict[str, Any]) -> dict[str, Any]:
-    """Fold the legacy ``why`` alias into ``why_it_matters``."""
+    """Fold the legacy ``why`` alias into ``why_it_matters``.
+
+    ``contradictory_evidence`` entries may arrive as ``{"description", "source_ids"}``
+    objects (airlock 2026-10-30); the canonical English record already flattens them
+    to their text (``taxonomy._string_list``), so overlays are flattened the same way
+    and both sides keep the one string-list shape the overlay contract validates.
+    """
     if not isinstance(row, dict):
         return row
+    ce = row.get("contradictory_evidence")
+    if isinstance(ce, list) and any(isinstance(x, dict) for x in ce):
+        row = dict(row)
+        row["contradictory_evidence"] = [
+            (x if isinstance(x, str) else str(x.get("text") or x.get("description") or x.get("summary") or "")).strip()
+            for x in ce if isinstance(x, (str, dict))
+        ]
+        row["contradictory_evidence"] = [x for x in row["contradictory_evidence"] if x]
     if "why" in row:
         row = dict(row)
         why = row.pop("why")

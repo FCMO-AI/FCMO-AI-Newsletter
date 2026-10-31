@@ -1,0 +1,151 @@
+{
+  "record": {
+    "id": "FCMO-8707BF4EED07",
+    "title": "Logit perturbations reproduce many reported Neural Thickets gains without changing weights",
+    "desk": "Reasoning Posttraining",
+    "event_at": "2026-10-29T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "A preprint re-evaluates the Neural Thickets perturb-select-vote procedure and reports that much of its measured gain does not require perturbing model weights. The authors apply a fixed random bias to output logits, select members using 200 labeled task examples, then vote across selected members. In author-reported tests on language models up to 7B parameters, this approach is statistically indistinguishable from full-weight perturbations on 22 of 28 matched model–task pairs and significantly better on three and worse on three; effects vary by task, and on USPTO the raw accuracy partly reflects a majority-class predictor. On vision tasks with train-test shift, the authors attribute gains primarily to output recalibration. The work offers an alternative explanation for the measured gains, not evidence that nearby weight-space structure is absent or that the method improves general model capability.",
+    "topics": [
+      "inference-time adaptation",
+      "perturb-select-vote",
+      "weight-space geometry",
+      "self-consistency",
+      "test-time compute",
+      "distribution shift"
+    ],
+    "organizations": [
+      "Kyutai",
+      "Meta FAIR",
+      "Google DeepMind",
+      "CNRS",
+      "Université Gustave Eiffel",
+      "École nationale des ponts et chaussées",
+      "UC Berkeley"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-8707BF4EED07.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-8707BF4EED07.json",
+    "citation": {
+      "id": "FCMO-8707BF4EED07",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-8707BF4EED07.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors formalize perturb-select-vote (PSV) as sampling perturbed predictors, selecting the top members on a labeled task-specific set, and aggregating their predictions. Their logit-PSV variant keeps the pretrained model frozen and reuses a sampled vocabulary bias through generation and across inputs."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Under the matched original protocol reported in the preprint, logit PSV and full-weight PSV were statistically indistinguishable on 22 of 28 model–task pairs; logit PSV was significantly better on three and worse on three. The tested language models range up to OLMo-3-7B-Instruct, with N=5000 and K=50 in the matched comparison and a 200-example selection set."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "For OLMo-3-7B-Instruct on MATH-500, the authors report 81.3% accuracy for logit PSV, 74.7% for full-weight PSV, and 63.3% for the unperturbed base under the stated comparison; on USPTO, logit PSV's higher raw accuracy is partly explained by majority-class predictions and its balanced accuracy is lower than full-weight PSV."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In the reported vision experiments, logit-space methods improved worst-group or worst-region accuracy by 5–6 points on Waterbirds and FMoW under distribution shift, while showing essentially no gain on balanced ImageNet; deterministic class-frequency recalibration recovered much of the shift-task gain."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The evidence reviewed does not establish independent reproduction, applicability above 7B language models, benefit on open-ended generation, improvement in general model capability, or lower total inference cost. The method requires a labeled selection set and K model evaluations per test input."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "reasoning_posttraining",
+      "evaluation_science",
+      "efficiency",
+      "open_ecosystem"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-30"
+    ],
+    "event_at": "2026-10-29T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction of the new logit-PSV results was inspected; author code and expected outputs are available, but the full reported run is estimated at about 140 H100 GPU-hours.",
+        "kind": "reproduction_missing",
+        "state": "open",
+        "updated_at": "2026-10-30T23:11:52Z"
+      },
+      {
+        "description": "Transfer beyond language models up to 7B, short-answer benchmark tasks, small labeled selection sets and the vision datasets is unknown; total inference cost is not compared across practical serving regimes.",
+        "kind": "regime_unclear",
+        "state": "open",
+        "updated_at": "2026-10-30T23:11:52Z"
+      }
+    ],
+    "id": "FCMO-8707BF4EED07",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the reported mechanism generalizes, it could change how researchers interpret weight-space post-training results and choose inference-time adaptation methods. The evidence is currently confined to author-reported experiments on models up to 7B, selected benchmark tasks and small labeled validation sets.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-30T23:11:52Z",
+    "limitations": [
+      "All new empirical results are author-reported; no independent reproduction was performed.",
+      "Language experiments stop at 7B parameters and cover a bounded set of models and benchmark tasks.",
+      "The method requires a labeled task-specific selection set; the paper says it is less suitable for open-ended generation.",
+      "At inference, the method requires K model evaluations per test input; no total-cost or latency advantage over alternatives is established.",
+      "On USPTO, raw accuracy can obscure class collapse: the authors report lower balanced accuracy for logit PSV than for full-weight PSV in the cited OLMo comparison, and both methods can match a constant majority-class baseline in some Qwen comparisons.",
+      "The authors report that selection can overfit the 200-example set and that the first-order analysis applies only at sufficiently small perturbation scales.",
+      "Vision gains are concentrated in datasets with train-test distribution shift; balanced ImageNet shows essentially no improvement, and the authors attribute the shifted-data result largely to output recalibration."
+    ],
+    "organizations": [
+      "Kyutai",
+      "Meta FAIR",
+      "Google DeepMind",
+      "CNRS",
+      "Université Gustave Eiffel",
+      "École nationale des ponts et chaussées",
+      "UC Berkeley"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "recorded_at": "2026-10-30T23:11:52Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2610.40649v1",
+      "https://github.com/kyutai-labs/logit-psv"
+    ],
+    "status": "active",
+    "summary": "A preprint re-evaluates the Neural Thickets perturb-select-vote procedure and reports that much of its measured gain does not require perturbing model weights. The authors apply a fixed random bias to output logits, select members using 200 labeled task examples, then vote across selected members. In author-reported tests on language models up to 7B parameters, this approach is statistically indistinguishable from full-weight perturbations on 22 of 28 matched model–task pairs and significantly better on three and worse on three; effects vary by task, and on USPTO the raw accuracy partly reflects a majority-class predictor. On vision tasks with train-test shift, the authors attribute gains primarily to output recalibration. The work offers an alternative explanation for the measured gains, not evidence that nearby weight-space structure is absent or that the method improves general model capability.",
+    "technical": {
+      "claimed_result": "The authors report that logit PSV matches or exceeds full-weight PSV on most reasoning comparisons and that output-space recalibration explains many of the reported gains. In a matched comparison they report statistical indistinguishability on 22 of 28 model–task pairs; vision results are strongest on selected distribution-shift datasets.",
+      "compute_or_cost": "The method does not retrain model weights, but the repository states that full reproduction requires about 140 H100 GPU-hours. Inference still requires K model evaluations per test item, while scoring N members over the selection set adds substantial upfront computation. Lower total cost or serving latency is not established.",
+      "demonstrated_result": "The arXiv v1 paper and linked implementation documentation were inspected, establishing that the authors report the stated experiments and provide code/reproduction instructions. No independent reproduction or execution was performed.",
+      "implementation_status": "The authors provide an official repository with code for language-model results, task scorers and 27-cell reproduction scripts. The repository says first-use downloads require model/data access and an NVIDIA GPU supporting CUDA 12.8. Not executed in this research activation.",
+      "mechanism": "For each member, draw one random vocabulary-length Gaussian bias and add it to output logits during greedy decoding, holding the model weights fixed. Score members on a labeled task-specific selection set, retain the top K, and majority-vote their extracted answers at test time. The same bias persists across decoding steps and inputs, allowing a member's selection-set performance to choose a reusable token preference pattern.",
+      "novelty": "The paper challenges the claim that the observed RandOpt/Neural Thickets gains require nearby weight-space experts: it reports that much of the effect can be recovered by output diversity, validation selection and voting, with logit-space perturbation as a simpler realization.",
+      "regime": "Language experiments use Qwen2.5 models from 0.5B to 3B and OLMo-3-7B-Instruct across seven task families, with a 200-example labeled selection set. The matched original-protocol comparison uses N=5000 and K=50. The author code's 27-cell logit-PSV reproduction uses N=1000, K up to 50 and one H100 per small run; the full reported reproduction is estimated at about 140 H100 GPU-hours. Vision uses frozen DINOv3 backbones up to 6.7B on FMoW, Waterbirds and balanced ImageNet.",
+      "reproducibility": "An author-maintained implementation and expected outputs are public. The README documents hardware and version sensitivity; no independent reproduction was located or performed during this review.",
+      "strongest_baseline": "The paper's matched comparison to the cited Neural Thickets full-weight perturbation method, using author-released code and original prompts, splits, scorers and N=5000/K=50 settings; additional baselines include temperature-tuned sampling with majority voting and deterministic recalibration for vision."
+    },
+    "title": "Logit perturbations reproduce many reported Neural Thickets gains without changing weights",
+    "topics": [
+      "inference-time adaptation",
+      "perturb-select-vote",
+      "weight-space geometry",
+      "self-consistency",
+      "test-time compute",
+      "distribution shift"
+    ],
+    "why_it_matters": "The result separates an observed inference-time gain from the geometric explanation proposed for it: validation selection and voting over output diversity may account for much of the reported effect without changing weights. If reproduced beyond the tested models and tasks, that would shift how researchers interpret weight-space adaptation and design cheaper or more direct test-time methods. The method still uses a labeled selection set and K model evaluations per test input, so the paper does not establish lower total inference cost."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
