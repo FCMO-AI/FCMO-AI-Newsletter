@@ -146,7 +146,7 @@ class FrontVariants(unittest.TestCase):
             html = d_front.rank(stories,ctx)
             self.assertEqual(html.count('<article class="d-rank-entry">'), n)
             if n:
-                self.assertIn(f'{n:02d}</b>',html)
+                self.assertIn(f'<b class="d-rank-number">{n}</b>',html)  # R4 numbers the rank 1,2,3 (not 01)
 
 
 class StoryVariants(unittest.TestCase):
