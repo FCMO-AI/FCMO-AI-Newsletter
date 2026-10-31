@@ -29,6 +29,7 @@ from harness.mock_ghost import (
     verify_admin_token,
 )
 from harness.serve import start_server
+from tests._browser import skip_or_fail
 
 HARNESS = Path(__file__).resolve().parent
 BROWSER = HARNESS / "browser"
@@ -332,7 +333,7 @@ class BrowserScriptTests(unittest.TestCase):
 
     def setUp(self):
         if not NODE:
-            self.skipTest("node is not installed")
+            skip_or_fail(self, "node is not installed")
 
     def test_syntax(self):
         for name in self.SCRIPTS:
@@ -365,7 +366,8 @@ class BrowserRunTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not _node_path_has("playwright"):
-            raise unittest.SkipTest("playwright not reachable through NODE_PATH")
+            cls.tmp = None
+            return
         cls.tmp = tempfile.TemporaryDirectory()
         root = Path(cls.tmp.name)
         head = '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -381,8 +383,14 @@ class BrowserRunTests(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        if cls.tmp is None:
+            return
         cls.server.close()
         cls.tmp.cleanup()
+
+    def setUp(self):
+        if not getattr(self, "tmp", None):
+            skip_or_fail(self, "playwright not reachable through NODE_PATH")
 
     def run_script(self, name, *args):
         result = subprocess.run([NODE, str(BROWSER / name), *args], capture_output=True, text=True, timeout=300)
@@ -407,7 +415,7 @@ class BrowserRunTests(unittest.TestCase):
 
     def test_axe_and_min_font(self):
         if not (os.environ.get("AXE_CORE_PATH") or _node_path_has("axe-core/axe.min.js")):
-            self.skipTest("axe-core not reachable (AXE_CORE_PATH or NODE_PATH)")
+            skip_or_fail(self, "axe-core not reachable (AXE_CORE_PATH or NODE_PATH)")
         code, report = self.run_script("axe.mjs", self.server.url, "--viewport", "390x844", "--min-font", "12")
         self.assertEqual(code, 0, report)
         self.assertEqual(report["pages"][0]["blocking"], 0)

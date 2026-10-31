@@ -24,6 +24,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FCMO_REQUIRE_BROWSER: '1'
+
 concurrency:
   group: newsletter-contract-tests-${{ github.ref }}
   cancel-in-progress: true
@@ -42,6 +45,17 @@ jobs:
           python-version: '3.12'
       - name: Compile tools and test modules
         run: python -m compileall -q tools tests
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright and Chromium
+        # FCMO_REQUIRE_BROWSER: the browser tests fail instead of skipping, so this suite needs a real browser.
+        run: |
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0 axe-core@4.14.0
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "NODE_PATH=$RUNNER_TEMP/playwright/node_modules" >> "$GITHUB_ENV"
+          echo "AXE_CORE_PATH=$RUNNER_TEMP/playwright/node_modules/axe-core/axe.min.js" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
       - name: Install regression dependencies
         run: |
           python -m pip install PyYAML==6.0.2
