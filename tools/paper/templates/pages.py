@@ -124,15 +124,15 @@ def story_page(*, header: str, body: str, aside: str, hero: str = "", navigation
 def archive_page(title: str, intro: str, items: str, *, kicker: str, title_html: str | None = None,
                  context: str = "", navigation: str = "") -> str:
     rendered_title = title_html if title_html is not None else e(title)
-    return f'<header class="d-page-header"><p class="section-kicker">FCMO AI · {e(kicker)}</p><h1 class="page-title d-page-title">{rendered_title}</h1><p>{e(intro)}</p>{context}</header>{navigation}<div class="archive-list">{items}</div>'
+    return f'<header><p class="section-kicker">FCMO AI · {e(kicker)}</p><h1 class="page-title">{rendered_title}</h1><p>{e(intro)}</p>{context}</header>{navigation}<div class="archive-list">{items}</div>'
 
 
 def status_page(title: str, cards: str, detail: str, *, kicker: str) -> str:
-    return f'<header class="d-page-header"><p class="section-kicker">FCMO AI · {e(kicker)}</p><h1 class="page-title d-page-title">{e(title)}</h1></header><div class="status-grid">{cards}</div>{detail}'
+    return f'<header><p class="section-kicker">FCMO AI · {e(kicker)}</p><h1 class="page-title">{e(title)}</h1></header><div class="status-grid">{cards}</div>{detail}'
 
 
 def simple_page(title: str, body: str, *, kicker: str = "FCMO AI") -> str:
-    return f'<article class="story-body d-simple-page"><header><p class="section-kicker">{e(kicker)}</p><h1 class="page-title d-page-title">{e(title)}</h1></header>{body}</article>'
+    return f'<article class="story-body"><header><p class="section-kicker">{e(kicker)}</p><h1 class="page-title">{e(title)}</h1></header>{body}</article>'
 
 
 def _class_word(catalog: dict, value: object) -> str:
@@ -147,10 +147,8 @@ def class_chip(catalog: dict, klass: str) -> str:
     """Evidence class as sample + word (never colour alone); ``klass`` is shown / claimed / not_established."""
     sample = {"shown": "shown", "claimed": "claimed", "not_established": "gap"}.get(klass, "gap")
     word = catalog["strings"]["proof"].get(klass, klass)
-    from .d_components import sample as proof_sample
-    glyph = proof_sample(klass.replace('_', '-')).replace('class="d-sample', 'class="sample d-sample')
-    return f'<span class="chip chip-{sample}">{glyph}<span class="chip-word"><strong>{e(word)}</strong></span></span>'
-
+    return (f'<span class="chip chip-{sample}"><span class="sample sample-{sample}" aria-hidden="true"></span>'
+            f'<span class="chip-word"><strong>{e(word)}</strong></span></span>')
 
 
 def class_line(story: dict, catalog: dict, *, grade: bool = True, counts: bool = True) -> str:

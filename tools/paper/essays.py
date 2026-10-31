@@ -267,7 +267,7 @@ def _esc(value: Any) -> str:
 
 def _title_or_slug(piece: dict, locale: str) -> str:
     doc = piece["docs"].get(locale)
-    return doc["title"] if doc else piece.get("last_titles", {}).get(locale, "")
+    return doc["title"] if doc else piece["slug"].replace("-", " ").title()
 
 
 def _origin_label(locale: str) -> str:

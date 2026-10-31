@@ -88,12 +88,7 @@ class _Ctx:
 
     def evidence(self, story: dict) -> dict:
         value = story.get("evidence") if self.code == "en" else field(story, self.code, "evidence", {})
-        if not isinstance(value, dict):
-            return {}
-        canonical = (story.get("evidence") or {}).get("claims") or []
-        return {**value, "claims": [{**claim, **({key: canonical[i][key] for key in ("label", "qualifier") if key in canonical[i]} if i < len(canonical) else {})}
-                                      for i, claim in enumerate(value.get("claims") or [])]}
-
+        return value if isinstance(value, dict) else {}
 
 
 def _counts(story: dict) -> tuple[int, int]:
@@ -108,10 +103,8 @@ _SAMPLE = {"shown": "shown", "claimed": "claimed", "not_established": "gap"}
 
 def _chip(klass: str, ctx: _Ctx) -> str:
     kind = _SAMPLE[klass]
-    from .d_components import sample as proof_sample
-    glyph = proof_sample(klass.replace('_', '-')).replace('class="d-sample', 'class="sample d-sample')
-    return f'<span class="chip chip-{kind}">{glyph}<span class="chip-word"><strong>{_e(ctx.s["proof"][klass])}</strong></span></span>'
-
+    return (f'<span class="chip chip-{kind}"><span class="sample sample-{kind}" aria-hidden="true"></span>'
+            f'<span class="chip-word"><strong>{_e(ctx.s["proof"][klass])}</strong></span></span>')
 
 
 def _grade(story: dict, ctx: _Ctx) -> str:
@@ -314,20 +307,19 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
     if not feature:
         return (f'<div class="landing"><section class="landing-intro" aria-labelledby="landing-title">'
                 f'<p class="rubric rubric-accent">FCMO AI</p><h1 id="landing-title">{_e(s["brand"]["motto"])}</h1>'
-                f'{record}</section>' + (f'<section class="frame d-front-letters">{cartas}</section>' if cartas else '') + '</div>')
+                f'{record}</section></div>')
     if not front:
         return f'<div class="landing">{_cover(feature, None, None, record)}</div>'
     base = front["base"] if front["base"].endswith("/") else front["base"] + "/"
     ctx = _Ctx(locale, base)
     order = front["order"]
     slots = plan_mod.landing_slots(order)
-    from . import d_front
-    letters = f'<section class="frame d-front-letters">{cartas}</section>' if cartas else ''
-    return '<div class="landing d-front">' + "".join([
-        d_front.cover(feature, slots["cover"], ctx),
-        d_front.rank(([slots["cover"]] if slots["cover"] else []) + slots["board"], ctx),
-        letters,
+    return '<div class="landing">' + "".join([
+        _cover(feature, slots["cover"], ctx, ""),
+        _board(slots["board"], ctx),
+        _band(order, ctx, home + "method/"),
         _wire(slots["wire"], ctx),
         _topics(order, ctx),
-        d_front.follow(home, base, ctx, order),
+        _trio(home, ctx),
+        _subscribe(home, base, ctx),
     ]) + "</div>"
