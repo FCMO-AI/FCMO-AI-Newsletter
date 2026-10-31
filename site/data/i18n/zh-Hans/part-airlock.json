@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "052a31226e5fd9e357ae62a8a6ab467d7ac18580907fd4ab1774e9734889fbce",
+  "canonical_source_sha256": "f32bb1080acb37d39cc1496291e48a38834b7aff6da0353e6c7af34ce60d2b1a",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -1470,6 +1470,67 @@
       },
       "title": "预印本测量大语言模型评审器的相关错误，并展示何时共识会夸大证据",
       "why_it_matters": "模型评估和偏好数据流程常把多个大语言模型评审器达成一致视为独立信号。如果这些模式得到复现，投票数可能夸大统计证据；错误结构改变时，单一聚合规则也可能失效。总体相关系数会漏掉部分子组失效，已测试过滤器也未持续优于多数投票。估计结果仅适用于所评估的评审器、任务和校准条件。"
+    },
+    "FCMO-06A1C0E3D9F0": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "一篇关于VeriCUA: Learning Proactive Verification for Reliable GUI Agent Rewards的v1预印本于2026-10-19提交至arXiv；论文链接到作者的代码仓库。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在OSWorld、MobileWorld和WebArena-Verified上，宏平均一致率为74.08%（VeriCUA-4B）；少量示例的GPT一致率为68.72%（GPT-5.4），而Probe令牌减少47.6%–59.8%。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在一项下游智能体强化学习对比中，作者报告称，使用训练后的VeriCUA奖励后，Pass@4从初始策略的43.93%升至47.14%；留出的MultiApp子集从17.57%升至22.97%。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "该研究尚未证明结果得到独立复现、能广泛迁移到所评估环境和模型之外，或具有生产层面的成本效益。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "未检查对基准一致率或下游智能体强化学习收益的独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "报告的令牌减少仅计算Probe用量；没有合并Judge令牌、SFT与RL算力、环境成本和完整服务价格。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "相关主张依赖特定评估集和可执行标签；尚未证明其能迁移到所报告智能体和环境之外。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果能够复现，一种能学习选择有效状态检查并及时停止的验证器，可能提升GUI智能体奖励的可靠性，以及使用这些奖励训练出的策略。论文报告的提升涵盖三个评估环境和一项有限的下游训练实验，但仍是一篇论文、一个训练设置下的作者自报结果。",
+      "limitations": [
+        "结果来自一篇作者自报的v1预印本；本次没有进行独立复现或外部审计。",
+        "验证器评估包括414条OSWorld轨迹、100条MobileWorld轨迹和100条WebArena-Verified轨迹；样本经过六次稳定复执行筛选，不能代表广泛的生产场景。",
+        "验证器仅使用280项OSWorld任务训练；迁移结果仅在所选的MobileWorld和WebArena-Verified集合上报告。",
+        "下游智能体学习结果来自一项使用Qwen3-VL-4B-Thinking策略、在206项OSWorld单应用任务上训练的实验；不能据此确立对其他智能体、任务分布或生产系统的影响。",
+        "所报告的Probe令牌节省不包括Judge令牌、训练、基础设施或完整模型价格。论文附录指出，模型计费和令牌口径使完整成本比较较为困难。",
+        "检查了公开仓库和运行说明，但没有执行代码，也没有下载所链接的模型权重。"
+      ],
+      "relationships": [],
+      "summary": "一篇较早的arXiv论文于19日提交（2610.26469），将VeriCUA作为一种学习型GUI奖励验证智能体；它与29日由另一组作者提交、使用相同名称的后续论文（arXiv:2610.40578）并非同一项工作。可训练Judge负责选择检查项并决定何时停止，固定Probe负责检查实时GUI状态。作者报告称，在OSWorld、MobileWorld和WebArena-Verified上，其结果优于若干被动和提示式验证器，并且在一项有限的下游智能体训练实验中带来提升。论文提供代码链接和配置细节，但本次没有独立复现。令牌比较只计算Probe用量，不包括Judge、训练或基础设施的完整成本。",
+      "technical": {
+        "claimed_result": "作者报告称，在OSWorld、MobileWorld和WebArena-Verified上，宏平均奖励一致率为74.08%（VeriCUA-4B）；少量示例的GPT奖励一致率为68.72%（GPT-5.4），而Probe令牌减少47.6%–59.8%。仅在OSWorld训练后，VeriCUA-4B和VeriCUA-1B在两个未见环境中分别排名第一和第二。在一项下游智能体强化学习对比中，使用训练后验证器奖励时，初始策略Qwen3-VL-4B-Thinking的Pass@4从43.93%升至47.14%；留出的MultiApp子集从17.57%升至22.97%。",
+        "compute_or_cost": "报告的47.6%–59.8%减少仅指Probe令牌。附录D说明，Judge令牌未纳入同一比较，因为模型分词器和供应商提供的推理令牌计数口径不同。Judge在线RL使用八张NVIDIA A800-SXM4 GPU进行更新，另用八张GPU生成rollout；SFT使用八张GPU。论文未确立完整训练或服务成本。",
+        "demonstrated_result": "arXiv记录证明作者于2026-10-19提交了一篇描述该方法的v1论文。本次没有独立复现论文所报的性能或下游学习结果。",
+        "mechanism": "可训练Judge提出任务成功检查项，并判断证据是否足以支持成功、失败或不确定。如果仍不确定，固定Probe会检查实时GUI终态，并返回未解决检查项的证据。Judge先用筛选后的教师轨迹进行初始化，然后基于可执行结果和Probe使用情况形成的奖励，以REINFORCE++进行在线训练。训练时每个Actor终态只允许一次验证尝试。",
+        "novelty": "论文所述贡献是在每个终态只能验证一次的约束下，学习验证策略——检查什么以及何时停止——然后将训练后的验证器用作强化学习奖励来源。另一篇29日提交的论文使用相同简称，但提出不同的在线与离线验证框架。",
+        "regime": "验证器评估包括414条OSWorld轨迹、100条仅GUI的MobileWorld轨迹以及100条WebArena-Verified轨迹。作者仅保留六次从干净任务快照重新执行后结果一致、且最终画面相似度通过阈值的轨迹。Judge仅在280项OSWorld任务上训练，并在MobileWorld和WebArena-Verified上不经再训练评估。下游Actor强化学习使用Qwen3-VL-4B-Thinking策略，在206项OSWorld单应用任务上进行。这些是单篇论文中的作者运行配置。",
+        "reproducibility": "论文链接到包含代码、评估脚本和训练说明的公开GitHub仓库，并提供提示词和配置细节。仓库README称模型权重将发布到Hugging Face。本次只检查了README和论文；没有克隆或运行代码、下载权重或独立复现结果。",
+        "strongest_baseline": "在验证一致率方面，论文比较了使用少量示例的GPT-5.4、提示式Judge以及被动/主动验证器，均使用相同评估集，并以可执行结果标签为基准。在下游强化学习实验中，初始、ZeroGUI和提示式VeriCUA奖励配置使用同一Actor、任务集、执行预算与优化设置，只有奖励提供方不同。"
+      },
+      "title": "较早的VeriCUA论文报告学习型GUI验证器及奖励收益",
+      "why_it_matters": "训练奖励需要区分真正完成的任务与看似合理但未完成的尝试。论文报告了一种学习何时检查哪些证据、何时停止的方法，并报告其迁移到两个未参与训练的界面，以及下游策略表现改善。这是一项范围有限的作者自报研究，尚不能证明普遍迁移或生产影响。"
     },
     "FCMO-06D643023122": {
       "claims": [
@@ -21424,6 +21485,72 @@
       },
       "title": "可微分软符号规划将视觉不确定性与受规则约束的动作规划连接起来",
       "why_it_matters": "该方法处理了具身规划中的一个真实接口问题：感知与规划之间的硬切分会阻止后续任务推理修正不确定的场景关系。其软规则转移保留不确定性，并把任务梯度传回感知模块。在紧凑符号领域中的结果值得关注，但尚未证明其适用于开放世界视觉理解、复杂动作模式或实体机器人执行。"
+    },
+    "FCMO-744436767194": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "一篇介绍VeriCUA的v1预印本于2026-10-29提交至arXiv。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在多个在线与离线的计算机使用验证设置中，其结果与若干对比方法的一致性更高；方法还将发现关联到证据来源，并可选择弃答。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，与单次判断相比，该方法显著增加模型调用和令牌用量；离线模式下，未解决的要求可以回退到初始视觉语言模型判断，而非完全弃答。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "论文没有证明结果得到独立复现、能迁移到所评估数据集和配置之外，或使用VeriCUA标签能够改善智能体训练。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "未查到对论文所报基准对比的独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "未核实公开实现或可执行工件，也未独立审计所报告的模型调用和令牌成本。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "论文没有证明带来源信息的标签可迁移到策略学习；离线回退机制可能在证据仍未解决时给出判断。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果能在这些评估环境之外复现，主动采集状态证据并在证据不足时弃答的验证方式，可能改善计算机使用轨迹在评估、数据筛选和奖励分配中的选择。当前结果来自一篇作者自报的单篇v1研究；更高的一致性伴随着显著增加的模型调用和令牌用量。",
+      "limitations": [
+        "这是一篇作者自报结果的单篇v1预印本；本次未检查独立复现或生产环境评估。",
+        "评估使用选定的数据集、官方检查器或既有人工标签，以及特定的模型和接口配置；不能据此确立普遍适用的计算机使用验证性能。",
+        "如果离线探索无法解决某项要求，流程可能使用初始视觉语言模型判断作为回退；因此，弃答机制并未消除所有证据不足时仍给出回退判断的情况。",
+        "论文报告称，与单次判断相比，该方法需要更多令牌并具有更高延迟，这可能限制其在筛选和奖励分配之外的用途。",
+        "研究没有测量验证器标签是否能改善后续智能体学习或实际任务成功率。"
+      ],
+      "relationships": [
+        {
+          "summary": "另一篇19日提交、由不同作者撰写的论文使用相同的VeriCUA名称，研究的是Judge–Probe结构的学习型GUI奖励智能体（arXiv:2610.26469）。名称相同不代表两篇论文属于同一事件或版本沿袭。",
+          "target_id": "FCMO-06A1C0E3D9F0",
+          "type": "related"
+        }
+      ],
+      "summary": "一篇独立的arXiv论文（2610.40578）由Google和The University of Hong Kong作者于29日提交，介绍了名为VeriCUA的跨平台框架。另一组作者在19日提交的早期论文中也使用VeriCUA这一名称，但其工作是通过学习改进GUI奖励验证器；两篇论文彼此独立。后来的框架通过图形界面与代码检查采集证据，将发现关联到所观察的来源，并可在证据无法解决某项要求时弃答。作者报告称，在五种评估设置中，其结果与参考标签的一致性高于若干对比验证器。这些结果来自作者自身实验，范围限于所测环境与模型设置；离线未解决情况仍可能回退到初始视觉语言模型判断，论文报告的令牌和模型调用成本显著高于单次判断。",
+      "technical": {
+        "claimed_result": "论文报告称，与所选基线相比，在线AndroidWorld、OSWorld和ScienceBoard任务以及离线OSReward、WebArena、AndroidWorld和OSWorld轨迹的一致性更高。在线准确率分别报告为：AndroidWorld中90.5%，视觉评估器为78.4%；OSWorld中79.5%，视觉评估器为73.4%；ScienceBoard中86.4%，视觉评估器为71.6%；在这些在线任务中，该验证器对18–30%的回合选择弃答。离线准确率分别报告为：OSReward-Hard 70.4%、完整OSReward 87.2%、WebArena 82.7%、AndroidWorld 94.3%、OSWorld 86.3%。",
+        "compute_or_cost": "附录C.5报告称，离线WebArena每条轨迹使用150K–208K令牌，OSReward每条使用345K–378K令牌；论文列出的三评估器组合使用25K–61K令牌。在线AndroidWorld首轮测试中，VeriCUA每回合使用39.2K令牌、耗时97秒；生成式验证器使用16.2K令牌、耗时60秒。附录E称，与单次评估器相比，该方法的调用次数约高一个数量级。",
+        "demonstrated_result": "arXiv记录证明作者于2026-10-29提交了一篇描述该方法的v1论文。本次审查并未独立验证论文所报的评估结果。",
+        "mechanism": "VeriCUA先检查任务上下文，再构建包含硬性与软性要求的检查清单，并针对未解决要求自适应选择图形界面或代码检查。它把每项发现关联到已执行的读取操作以及来源属性，例如证据是“陈述”还是“实测”、画面帧位于动作前还是动作后，以及机器状态是持久还是易变。规则裁定过程可以输出成功、失败或弃答。",
+        "novelty": "论文所报告的贡献是一个共用的在线与离线验证流程，可在图形界面、录制轨迹和可访问机器状态之间自适应采集证据并记录来源。另一篇由不同作者撰写、于19日提交的论文也使用VeriCUA这一名称，但研究的是带有Judge–Probe结构的学习型GUI奖励智能体；本文不是该工作的修订版。",
+        "regime": "作者报告的评估主要使用Gemini 3 Flash作为验证模型；在线设置中的执行智能体也使用该模型，涵盖AndroidWorld（116个回合）、在线OSWorld（361个）、ScienceBoard（169个）以及录制的OSReward/WebArena轨迹。WebArena集合包含三个智能体的715次执行。这是v1论文，结果仅适用于所列数据集、标签、接口和配置。",
+        "reproducibility": "本次未进行独立复现。已查看arXiv论文页及其HTML版本，但未核实到公开实现链接或可执行工件，也未重新运行底层评估或模型调用。",
+        "strongest_baseline": "论文比较了所选的单次视觉评估器、在线生成式状态检查脚本，以及离线CUAJudge/OS-Themis。这些是作者实际实现的配置；附录B指出，OS-Themis采用了缩减预算：四个里程碑和八帧，而其原始配置为六个里程碑和十二帧。"
+      },
+      "title": "Google与HKU报告面向计算机使用智能体的证据验证框架",
+      "why_it_matters": "任务验证质量会影响哪些智能体轨迹被用于评估、数据筛选和奖励分配。VeriCUA报告了一种在在线和离线计算机使用场景中采集证据并标注其来源的方法，同时揭示了实际成本权衡。这篇预印本尚未证明其结果得到独立复现、能够普遍迁移，或能改善后续智能体学习。"
     },
     "FCMO-7445DAC8132B": {
       "claims": [
@@ -44959,6 +45086,48 @@
         "source_sha256": "3a64fda320ccd85cd74618c127ca37f9da755358b49d15eb954e67f8b0b49241"
       }
     },
+    "FCMO-06A1C0E3D9F0": {
+      "claims": {
+        "locale_sha256": "5083e65453892d1fe21e53eb09d8bddc7c755c8253589adfd69ad3e5acdbd186",
+        "source_sha256": "b082cfb9481e3e172ddc002164a4123e7bcc74c8d6819f42b0f4451120a456ac"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "2408f816607e5c48ac4e23fbbeba0a4c887a45128be8899824f8426f6c2ea16d",
+        "source_sha256": "242c77239a7c65f8c5fdcdb451aecc0859a78bf6ba4e9434b4fc22a896e567c2"
+      },
+      "importance_rationale": {
+        "locale_sha256": "02762d41a35adf05d8ded450e41fff9270afad747fd4d206f2c3c3260f9f33d9",
+        "source_sha256": "a2674bc24291f3a2db149fc4fa659a048a8ca56915164d05e482cc0e6f3e2833"
+      },
+      "limitations": {
+        "locale_sha256": "479f7c238c94abc367b72dc31565dd1b8bde4f12bf56b1448d66cd9cc9541ff2",
+        "source_sha256": "a18d095220a666f73b6e6abdccaf66312af684ada0a468dd89bf01e7001d5ea7"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "be7be38a770eb3069be701568b69ef05d9d3f23181ce91d931100ccd34988551",
+        "source_sha256": "b0e9aa179812bf15e44491d39949753c4c006797b3c854fb31f3cabb1176af2f"
+      },
+      "technical": {
+        "locale_sha256": "546fe022afd2d68588a03b03e3e8b0e9dd89474fc994a2204ceda47a74d67ffa",
+        "source_sha256": "1734733dc23e129040e541fe7ce2c6539ec0b3703dd51d7bc2c077c958e4bd59"
+      },
+      "title": {
+        "locale_sha256": "d3ba0369c4163ea27c95b8501c1a84d45dfd0aad412566d58f90a3f9badd2e9f",
+        "source_sha256": "c519778650af681baa60d3347ed1014df9302d61adbeb52077c2df01cf547e71"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f01d3b1f7b78e8ae4cf81e7c443c07dedd17e7baa38a2b38adcc729b3db02606",
+        "source_sha256": "cacee870a234fa89ad81c77a8bd7e0592466e43aec61c14721b8a70cceacd153"
+      }
+    },
     "FCMO-06D643023122": {
       "claims": {
         "locale_sha256": "f4f4bee92814f76553015f7e024a1664a2a8da7802f9267b31bea6be8f6b1994",
@@ -59937,6 +60106,48 @@
       "why_it_matters": {
         "locale_sha256": "eb4693f8349b4a14135052cece18f942632a12f7ed444f6a60809265b0bb4445",
         "source_sha256": "2cc07a8c631fc18387fd726feb70610af154080080a53c1e827eb8328a9f9ab7"
+      }
+    },
+    "FCMO-744436767194": {
+      "claims": {
+        "locale_sha256": "0f3fb68c9f0ab4f21a7899c0ba7342f8f2d3383431a8d19f2c6916b4afdb90d7",
+        "source_sha256": "77deca958fc493f65d2c040fa921cb676d527469ca60dbff1174054dabd379dd"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "c9f7326fda6cd28f996699a237fceca8ee0443a44d835af493098561b0a89822",
+        "source_sha256": "4d0d746613bf6af2015b96265dd488acfb700aecf0013cbb013c75eff5909aed"
+      },
+      "importance_rationale": {
+        "locale_sha256": "3594d0b8fdc06db55939463bac7ac73f4c3cffc76121e22dad97657dee8cefb6",
+        "source_sha256": "354d78c23dded2e84335c676593869c2c362c3a6c6f8eb4ecf92c7630f4976e7"
+      },
+      "limitations": {
+        "locale_sha256": "dbd97d3bac6c38f86606fdd5e69d8a3a0ecf88495952878066026fd493796e2f",
+        "source_sha256": "1d5350e2eda78efc11ab03c6628778df15e1c892d92df296bec3f79e68f4d0ec"
+      },
+      "relationships": {
+        "locale_sha256": "9e5e4acede6f5bfc06b59cce54bc2a2d13c661e911b668cd479f532e37b62f59",
+        "source_sha256": "4c35a5932d2e927c7e10f2bbadfb82993719388c22035d8f3f718386e381a1a9"
+      },
+      "summary": {
+        "locale_sha256": "32f3fd0adfc024d71d1e91dafa8eb061699699ced0cf34da930e18489087003a",
+        "source_sha256": "887dbc87169e2b24e0e6cc9dbb94648dd91d3d7287f95f09f6cfca2c8ec1f415"
+      },
+      "technical": {
+        "locale_sha256": "546975057249fbc4beba7d3e92d90cdeb663a3e5d336c3dfa3c1e701ede555e6",
+        "source_sha256": "45931d8b2e93b484be426a9fda76c4c76a27e263ca692d881d4c755a00bacce3"
+      },
+      "title": {
+        "locale_sha256": "a04a88a145f6514af07de5c7c735ae20950b8afc33a212c0119c60178c96e7f2",
+        "source_sha256": "b762825bea2d3fd13b26a29f98ba9949fa324ab55ccdbfb1fa3c49dfde681cee"
+      },
+      "why_it_matters": {
+        "locale_sha256": "dc1cfa12924ac60154ec2002a1f9ee762bc01ebb5eb8cf404d06a45001c10811",
+        "source_sha256": "c3ac38e025e9ec768bfe5fe9d4faf391d51c9c3dffc87558cf9f60bc7ed4c392"
       }
     },
     "FCMO-7445DAC8132B": {
