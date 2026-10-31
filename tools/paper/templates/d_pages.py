@@ -21,6 +21,11 @@ root.addEventListener('change',()=>{
 });})();</script>"""
 
 
+def count_html(text):
+    head, sep, tail = str(text).partition(' ')
+    return f'<i>{d.e(head)}</i><em>{d.e(sep + tail)}</em>' if sep else d.e(text)
+
+
 def filters(stories, catalog):
     strings = catalog['strings']
     groups = []
@@ -56,7 +61,7 @@ def archive(*, dates, stories, locale, catalog, base, plate_html=""):
                 day = f'{month}-{n:02d}'
                 if day in dates:
                     url = href(base,locale['path_prefix']+'edition/'+day+'/')
-                    days.append(f'<a href="{d.e(url)}" data-edition-date="{day}" aria-label="{d.e(catalog["strings"]["archive"]["edition_title"].format(date=format_date(day,catalog)))}"><b>{n}</b><span>{d.e(plural(catalog,"story",counts[day]))}</span></a>')
+                    days.append(f'<a href="{d.e(url)}" data-edition-date="{day}" aria-label="{d.e(catalog["strings"]["archive"]["edition_title"].format(date=format_date(day,catalog)))}"><b>{n}</b><span>{count_html(plural(catalog,"story",counts[day]))}</span></a>')
                 else:
                     days.append(f'<span class="d-calendar-empty"><b>{n}</b></span>')
         labels = ''.join(f'<span>{d.e(catalog["date"]["weekdays"][i])}</span>' for i in (6,0,1,2,3,4,5))
