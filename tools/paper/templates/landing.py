@@ -337,6 +337,4 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
         d_front.rank(([slots["cover"]] if slots["cover"] else []) + slots["board"], ctx),
         letters,
         d_front.follow(home, base, ctx, order),
-        _wire(slots["wire"], ctx),
-        _topics(order, ctx),
     ]) + "</div>"

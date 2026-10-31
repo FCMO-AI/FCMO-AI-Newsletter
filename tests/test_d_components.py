@@ -57,8 +57,9 @@ class EvidenceComponents(unittest.TestCase):
                 html = d.legend(cat, stories=stories, method_href='/method/')
                 self.assertIn(plural(cat,'story',n), html)
                 self.assertIn(cat['strings']['proof']['not_established']+' · '+plural(cat,'story',1),html)
-                self.assertIn(f'<li>{n+1}<span>',html)
-                self.assertIn('href="/method/"',html)
+                # R4 band: legend only, no counts row and no ordering link (operator-approved reference).
+                self.assertNotIn('band-counts',html)
+                self.assertNotIn('href="/method/"',html)
 
     def test_no_claim_source_relationships_are_invented(self):
         d = self.components()

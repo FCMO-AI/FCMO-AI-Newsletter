@@ -107,14 +107,9 @@ def legend(catalog, *, stories=None, method_href=''):
         cells = ''.join(f'<div><b>{e(p[k])} · {e(plural(catalog,"story",counts[k]))}</b>'
                         f'{sample(k.replace("_","-"))}<p>{e(p[k+"_desc"])}</p></div>'
                         for k in ('shown','claimed','not_established'))
-        totals = (len(stories), len({t for s in stories for t in s.get('topics',[])}),
-                  len({o for s in stories for o in s.get('organizations',[])}))
-        nums = ''.join(f'<li>{n}<span>{e(catalog["strings"]["stat"][k+"_label"])}</span></li>'
-                       for n,k in zip(totals,('stories','topics','organizations')))
+        # R4: legend only (trio + one note). The counts row and the ordering link are not part of the approved band.
         return (f'<section class="method-band" id="method-band"><div class="d-legend"><h2>{e(title)}</h2>'
-                f'<div class="band-trio">{cells}</div><p class="band-note">{e(p["count_note"])}</p>'
-                f'<ul class="band-counts">{nums}</ul>'
-                f'<a href="{e(method_href)}">{e(catalog["strings"]["board"]["how_ordered"])}</a></div></section>')
+                f'<div class="band-trio">{cells}</div><p class="band-note">{e(p["count_note"])}</p></div></section>')
     return f'<section class="d-legend"><h2>{e(title)}</h2><div class="d-legend-items">{items}</div></section>'
 
 
@@ -142,19 +137,59 @@ def _source(source):
     return link + (f'<small>{e(" · ".join(attribution))}</small>' if attribution else '')
 
 
+_CH, _CG, _SH, _SG = 56, 10, 72, 12   # claim box / gap and source box / gap heights (px): fixed so connectors are exact
+
+
 def claims_sources(story, evidence, catalog):
-    """R4 «Sources and claims»: claims at the left (short, the full text is in the ledger), sources and
-    open gaps (dashed) at the right. The schema has no claim-to-source edges, so no individual edge is drawn."""
+    """R4 «Sources and claims»: a connector diagram derived from the record.
+
+    Claims at the left, sources at the right, open gaps (dashed) hanging under the sources. The record has no
+    per-claim citation, so a connector says only what the claim's own label says: a SHOWN/CLAIMED claim is
+    supported by the story's sources (solid line to each primary source, or to all when none is primary); a claim
+    that is not established is dashed. Nothing is hand-placed: every count and position follows the data.
+    """
     st = catalog['strings']['story']
-    claims = ''.join(f'<li><b>{i:02d}</b><span class="d-clamp">{e(c.get("text"))}</span></li>' for i, c in enumerate(rows(evidence.get('claims')), 1))
+    cp = copy(catalog)
+    claim_rows = rows(evidence.get('claims'))
+    source_rows = rows(story.get('sources'))
+    gap_rows = [g.get('description', '') if isinstance(g, dict) else str(g) for g in (evidence.get('gaps') or [])]
+    if not claim_rows and not source_rows:
+        return ''
     letter = story.get('evidence_class')
     mark = f'<b class="d-src-grade">{e(letter)}</b>' if letter in ('A', 'B', 'C', 'D') else ''
-    sources = ''.join(f'<li class="d-src">{_source(s)}' + (f'<small>{mark}{e(st["primary_source"])}</small>' if s.get('primary') else '') + '</li>' for s in rows(story.get('sources')))
-    gaps = ''.join(f'<li class="d-gap"><span class="d-clamp">{e(g.get("description", "") if isinstance(g, dict) else g)}</span></li>' for g in (evidence.get('gaps') or []))
-    if not claims and not sources:
-        return ''
-    return (f'<section class="d-claims-sources" id="sources">{section(st["sources"] + " / " + st["evidence"])}'
-            f'<div><div><h3>{e(st["evidence"])}</h3><ol>{claims}</ol></div><div><h3>{e(st["sources"])}</h3><ol class="source-list">{sources}{gaps}</ol></div></div></section>')
+    grade_text = label(catalog, 'evidence_short', letter) if letter in ('A', 'B', 'C', 'D') else ''
+    claims = ''.join(
+        f'<li class="d-cl d-cl--{proof_kind(c.get("label"))}" title="{e(c.get("text"))}"><b>{i:02d}</b><span class="d-clamp">{e(c.get("text"))}</span></li>'
+        for i, c in enumerate(claim_rows, 1))
+    sources = ''.join(
+        f'<li class="d-src">{_source(s)}' + (f'<small>{mark}{e(grade_text or st["primary_source"])}</small>' if s.get('primary') else '') + '</li>'
+        for s in source_rows)
+    k = min(len(gap_rows), 3)
+    gaps = ''.join(
+        f'<li class="d-gap{" d-gap--top" if i < k else ""}" title="{e(g)}"><span class="d-clamp">{e(g)}</span></li>'
+        for i, g in enumerate(gap_rows))
+    # connectors: x runs 0..100 across the gutter (stretched), y is real px
+    primaries = [j for j, s in enumerate(source_rows) if s.get('primary')] or list(range(len(source_rows)))
+    sy = lambda j: j * (_SH + _SG) + _SH / 2
+    cy = lambda i: i * (_CH + _CG) + _CH / 2
+    height = max(len(claim_rows) * (_CH + _CG) - _CG, len(source_rows) * (_SH + _SG) - _SG, 1)
+    solid, dashed = [], []
+    if source_rows:
+        for i, c in enumerate(claim_rows):
+            if proof_kind(c.get('label')) == 'not-established':
+                j = primaries[0]
+                dashed.append(f'M0 {cy(i):.0f}H34V{sy(j) + 20:.0f}H100')
+            else:
+                solid.extend(f'M0 {cy(i):.0f}H58V{sy(j):.0f}H100' for j in primaries)
+    wires = (f'<svg class="d-wires" aria-hidden="true" focusable="false" viewBox="0 0 100 {height}" preserveAspectRatio="none" style="height:{height}px">'
+             + (f'<path class="d-wire" d="{"".join(solid)}"/>' if solid else '')
+             + (f'<path class="d-wire d-wire--gap" d="{"".join(dashed)}"/>' if dashed else '') + '</svg>')
+    return (f'<section class="d-claims-sources" id="sources">{section(cp["sources_and_claims"])}'
+            f'<div class="d-cs-grid" style="--d-cs-h:{height}px;--d-gaps:{max(k, 1)}">'
+            f'<div class="d-cs-claims"><h3>{e(cp["claims_from_article"])}</h3><ol style="min-height:{height}px">{claims}</ol></div>'
+            f'{wires}'
+            f'<div class="d-cs-sources"><h3>{e(st["sources"])}</h3><ol class="source-list" style="min-height:{height}px">{sources}</ol>'
+            + (f'<ol class="d-cs-gaps">{gaps}</ol>' if gaps else '') + '</div></div></section>')
 
 
 def evidence_map(story, catalog, *, evidence, title):
@@ -302,7 +337,17 @@ def evidence_glance(story, catalog, *, evidence, title, max_sources=2, max_gaps=
             f'<title>{e(title)}</title><desc>{e(" / ".join(desc))}</desc>{"".join(edges+nodes)}</svg>')
 
 
-def timeline(story, catalog):
+def _short_date(value, catalog):
+    from ..i18n import _parse
+    dt = _parse(value)
+    info = catalog['date']
+    if catalog.get('locale') == 'zh-Hans':
+        return f'{dt.month}月{dt.day}日'
+    return f'{info["months_short"][dt.month - 1]} {dt.day}'
+
+
+def timeline(story, catalog, state_text=''):
+    """Recorded moments on a horizontal rule: date label (sans) + mono caption; the last node is the freshness state."""
     values = []
     st = catalog['strings']['story']
     for key, label_key in (('event_at', 'event_date'), ('first_published_at', 'published'), ('updated_at', 'updated')):
@@ -310,11 +355,12 @@ def timeline(story, catalog):
         if not value or any(v[0] == value for v in values):
             continue
         text = st.get(label_key, catalog['strings']['status_page']['checked'])
-        date = format_date(value, catalog, precision='day')
-        values.append((value, text.format(date=date)))
+        values.append((value, text.format(date='').strip(' :·-—')))
     if not values:
         return ''
-    items = ''.join(f'<li><time datetime="{e(value)}">{e(text)}</time></li>' for value, text in values)
+    items = ''.join(f'<li><time datetime="{e(value)}">{e(_short_date(value, catalog))}</time><span>{e(text)}</span></li>' for value, text in values)
+    if state_text:
+        items += f'<li class="d-tl-state"><strong>{e(state_text)}</strong></li>'
     return f'<ol class="d-timeline">{items}</ol>'
 
 
@@ -336,7 +382,9 @@ def _topic_signal_fallback(key):
 def topic_signal(story, catalog):
     labels = catalog.get('labels', {}).get('topic', {})
     key = next((t for t in story.get('topics', []) if t in labels), '')
-    return key, _TOPIC_SIGNALS.get(key) or _topic_signal_fallback(key or next(iter(story.get('topics', [])), ''))
+    # A story whose topics have no label still has a beat/first topic: classify that, never collapse to Stone.
+    probe = key or str(story.get('beat') or '') or next(iter(story.get('topics', [])), '')
+    return key, _TOPIC_SIGNALS.get(key) or _TOPIC_SIGNALS.get(probe) or _topic_signal_fallback(probe.lower())
 
 
 def topic(story, catalog):
@@ -349,9 +397,9 @@ def topic(story, catalog):
 
 # D interface copy only. Editorial prose and all factual values come from records.
 COPY = {
-    'en': {'source_note': 'A source grade describes the source, not the truth of a claim.', 'timeline': 'Timeline', 'editions': 'Editions', 'filters': 'Filters', 'archive_intro': 'Every edition is a dated snapshot. Corrections are appended, never rewritten.', 'all': 'All', 'stories': 'Stories', 'filter_scope': 'Filter stories on this page', 'process': 'Our editorial process', 'col_image': 'Image', 'col_topic': 'Topic', 'col_story': 'Story', 'col_gaps': 'Gaps', 'source_grade': 'Source grade', 'claim_status': 'Claim status'},
-    'es-419': {'source_note': 'El grado describe la fuente, no la veracidad de una afirmación.', 'timeline': 'Cronología', 'editions': 'Ediciones', 'filters': 'Filtros', 'archive_intro': 'Cada edición es un registro fechado. Las correcciones se añaden, nunca se reescriben.', 'all': 'Todos', 'stories': 'Historias', 'filter_scope': 'Filtrar las historias de esta página', 'process': 'Nuestro proceso editorial', 'col_image': 'Imagen', 'col_topic': 'Tema', 'col_story': 'Historia', 'col_gaps': 'Huecos', 'source_grade': 'Grado de la fuente', 'claim_status': 'Estado de la afirmación'},
-    'zh-Hans': {'source_note': '来源评级描述的是来源，而非主张的真实性。', 'timeline': '时间线', 'editions': '各期刊物', 'filters': '筛选', 'archive_intro': '每期都是带有日期的记录。更正以追加方式保留，不会覆盖原文。', 'all': '全部', 'stories': '报道', 'filter_scope': '筛选本页报道', 'process': '编辑流程', 'col_image': '图片', 'col_topic': '主题', 'col_story': '报道', 'col_gaps': '空白', 'source_grade': '来源评级', 'claim_status': '主张状态'},
+    'en': {'source_note': 'A source grade describes the source, not the truth of a claim.', 'timeline': 'Timeline', 'sources_and_claims': 'Sources and claims', 'claims_from_article': 'Claims (from the article)', 'full_record': 'The full record', 'graded_title': 'How this story was graded', 'editions': 'Editions', 'filters': 'Filters', 'archive_intro': 'Every edition is a dated snapshot. Corrections are appended, never rewritten.', 'all': 'All', 'stories': 'Stories', 'filter_scope': 'Filter stories on this page', 'process': 'Our editorial process', 'col_image': 'Image', 'col_topic': 'Topic', 'col_story': 'Story', 'col_gaps': 'Gaps', 'source_grade': 'Source grade', 'claim_status': 'Claim status'},
+    'es-419': {'source_note': 'El grado describe la fuente, no la veracidad de una afirmación.', 'timeline': 'Cronología', 'sources_and_claims': 'Fuentes y afirmaciones', 'claims_from_article': 'Afirmaciones (del artículo)', 'full_record': 'El registro completo', 'graded_title': 'Cómo se calificó esta historia', 'editions': 'Ediciones', 'filters': 'Filtros', 'archive_intro': 'Cada edición es un registro fechado. Las correcciones se añaden, nunca se reescriben.', 'all': 'Todos', 'stories': 'Historias', 'filter_scope': 'Filtrar las historias de esta página', 'process': 'Nuestro proceso editorial', 'col_image': 'Imagen', 'col_topic': 'Tema', 'col_story': 'Historia', 'col_gaps': 'Huecos', 'source_grade': 'Grado de la fuente', 'claim_status': 'Estado de la afirmación'},
+    'zh-Hans': {'source_note': '来源评级描述的是来源，而非主张的真实性。', 'timeline': '时间线', 'sources_and_claims': '来源与主张', 'claims_from_article': '主张（出自报道）', 'full_record': '完整记录', 'graded_title': '本报道如何评级', 'editions': '各期刊物', 'filters': '筛选', 'archive_intro': '每期都是带有日期的记录。更正以追加方式保留，不会覆盖原文。', 'all': '全部', 'stories': '报道', 'filter_scope': '筛选本页报道', 'process': '编辑流程', 'col_image': '图片', 'col_topic': '主题', 'col_story': '报道', 'col_gaps': '空白', 'source_grade': '来源评级', 'claim_status': '主张状态'},
 }
 
 # Method page copy (R4 «Cómo trabajamos»).

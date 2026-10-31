@@ -58,13 +58,20 @@ def render(*, story, catalog, code, title, dek_text, beat_label, home_href,
             corrections.append(f'<p class="translation-note">{d.e(st["l10n"]["pending_title"])}</p>')
     correction_html = ''.join(corrections) or f'<p>{d.e(st["corrections_page"]["none"])}</p>'
     foot = (f'<section class="d-bone d-story-notes"><div class="frame"><div><h2 class="d-section">{d.e(text["corrections"])}</h2>{correction_html}</div>'
-            f'<div><h2 class="d-section">{d.e(st["method"]["grades_title"])}</h2><p>{d.e(d.copy(catalog)["source_note"])}</p>{d.legend(catalog)}</div></div></section>')
+            f'<div><h2 class="d-section">{d.e(d.copy(catalog)["graded_title"])}</h2><p>{d.e(d.copy(catalog)["source_note"])}</p>{d.legend(catalog)}</div></div></section>')
+    import html as _html
+    m = re.search(r'</i>(.*?)</span>', status_html or '')
+    state_text = _html.unescape(m.group(1)) if m else ''
+    cont = f'<div class="d-story-continued">{more_html}</div>' if more_html else ''
+    layers = ('<div class="layers">' + layer('technical',st['design']['technical_title'],st['design']['layer_r3'],f'<div id="technical">{tech}</div>',is_open=False) + '</div>' if technical else '')
+    # R4 core: opening + ledger -> sources diagram -> timeline -> Bone band. The rest of the record is content, kept
+    # reachable in one disclosure between the timeline and the band so it never pushes the core apart.
+    extra = (f'{unknowns_box(evidence,catalog)}{layers}{machine_html}'
+             f'<details class="d-story-taxonomy"><summary>{d.e(text["topics"])}</summary>{taxonomy_html}</details>'
+             f'<div class="story-after">{topic_nav_html}{navigation_html}</div>')
     return (header + f'<div class="frame"><div class="d-story-disclosure">{d.e(byline)} · {automation_html}{status_html}</div>'
-            f'<div class="d-story-reading"><div class="d-story-argument"><div class="story-body"><div class="brief">{argument}</div></div></div>'
+            f'<div class="d-story-reading"><div class="d-story-argument"><div class="story-body"><div class="brief">{argument}</div></div>{cont}</div>'
             f'<aside class="d-story-ledger">{d.ledger(evidence,catalog)}</aside></div>'
             f'<div class="data-hero">{d.claims_sources(story,evidence,catalog)}</div>'
-            f'{d.section(d.copy(catalog)["timeline"])}{d.timeline(story,catalog)}'
-            f'{"<div class=d-story-continued>" + more_html + "</div>" if more_html else ""}{unknowns_box(evidence,catalog)}'
-            + ('<div class="layers">' + layer('technical',st['design']['technical_title'],st['design']['layer_r3'],f'<div id="technical">{tech}</div>',is_open=False) + '</div>' if technical else '')
-            + f'{machine_html}<details class="d-story-taxonomy"><summary>{d.e(text["topics"])}</summary>{taxonomy_html}</details>'
-            + f'<div class="story-after">{topic_nav_html}{navigation_html}</div></div>{foot}' + LAYER_SCRIPT)
+            f'{d.section(d.copy(catalog)["timeline"])}{d.timeline(story,catalog,state_text)}'
+            f'<details class="d-story-extra"><summary>{d.e(d.copy(catalog)["full_record"])}</summary>{extra}</details></div>{foot}' + LAYER_SCRIPT)
