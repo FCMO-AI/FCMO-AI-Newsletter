@@ -8,7 +8,7 @@
     "confidence": "credible_unconfirmed",
     "importance": 6,
     "tier": "Major",
-    "summary": "A new paper introduces rewindable interactive proofs, in which a verifier can restore an AI prover to an earlier saved state and continue the interaction from there. For robust oracle computations, the authors prove a relativizing protocol with a succinct verifier and a linear-time honest prover, without assuming that a prover is truthful or relying on cryptography. The paper reports a proof-of-concept MNIST-derived experiment and a BLAKE3 comparison, but the authors say the experiments are not a realistic scalable-oversight benchmark. The measurements use selected hardwired circuits; general preprocessing and real model-state restore costs remain unresolved, so deployed oversight benefits are not established.",
+    "summary": "A new paper introduces rewindable interactive proofs, in which a verifier can restore an AI prover to a saved interaction state and ask new questions from there. For robust oracle computations, the authors prove a relativizing protocol with a succinct verifier and a linear-time honest prover, without assuming that a prover is truthful or using cryptography. The paper reports a proof-of-concept MNIST experiment and a BLAKE3 comparison, while explicitly saying the experiments are not a realistic scalable-oversight benchmark. A linked public repository supplies code, result ledgers and scripts, but clarifies that timed runs do not restore a machine state; general preprocessing and real model-state restoration costs remain unresolved, so deployed oversight benefits are not established.",
     "topics": [
       "scalable oversight",
       "interactive proofs",
@@ -48,6 +48,10 @@
       {
         "label": "NOT_ESTABLISHED",
         "text": "The paper does not establish that rewindable proofs improve deployed AI oversight, that general workloads amortize preprocessing, or that full model-state save/restore costs preserve the reported efficiency. In the MNIST setup the prover is about 60 times slower than direct table-lookup evaluation at the largest size, and the experiments treat rewinding as free."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "The paper-linked public repository contains Rust implementation code, shipped result ledgers, reproduction scripts and selected MNIST input bundles. Its README states that reported timing runs execute the honest prover and time its messages and answers; they do not restore a machine state. Full reproduction of the largest MNIST result is resource-intensive, with the README specifying about 400 GB of memory and a 1 TiB machine."
       }
     ],
     "confidence": "credible_unconfirmed",
@@ -57,18 +61,19 @@
     ],
     "development_type": "paper",
     "editions": [
-      "2026-10-30"
+      "2026-10-30",
+      "2026-10-31"
     ],
     "event_at": "2026-10-29T00:00:00Z",
     "evidence_class": "A",
     "evidence_gaps": [
       {
-        "description": "No independent proof review or pinned reproduction of the authors' implementation was performed in this activation.",
+        "description": "No independent proof review or pinned reproduction of the authors’ implementation was performed in this activation.",
         "kind": "missing_independent",
         "state": "open"
       },
       {
-        "description": "The experiments use selected hardwired circuits and omit the cost of saving/restoring a real model's complete state; the general preprocessing cost is not measured.",
+        "description": "The experiments use selected hardwired circuits; reported timing runs do not restore a machine state, and the general preprocessing cost is not measured or amortized.",
         "kind": "missing_artifact",
         "state": "open"
       }
@@ -79,12 +84,13 @@
     "importance_scale_version": 2,
     "importance_score": 6,
     "importance_tier": "Major",
-    "last_verified_at": "2026-10-30T13:19:19Z",
+    "last_verified_at": "2026-10-31T09:13:20Z",
     "limitations": [
-      "This is a single v1 preprint; the formal proof and experimental implementation were not independently reviewed or reproduced in this activation.",
+      "This is a single v1 preprint; the formal proof and reported measurements were not independently reviewed or reproduced in this activation.",
       "The MNIST experiment is a proof of concept on 50 selected circuits with hardwired random sparse views, not a realistic scalable-oversight benchmark; the authors note that the verifier could estimate these majority outputs without a prover.",
-      "The general preprocessing step is not measured or amortized in the experiment. The implementation uses Ligero openings whose verifier cost grows with the square root of the trace rather than achieving the theorem's polylogarithmic behavior.",
-      "The largest MNIST case leaves the prover about 60× slower than direct table-lookup evaluation, and the protocol treats saving and restoring a real model's state as free.",
+      "The general preprocessing step is not measured or amortized in the experiment. The implementation uses Ligero openings whose verifier cost grows with the square root of the trace rather than achieving the theorem’s polylogarithmic behavior.",
+      "The largest MNIST case leaves the prover about 60× slower than direct table-lookup evaluation. The GitHub README clarifies that experiment timings measure the honest prover’s messages and answers from retained data; they do not perform a machine-state restore, so end-to-end checkpoint/restore cost is unmeasured.",
+      "The repository provides code, result ledgers, scripts and selected input bundles, but a full rerun of the largest MNIST result is resource-intensive: the README specifies about 400 GB memory and a 1 TiB machine. Published bundles are author-provided; no rerun was performed here.",
       "The BLAKE3 comparison uses modified interactive parameters and three runs on one core; it does not show end-to-end cost under matched deployment security assumptions."
     ],
     "organizations": [
@@ -93,7 +99,7 @@
       "UK AI Security Institute"
     ],
     "primary_desk": "evaluation_science",
-    "recorded_at": "2026-10-30T13:19:19Z",
+    "recorded_at": "2026-10-31T09:13:20Z",
     "regions": [
       "United States",
       "United Kingdom"
@@ -103,16 +109,18 @@
       "en"
     ],
     "source_urls": [
-      "https://arxiv.org/html/2610.40535v1"
+      "https://arxiv.org/html/2610.40535v1",
+      "https://github.com/ZiyiGuan/oversight-rip"
     ],
     "status": "active",
-    "summary": "A new paper introduces rewindable interactive proofs, in which a verifier can restore an AI prover to an earlier saved state and continue the interaction from there. For robust oracle computations, the authors prove a relativizing protocol with a succinct verifier and a linear-time honest prover, without assuming that a prover is truthful or relying on cryptography. The paper reports a proof-of-concept MNIST-derived experiment and a BLAKE3 comparison, but the authors say the experiments are not a realistic scalable-oversight benchmark. The measurements use selected hardwired circuits; general preprocessing and real model-state restore costs remain unresolved, so deployed oversight benefits are not established.",
+    "summary": "A new paper introduces rewindable interactive proofs, in which a verifier can restore an AI prover to a saved interaction state and ask new questions from there. For robust oracle computations, the authors prove a relativizing protocol with a succinct verifier and a linear-time honest prover, without assuming that a prover is truthful or using cryptography. The paper reports a proof-of-concept MNIST experiment and a BLAKE3 comparison, while explicitly saying the experiments are not a realistic scalable-oversight benchmark. A linked public repository supplies code, result ledgers and scripts, but clarifies that timed runs do not restore a machine state; general preprocessing and real model-state restoration costs remain unresolved, so deployed oversight benefits are not established.",
     "technical": {
       "claimed_result": "The authors' informal Theorem 1.1 constructs a relativizing RIP for ε-robust oracle circuits. After preprocessing, the verifier runs in Õ(n+m+1/ε) time and makes O(1/ε) oracle queries; the honest prover runs in O(n+m+S)+Õ(1/ε), with soundness error at most 1/3 against an unbounded cheating prover. Experiments report 74–80 verifier queries on selected MNIST-derived circuits up to 2^26 views and 1.8–2.1× BLAKE3 prover speedups over Flock's SNARG in medians of three runs.",
-      "demonstrated_result": "The reviewed primary source is a v1 preprint containing a formal construction and author-reported measurements. This activation did not independently verify the proof, reproduce the code or measure end-to-end model-state restoration. The reported experiments are explicitly proof of concept.",
-      "mechanism": "The verifier saves the prover model's interaction state when a proof string is fixed, then restores that state to query portions of the string. Because the prover cannot condition a saved answer on later verifier messages, rewindability substitutes for cryptographic commitments in the authors' protocol. The proof covers computations whose outputs tolerate changes to a small fraction of oracle answers.",
+      "demonstrated_result": "The paper-linked public repository contains Rust implementation code, shipped result ledgers, reproduction scripts and selected MNIST bundles. Its README says the reported timing runs execute the honest prover and time its messages and answers; they do not restore a machine state. These are inspectable author-provided artifacts, not an independent reproduction. The largest MNIST rerun is resource-intensive, with the README specifying about 400 GB memory and a 1 TiB machine.",
+      "mechanism": "The verifier saves the prover model’s interaction state when a proof string is fixed, then restores that state to query portions of the string. Because the prover cannot condition a saved answer on later verifier messages, rewindability substitutes for cryptographic commitments in the authors’ formal protocol. The measurements implement the protocol’s query/answer logic but, as the linked repository clarifies, they do not perform a physical machine-state restore. The proof covers computations whose outputs tolerate changes to a small fraction of oracle answers.",
       "regime": "Formal relativizing interactive proof for robust oracle-aided Boolean circuits, plus a Rust implementation evaluated on selected MNIST-derived majority circuits and an adapted BLAKE3 proof workload. The theorem assumes prover-state rewindability; the experiments do not include realistic model inference or state-copy cost.",
-      "strongest_baseline": "For BLAKE3, the authors compare their RIP compilation to Flock's deployed SNARG prover and report 1.8–2.1× lower prover time, medians of three executions on one Graviton 4 core. The comparison changes the interactive security parameters, field configuration and commitment mechanism, so it is a bounded implementation comparison rather than a matched deployment cost study. For the selected MNIST circuits, direct table lookup is the baseline; the verifier is faster only at the largest sizes and the prover remains about 60× slower than direct evaluation."
+      "reproducibility": "The paper links a public Rust repository with shipped result ledgers, scripts and selected MNIST input bundles, plus instructions to regenerate results. The README says its paper checker compares figures against shipped artifacts; that is not an independent reproduction. Full largest-scale MNIST reproduction requires about 400 GB memory and a 1 TiB machine. No code was executed in this activation.",
+      "strongest_baseline": "For BLAKE3, the authors compare their RIP compilation to Flock’s SNARG prover and report 1.8–2.1× lower prover time, medians of three executions on one Graviton 4 core. The comparison changes interactive security parameters and field configuration. The repository says the timed runs measure honest-prover messages and answers without restoring machine state. For the selected MNIST circuits, direct table lookup is the baseline; the verifier is faster only at the largest sizes, while the prover remains about 60× slower than direct evaluation."
     },
     "title": "Rewindable proofs give weak verifiers a new route to check robust computations",
     "topics": [
@@ -121,7 +129,7 @@
       "verifiable computation",
       "AI safety"
     ],
-    "why_it_matters": "If independently checked and made practical, rewinding a model controlled by the verifier could give scalable oversight a new way to check some robust computations without trusting a prover or using cryptographic commitments. The formal result is restricted to robust oracle computations, and the experiments do not show that real model-state save/restore costs or realistic workloads retain the reported efficiency."
+    "why_it_matters": "If independently checked and made practical, rewinding a model controlled by the verifier could give scalable oversight a new way to check some robust computations without trusting a prover or using cryptographic commitments. The paper-linked repository makes the implementation and shipped results inspectable, but its timing experiments do not execute machine-state restoration. The formal result is restricted to robust oracle computations, and preprocessing, realistic tasks and full state-restore costs remain unresolved."
   },
   "related": [],
   "schema": "fcmo-public-brief-v1"
