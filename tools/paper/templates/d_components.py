@@ -68,6 +68,29 @@ def signals(story, catalog, *, evidence=None):
             f'{stat(gaps, plural(catalog, "open_gap", gaps))}</div>')
 
 
+def signals_rich(story, catalog, *, evidence=None):
+    """Cover variant (R4): each signal carries a sans value over a mono caption."""
+    ev = evidence if isinstance(evidence, dict) else (story.get('evidence') or {})
+    cp = copy(catalog)
+    st = catalog['strings']
+    primary = sum(bool(s.get('primary')) for s in rows(story.get('sources')))
+    gaps = len(ev.get('gaps') or [])
+    kind = evidence_class(story)
+    raw = {'shown': 'DEMONSTRATED', 'claimed': 'CLAIMED'}.get(kind, '')
+    pk = proof_kind(raw)
+    letter = story.get('evidence_class')
+    letter = letter if letter in ('A', 'B', 'C', 'D') else '?'
+    text = label(catalog, 'evidence_short', letter) if letter != '?' else st['evidence_board']['unrated']
+    word = st['proof'][pk.replace('-', '_')]
+    def noun(key, n):
+        return plural(catalog, key, n).replace(str(n), '', 1).strip()
+    return (f'<div class="d-signals d-signals--rich" data-evidence-class="{e(kind)}">'
+            f'<span class="d-sig"><b class="d-sig-grade">{e(letter)}</b><span class="d-sig-text"><span>{e(text)}</span><small>{e(cp["source_grade"])}</small></span></span>'
+            f'<span class="d-sig">{sample(pk)}<span class="d-sig-text"><strong>{e(word)}</strong><small>{e(cp["claim_status"])}</small></span></span>'
+            f'<span class="d-sig"><b class="d-sig-num">{primary}</b><span class="d-sig-text"><span>{e(noun("primary_source", primary))}</span><small>{e(st["story"]["sources"])}</small></span></span>'
+            f'<span class="d-sig"><b class="d-sig-num">{gaps}</b><span class="d-sig-text"><span>{e(noun("open_gap", gaps))}</span><small>{e(st["proof"]["not_established"])}</small></span></span></div>')
+
+
 def section(title, ident=''):
     return f'<h2 class="d-section"{f' id="{e(ident)}"' if ident else ""}>{e(title)}</h2>'
 
@@ -200,6 +223,79 @@ def evidence_map(story, catalog, *, evidence, title):
             f'<title>{e(title)}</title><desc>{e(" / ".join(descriptions))}</desc>{"".join(edges+nodes)}</svg>')
 
 
+def evidence_glance(story, catalog, *, evidence, title, max_sources=2, max_gaps=2):
+    """Front-page map in the approved R4 form: a few short boxes joined by lines.
+
+    primary source(s) -> the headline claim (never a fabricated claim) -> open gaps (dashed).
+    Boxes have fixed heights and clamp their text; what does not fit is counted, never dropped silently
+    (the full record is on the story page and in the SVG description). Nothing is invented: no source,
+    gap or date appears unless it is in the data.
+    """
+    st = catalog['strings']['story']
+    sources = rows(story.get('sources'))
+    primaries = [s for s in sources if s.get('primary')] or sources
+    shown_sources = primaries[:max_sources]
+    gaps = [g.get('description', '') if isinstance(g, dict) else str(g) for g in (evidence.get('gaps') or [])]
+    shown_gaps = gaps[:max_gaps]
+    W, G = 600, 20
+    out, desc, y = [], [], 4
+    letter = story.get('evidence_class')
+    letter = letter if letter in ('A', 'B', 'C', 'D') else ''
+    def box(kind, x, y, w, h, head, text, foot='', mark=''):
+        inner = (f'<b>{e(head)}</b>' + (f'<span class="d-map-row">{mark}<span class="d-map-text">{e(text)}</span></span>' if text else '')
+                 + (f'<i>{e(foot)}</i>' if foot else ''))
+        return (f'<foreignObject data-node="{kind}" x="{x}" y="{y}" width="{w}" height="{h}">'
+                f'<div xmlns="http://www.w3.org/1999/xhtml" class="d-map-node d-map-node--{kind}">{inner}</div></foreignObject>')
+    n = len(shown_sources)
+    sw = 340 if n == 1 else (W - G) // 2
+    sh = 124
+    xs = []
+    for i, src in enumerate(shown_sources):
+        x = (W - sw) // 2 if n == 1 else i * (sw + G)
+        name = src.get('title') or src.get('domain') or src.get('url') or ''
+        mark = f'<b class="d-map-grade">{e(letter)}</b>' if letter else ''
+        out.append(box('source', x, y, sw, sh, st['primary_source'] if src.get('primary') else st['sources'], name, mark=mark))
+        desc.append(name); xs.append(x + sw // 2)
+    if n:
+        y += sh
+    extra = len(primaries) - n
+    claim_y = y + (34 if n else 0)
+    ch = 150
+    head = title
+    claim_x, claim_w = 40, W - 80
+    if n:
+        edges = ''.join(f'M{x} {y}V{y+17}' for x in xs)
+        out.append(f'<path class="d-map-edge" d="{edges}M{xs[0]} {y+17}H{xs[-1]}M{W//2} {y+17}V{claim_y}"/>')
+    out.append(box('claim', claim_x, claim_y, claim_w, ch, '', head))
+    desc.insert(0, title)
+    y = claim_y + ch
+    gy = y + 38
+    if shown_gaps:
+        gw = 340 if len(shown_gaps) == 1 else (W - G) // 2
+        gxs = []
+        gh = 196
+        for i, text in enumerate(shown_gaps):
+            x = (W - gw) // 2 if len(shown_gaps) == 1 else i * (gw + G)
+            out.append(box('gap', x, gy, gw, gh, plural(catalog, 'open_gap_noun', 1),
+                           text, foot=catalog['strings']['proof']['not_established']))
+            desc.append(text); gxs.append(x + gw // 2)
+        edges = ''.join(f'M{x} {gy-17}V{gy}' for x in gxs)
+        out.append(f'<path class="d-map-edge d-map-edge--gap" d="M{W//2} {y}V{gy-17}{"M%d %d" % (gxs[0], gy-17)}H{gxs[-1]}{edges}"/>')
+        y = gy + gh
+    notes = []
+    if extra > 0:
+        notes.append(plural(catalog, 'primary_source', extra))
+    if len(gaps) > len(shown_gaps):
+        notes.append(plural(catalog, 'open_gap', len(gaps) - len(shown_gaps)))
+    if notes:
+        out.append(f'<foreignObject x="0" y="{y+8}" width="{W}" height="28"><div xmlns="http://www.w3.org/1999/xhtml" class="d-map-more">+ {e(" · + ".join(notes))}</div></foreignObject>')
+        y += 40
+    edges = [o for o in out if o.startswith('<path')]
+    nodes = [o for o in out if not o.startswith('<path')]
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" class="d-evidence-map d-evidence-glance" viewBox="0 0 {W} {y+4}" role="img" aria-label="{e(st["evidence"])}">'
+            f'<title>{e(title)}</title><desc>{e(" / ".join(desc))}</desc>{"".join(edges+nodes)}</svg>')
+
+
 def timeline(story, catalog):
     values = []
     st = catalog['strings']['story']
@@ -230,9 +326,9 @@ def topic(story, catalog):
 
 # D interface copy only. Editorial prose and all factual values come from records.
 COPY = {
-    'en': {'source_note': 'A source grade describes the source, not the truth of a claim.', 'timeline': 'Timeline', 'editions': 'Editions', 'filters': 'Filters', 'archive_intro': 'Every edition is a dated snapshot. Corrections are appended, never rewritten.', 'all': 'All', 'stories': 'Stories', 'filter_scope': 'Filter stories on this page', 'process': 'Our editorial process'},
-    'es-419': {'source_note': 'El grado describe la fuente, no la veracidad de una afirmación.', 'timeline': 'Cronología', 'editions': 'Ediciones', 'filters': 'Filtros', 'archive_intro': 'Cada edición es un registro fechado. Las correcciones se añaden, nunca se reescriben.', 'all': 'Todos', 'stories': 'Historias', 'filter_scope': 'Filtrar las historias de esta página', 'process': 'Nuestro proceso editorial'},
-    'zh-Hans': {'source_note': '来源评级描述的是来源，而非主张的真实性。', 'timeline': '时间线', 'editions': '各期刊物', 'filters': '筛选', 'archive_intro': '每期都是带有日期的记录。更正以追加方式保留，不会覆盖原文。', 'all': '全部', 'stories': '报道', 'filter_scope': '筛选本页报道', 'process': '编辑流程'},
+    'en': {'source_note': 'A source grade describes the source, not the truth of a claim.', 'timeline': 'Timeline', 'editions': 'Editions', 'filters': 'Filters', 'archive_intro': 'Every edition is a dated snapshot. Corrections are appended, never rewritten.', 'all': 'All', 'stories': 'Stories', 'filter_scope': 'Filter stories on this page', 'process': 'Our editorial process', 'col_image': 'Image', 'col_topic': 'Topic', 'col_story': 'Story', 'col_gaps': 'Gaps', 'source_grade': 'Source grade', 'claim_status': 'Claim status'},
+    'es-419': {'source_note': 'El grado describe la fuente, no la veracidad de una afirmación.', 'timeline': 'Cronología', 'editions': 'Ediciones', 'filters': 'Filtros', 'archive_intro': 'Cada edición es un registro fechado. Las correcciones se añaden, nunca se reescriben.', 'all': 'Todos', 'stories': 'Historias', 'filter_scope': 'Filtrar las historias de esta página', 'process': 'Nuestro proceso editorial', 'col_image': 'Imagen', 'col_topic': 'Tema', 'col_story': 'Historia', 'col_gaps': 'Huecos', 'source_grade': 'Grado de la fuente', 'claim_status': 'Estado de la afirmación'},
+    'zh-Hans': {'source_note': '来源评级描述的是来源，而非主张的真实性。', 'timeline': '时间线', 'editions': '各期刊物', 'filters': '筛选', 'archive_intro': '每期都是带有日期的记录。更正以追加方式保留，不会覆盖原文。', 'all': '全部', 'stories': '报道', 'filter_scope': '筛选本页报道', 'process': '编辑流程', 'col_image': '图片', 'col_topic': '主题', 'col_story': '报道', 'col_gaps': '空白', 'source_grade': '来源评级', 'claim_status': '主张状态'},
 }
 
 

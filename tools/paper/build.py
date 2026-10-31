@@ -343,8 +343,14 @@ class PaperBuilder:
         return "".join(parts)
 
     @staticmethod
-    def _plate_html(story: dict, catalog: dict, ratio: str = "16:10") -> str:
-        """Procedural, text-free plate for the cover; the alt names the motif, never the content."""
+    def _plate_html(story: dict, catalog: dict, ratio: str = "16:10", base: str = "/") -> str:
+        """D: material photograph (tools/paper/d_plates.py); text-free and decorative."""
+        from tools.paper.d_plates import html as d_plate
+        return d_plate(story, ratio, catalog["strings"], base)
+
+    @staticmethod
+    def _procedural_plate_html(story: dict, catalog: dict, ratio: str = "16:10") -> str:
+        """Procedural, text-free plate (c6 rings); no longer used by the D site."""
         from tools.paper.plates import plate as make_plate
         pl = make_plate(story["id"], list(story.get("topics") or []), ratio)
         motif = pl.get("motif") or "neutral"
@@ -606,7 +612,7 @@ class PaperBuilder:
                 technical=technical_fields, status_html=status_chip(self.status, catalog),
                 automation_html=automation_badge(self.status, catalog), byline=strings["story"]["byline"],
                 dates_line=f'{strings["story"]["event_date"].format(date=event)} · {strings["story"]["published"].format(date=published)}',
-                plate_html=self._plate_html(story, catalog) if story.get("media") else "", note_html=note, taxonomy_html=self._facts(story, locale),
+                plate_html=self._plate_html(story, catalog, "16:10", self.base) if story.get("media") else "", note_html=note, taxonomy_html=self._facts(story, locale),
                 navigation_html=self._story_navigation(story, locale), topic_nav_html=topic_nav,
                 machine_html=self._machine_strip(story, locale, catalog))
         hero = ""
@@ -813,7 +819,7 @@ class PaperBuilder:
             body = archive_page(title, strings["site"]["description"], items or f'<p>{esc(strings["archive"]["empty"])}</p>', kicker=strings["kicker"]["archive"], title_html=title_html, context=context + usual_note, navigation=navigation + jump) + paging
             if kind == "archive":
                 calendar = d_pages.archive(dates=self.edition_dates, stories=stories, locale=locale, catalog=catalog, base=self.base,
-                                           plate_html=self._plate_html(stories[0],catalog,"16:9") if stories else "")
+                                           plate_html=self._plate_html(stories[0],catalog,"16:9",self.base) if stories else "")
                 # Preserve the paginated story index and its stable links below the edition overview.
                 body = body.replace('</header>', '</header>' + calendar, 1) + d_pages.FILTER_SCRIPT
             page_title = title if number == 1 else f"{title} · {number}/{pages}"
@@ -984,7 +990,7 @@ class PaperBuilder:
             if kind == "method":
                 from tools.paper.templates import d_pages
                 page_body = d_pages.method(catalog, content, stories=ranked, locale=locale, base=self.base,
-                                           plate_html=self._plate_html(sample,catalog,"16:9") if sample else "")
+                                           plate_html=self._plate_html(sample,catalog,"16:9",self.base) if sample else "")
             self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=truncate(content.replace("<p>", " ").replace("</p>", " ")), body=page_body, kind=kind)
         subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url, page=True)
         recent = sorted(self.live, key=lambda story: (story.get("event_at", ""), story["id"]), reverse=True)[:3]
