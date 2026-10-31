@@ -24388,6 +24388,59 @@
       "title": "Phronix informa capacidades reutilizables que elevan la resolución de tareas en una muestra seleccionada de SWE-bench",
       "why_it_matters": "Si los aumentos informados se sostienen en evaluaciones equiparadas, los arneses que capturan y validan capacidades ejecutables podrían reducir trabajo repetido de los agentes y mejorar la resolución de tareas sin cambiar los pesos del modelo. El régimen medido es limitado: una muestra seleccionada de 30 tareas de SWE-bench Lite y un flujo de trabajo HPC. Los presupuestos de reintentos difieren entre brazos, el orden permite transferencia de capacidades dentro de la corrida y no hay reproducción independiente ni código ejecutable inspeccionado. Es un resultado material para el diseño de arneses que merece seguimiento, no evidencia de economía general en producción ni de una nueva capacidad del modelo."
     },
+    "FCMO-82BED21FF353": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron arXiv:2610.40655v1, que presenta el Controlled Attribution Benchmark (CATT), indica disponibilidad de código y datos, y describe tareas controladas para evaluar métodos de atribución basados en gradientes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que la redundancia y los distractores léxicos reducen el desempeño de atribución, y que los gradientes de log-odds negativo por token, combinados con la agregación de los valores top-k, aumentan entre 35 y 72 puntos porcentuales la recuperación de documentos de referencia en las configuraciones CATT evaluadas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En FTRACE-TREX, los autores informan que el log-odds negativo mejora el desempeño de reentrenamiento contrafactual para TRAK, EK-FAC y Grad-Dot, con una mejora máxima reportada de 4.9× para TRAK en el mayor presupuesto de eliminación evaluado."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece que las mejoras reportadas se transfieran a predicciones de varios tokens, entrenamiento multitarea, atribución en preentrenamiento real a gran escala, adjudicación de derechos de autor ni rastreo general del comportamiento del modelo; los autores señalan como límites los dos primeros casos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación no se revisó una reproducción independiente de CATT ni de FTRACE-TREX, y tampoco se auditaron el código, los datos o los puntos de control enlazados.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "No se ha establecido la transferencia desde el rastreo de hechos de un solo token y el ajuste LoRA de una sola tarea hacia comportamientos de varios tokens, entrenamiento multitarea y corpus de preentrenamiento realistas.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras de atribución por token se reproducen con datos de entrenamiento realistas y comportamientos de varios tokens, podrían cambiar la fiabilidad de la evidencia usada para auditar datos de modelos, analizar derechos de autor o crédito y rastrear comportamientos. El respaldo actual consiste en un preprint con un benchmark controlado de un solo token y un benchmark externo; no se ha establecido una transferencia amplia.",
+      "limitations": [
+        "Los resultados cuantitativos provienen del preprint de los autores y no se reprodujeron de forma independiente en esta activación.",
+        "La tarea diagnóstica CATT usa hechos ficticios de un solo token, Qwen3.5-4B y ajuste LoRA de una sola tarea; no reproduce condiciones realistas de atribución en preentrenamiento.",
+        "Los autores indican que no evaluaron predicciones de varios tokens ni atribución en entrenamiento multitarea. La agregación de los valores top-k introduce un hiperparámetro sin señales de referencia reales para validarlo.",
+        "Los autores señalan el buen desempeño de BM25 en algunas tareas sintéticas y piden evaluaciones donde el solapamiento léxico superficial no sea una vía fácil."
+      ],
+      "relationships": [],
+      "summary": "Un preprint presenta el Controlled Attribution Benchmark (CATT), que ajusta modelos Qwen3.5-4B con LoRA sobre hechos ficticios para que los documentos de entrenamiento proporcionen una referencia conocida para la atribución. En configuraciones controladas, los autores informan que la redundancia y los distractores léxicos reducen el desempeño de métodos basados en gradientes, mientras que los gradientes de log-odds negativo por token, combinados con la agregación top-k de tokens, mejoran entre 35 y 72 puntos porcentuales la recuperación de hechos. En FTRACE-TREX, el artículo informa que el log-odds negativo mejora hasta 4.9× el desempeño de reentrenamiento contrafactual para TRAK, EK-FAC y Grad-Dot. Las tareas evaluadas usan predicciones de un solo token y ajuste LoRA de una sola tarea; no se ha establecido la transferencia a atribución en preentrenamiento real, salidas de varios tokens o aprendizaje multitarea.",
+      "technical": {
+        "claimed_result": "Los autores informan mejoras de 35–72 puntos porcentuales en recuperación para el rastreo de hechos sintéticos controlados y una mejora de hasta 4.9× en el desempeño de reentrenamiento contrafactual de FTRACE-TREX para TRAK.",
+        "compute_or_cost": "Los autores informan un barrido de atribución de 2,426 horas-GPU en 843 trabajos (intento final) con GPU A100-80GB, H100 y H200; no dan costos monetarios, energía ni trabajo humano. Como la asignación de hardware entre métodos no fue aleatoria, los totales combinados no son comparables directamente. En estimaciones solo con A100 y 5,000 documentos candidatos, un trabajo EK-FAC tardó 39 horas por modelo, el trabajo de proyección por capas 6.6 horas y TRAK denso 2.7 horas. Son mediciones de tiempo informadas por los autores, no auditadas ni reproducidas de forma independiente.",
+        "demonstrated_result": "Se pudo inspeccionar un preprint con el diseño del benchmark y los resultados experimentales. Las cifras de eficacia siguen siendo resultados informados por los autores; en esta activación no se inspeccionaron ni ejecutaron código, datos, puntos de control entrenados o una reproducción independiente.",
+        "mechanism": "Las puntuaciones de atribución usan estimaciones de influencia basadas en gradientes, pero promediar a nivel de documento puede diluir evidencia localizada. Los autores aplican gradientes de log-odds negativo por token para evitar la supresión ligada a la confianza y luego pueden agregar solo las puntuaciones top-k de tokens dentro de cada documento de entrenamiento.",
+        "regime": "CATT usa modelos Qwen3.5-4B ajustados con LoRA sobre hechos ficticios de un solo token en dos tipos de tarea, con tres semillas por configuración. FTRACE-TREX aporta un benchmark externo con reentrenamiento contrafactual; estos resultados no establecen transferencia a corpus grandes de preentrenamiento ni a atribución multitoken o multitarea.",
+        "reproducibility": "El artículo indica que el código, los datos y los modelos entrenados están disponibles en la página del proyecto. En esta revisión solo se inspeccionó el HTML de arXiv; no se descargaron ni ejecutaron esos materiales y no se identificó una réplica independiente.",
+        "strongest_baseline": "El artículo compara gradientes estándar de entropía cruzada y agregación por documento con log-odds negativo por token y agregación top-k, en métodos de similitud de gradientes, influencia/Fisher, aproximación GGN y dinámica de entrenamiento. BM25 es una referencia léxica sólida en algunas configuraciones sintéticas."
+      },
+      "title": "Un benchmark controlado informa mejoras por token para atribuir datos de modelos de lenguaje",
+      "why_it_matters": "Si los efectos reportados se reproducen fuera del benchmark controlado, los sistemas de atribución usados para auditar datos de entrenamiento, consultas de derechos de autor y rastreo del comportamiento del modelo podrían necesitar opciones de pérdida y agregación por token que conserven la evidencia localizada. Es un resultado metodológico informado en un artículo; no demuestra que los sistemas existentes sean generalmente poco fiables ni que la corrección se transfiera al preentrenamiento a gran escala."
+    },
     "FCMO-82DA0C3569B8": {
       "claims": [
         {
