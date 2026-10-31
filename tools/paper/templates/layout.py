@@ -125,7 +125,7 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
     safeguard = r"""<script>(()=>{let b=document.querySelector('[data-edition-at]');if(b&&Date.now()-Date.parse(b.dataset.statusUpdatedAt||b.dataset.editionAt)>1296e5){b.hidden=false;b.dataset.editionState='DELAYED'}let m=location.hash.match(/^#\/brief\/(FCMO-[A-F0-9]{12})/);if(m)location.replace(document.documentElement.dataset.storyBase+m[1]+'.html')})()</script>"""
     d_styles = "".join(f'<link rel="stylesheet" href="{_e(_url(base, "assets/css/d/d-" + name + ".css"))}">' for name in ("base", "front", "story", "letters", "pages"))
     # Essay rules are owned by the letters lane; migrated core pages use D alone.
-    legacy_css = f'<link rel="stylesheet" href="{_e(css)}">' if any(token in body_class.split() for token in ("page-essay", "page-letters", "page-issue")) else ""
+    legacy_css = f'<link rel="stylesheet" href="{_e(css)}">' if any(token in body_class.split() for token in ("page-essay", "page-issue")) else ""
     status_stack = f'<div class="status-stack">{status_banner}</div>' if status_banner else ""
     return f'''<!doctype html>
 <html lang="{_e(lang)}" class="d-site" data-story-base="{_e(_url(base, locale_prefix + 'legacy-story/'))}">
