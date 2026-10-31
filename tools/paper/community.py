@@ -366,6 +366,29 @@ def render_letters_index(letters: list[dict[str, Any]], locale_code: str) -> str
             f'<aside class="d-letters-email"><div><h2>{_e(email_title)}</h2><p>{_e(inactive)}</p></div></aside></section>')
 
 
+_LETTERS_EMPTY = {
+    "en": ("Letters", "Written by the people behind FCMO. Not generated, not automated.", "Date", "Author", "Title", "Type", "Letters from FCMO", "Letters by email", "No letters have been published yet."),
+    "es-419": ("Cartas", "Escritas por las personas detrás de FCMO. No generadas, no automatizadas.", "Fecha", "Autor", "Título", "Tipo", "Cartas de FCMO", "Cartas por correo", "Aún no hay cartas publicadas."),
+    "zh-Hans": ("来信", "由 FCMO 背后的人亲自撰写。不是生成的，也不是自动化的。", "日期", "作者", "标题", "类型", "FCMO 来信", "邮件来信", "目前尚无已发表的来信。"),
+}
+
+
+def render_letters_empty(locale_code: str, *, plate_html: str = "") -> str:
+    """R4 Letters page with no letters yet: the full structure and an honest empty row.
+
+    No author card, name, date or title is shown, because none exists: the cards and rows
+    appear only from published records (``render_letters_index``)."""
+    title, intro, date, author, entry_title, kind, list_title, email_title, none = _LETTERS_EMPTY.get(locale_code, _LETTERS_EMPTY["en"])
+    inactive = COPY.get(locale_code, COPY["en"]).get("inactive_title", "")
+    plate = f'<div class="d-letters-plate">{plate_html}</div>' if plate_html else ""
+    return (f'<section class="d-letter-index d-letter-index--empty"><header><p class="d-kicker">FCMO AI · {_e(title)}</p>'
+            f'<h1>{_e(title)}</h1><p>{_e(intro)}</p></header>{plate}'
+            f'<h2 class="d-letters-list-title">{_e(list_title)}</h2><div class="d-letter-columns" aria-hidden="true">'
+            f'<span>{_e(date)}</span><span>{_e(author)}</span><span>{_e(entry_title)}</span><span>{_e(kind)}</span><span></span></div>'
+            f'<p class="d-letters-none" data-letters-empty>{_e(none)}</p>'
+            f'<aside class="d-letters-email"><div><h2>{_e(email_title)}</h2><p>{_e(inactive)}</p></div></aside></section>')
+
+
 def without_empty_cartas_slot(page: str, cartas: str) -> str:
     """Remove A3's empty slot wrapper so an outage leaves no visual box."""
     if cartas:

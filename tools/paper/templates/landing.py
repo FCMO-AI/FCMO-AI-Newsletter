@@ -257,8 +257,9 @@ def _wire(stories: list[dict], ctx: _Ctx) -> str:
     return (f'<section class="block surface-bone" id="earlier" aria-labelledby="earlier-title"><div class="frame">'
             f'<div class="block-head"><div><p class="rubric rubric-accent">{_e(ctx.s["wire"]["title"])}</p>'
             f'<h2 class="block-title" id="earlier-title">{_e(ctx.s["earlier"]["title"])}</h2>'
-            f'<p>{_e(ctx.s["earlier"]["dek"])}</p></div></div>{chips}'
-            f'<ol class="wire" aria-label="{_e(ctx.s["a11y"]["wire_table"])}">{"".join(rows)}</ol></div></section>'
+            f'<p>{_e(ctx.s["earlier"]["dek"])}</p></div></div>'
+            f'<details class="d-wire-more"><summary>{_e(plural(ctx.catalog, "story", len(rows)))}</summary>{chips}'
+            f'<ol class="wire" aria-label="{_e(ctx.s["a11y"]["wire_table"])}">{"".join(rows)}</ol></details></div></section>'
             f'{_FILTER_SCRIPT if chips else ""}')
 
 
@@ -322,7 +323,15 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
     order = front["order"]
     slots = plan_mod.landing_slots(order)
     from . import d_front
-    letters = f'<section class="frame d-front-letters">{cartas}</section>' if cartas else ''
+    if cartas:
+        letters = f'<section class="frame d-front-letters">{cartas}</section>'
+    else:
+        # R4's Letters strip with no letters yet: the heading, the link and an honest line. No names, no titles.
+        from ..community import _LETTERS_EMPTY
+        head, none = _LETTERS_EMPTY[ctx.code][0], _LETTERS_EMPTY[ctx.code][8]
+        from .essay import COPY as _EC
+        letters = (f'<section class="frame d-front-letters d-front-letters--empty"><div class="d-letters-head"><h2>{_e(head)}</h2>'
+                   f'<a href="{_e(home)}letters/">{_e(_EC[ctx.code]["back"])} →</a></div><p class="d-letters-none" data-letters-empty>{_e(none)}</p></section>')
     return '<div class="landing d-front">' + "".join([
         d_front.cover(feature, slots["cover"], ctx),
         d_front.rank(([slots["cover"]] if slots["cover"] else []) + slots["board"], ctx),

@@ -11,6 +11,7 @@ from html import escape
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import sys
 
@@ -511,7 +512,8 @@ class PaperBuilder:
         copy = COPY[locale["code"]]
         body = community.render_letters_index(self._letters(locale), locale["code"])
         if not body:
-            body = simple_page(copy["letters"], f'<p>{esc(copy["empty"])}</p>')
+            # No published letters: the R4 structure with an honest empty row, never invented people or titles.
+            body = community.render_letters_empty(locale["code"])
         body += essays.render_issue_shelf(self.editorial_issues, locale["code"], base=self.base)
         self._write_page(locale=locale, suffix="letters/", title=copy["letters"],
                          description=copy["letters_dek"], body=body, kind="letters")
@@ -745,6 +747,23 @@ class PaperBuilder:
         return (f'<dl>{facts}</dl>'
                 + (f'<section class="story-taxonomy"><h2>{esc(strings["topics"])}</h2><ul>{topics}</ul></section>' if topics else ""))
 
+    def _archive_band(self, locale: dict) -> str:
+        """Closing band of the archive: newest corrections (real records) and the feeds."""
+        from tools.paper.templates import d_pages
+        catalog = self.catalogs[locale["code"]]
+        s = catalog["strings"]
+        pairs = sorted(((story, c) for story in self.stories for c in story.get("corrections", [])),
+                       key=lambda item: item[1].get("at", ""), reverse=True)[:3]
+        rows = []
+        for story, correction in pairs:
+            title, lead_in = self._correction_title(story, locale)
+            note = (correction.get("text") or {}).get(locale["code"]) or s["l10n"]["pending_notice"]
+            kind = label(catalog, "correction_kind", correction.get("kind"), fallback=s["story"]["corrections"])
+            rows.append({"iso": correction.get("at") or "", "date": format_date(correction.get("at"), catalog),
+                         "title": f"{kind} · {title}", "note": note, "href": self._correction_href(locale, story)})
+        feeds = [(s["feeds"][key], href(self.base, locale["path_prefix"] + "feed." + ext)) for key, ext in (("atom", "atom"), ("rss", "xml"), ("json", "json"))]
+        return d_pages.archive_band(catalog, rows=rows, corrections_href=href(self.base, locale["path_prefix"] + "corrections/"), feeds=feeds)
+
     def _listing(self, *, locale: dict, suffix: str, title: str, stories: list[dict], kind: str,
                  title_html: str | None = None) -> None:
         from tools.paper.templates import d_pages
@@ -816,12 +835,19 @@ class PaperBuilder:
             if number < pages:
                 older = f'<a rel="next" href="{esc(href(self.base, locale["path_prefix"] + page_path(number + 1)))}">{esc(strings["archive"]["older"])} →</a>'
             paging = archive_pager(catalog, number=number, pages=pages, newer=newer, older=older)
-            body = archive_page(title, strings["site"]["description"], items or f'<p>{esc(strings["archive"]["empty"])}</p>', kicker=strings["kicker"]["archive"], title_html=title_html, context=context + usual_note, navigation=navigation + jump) + paging
             if kind == "archive":
+                # R4: the page is the edition overview; the paginated story index (stable links) sits in a
+                # disclosure under it, so the page is not 34 000 px tall. Filters open it.
+                cp_text = d_pages.d.copy(catalog)
+                index = (f'<details class="d-story-index" id="story-index"><summary>{esc(cp_text["story_index"])} · {len(stories)}</summary>'
+                         f'<p class="d-mono">{esc(cp_text["story_index_note"].format(n=len(stories)))}</p>{jump}'
+                         f'{items or "<p>" + esc(strings["archive"]["empty"]) + "</p>"}</details>')
+                body = archive_page(title, cp_text["archive_intro"], index, kicker=strings["kicker"]["archive"], title_html=title_html, context=context, navigation=navigation) + paging
                 calendar = d_pages.archive(dates=self.edition_dates, stories=stories, locale=locale, catalog=catalog, base=self.base,
                                            plate_html=self._plate_html(stories[0],catalog,"16:9",self.base) if stories else "")
-                # Preserve the paginated story index and its stable links below the edition overview.
-                body = body.replace('</header>', '</header>' + calendar, 1) + d_pages.FILTER_SCRIPT
+                body = body.replace('</header>', '</header>' + calendar, 1) + self._archive_band(locale) + d_pages.FILTER_SCRIPT
+            else:
+                body = archive_page(title, strings["site"]["description"], items or f'<p>{esc(strings["archive"]["empty"])}</p>', kicker=strings["kicker"]["archive"], title_html=title_html, context=context + usual_note, navigation=navigation + jump) + paging
             page_title = title if number == 1 else f"{title} · {number}/{pages}"
             self._write_page(locale=locale, suffix=page_path(number), title=f"{page_title} — FCMO AI", description=title, body=body, kind=kind, machine_alternates=resources)
 
@@ -927,17 +953,7 @@ class PaperBuilder:
         sample = ranked[0] if ranked else None
         method_intro = (method_order_section(catalog)
                         + f'<p class="method-intro">{esc(localized_method["intro"])}</p>'
-                        f'<ul class="archive-totals"><li><strong>{live_count}</strong> {esc(localized_method["story_count"])}</li>'
-                        f'<li><strong>{topic_count}</strong> {esc(s["story"]["topics"])}</li><li><strong>{org_count}</strong> {esc(s["story"]["organizations"])}</li></ul>'
-                        f'<section class="method-steps"><h2>{esc(s["story"]["evidence"])}</h2><ol>'
-                        + "".join(f'<li>{esc(step)}</li>' for step in localized_method["steps"])
-                        + f'</ol><p>{esc(localized_method["scope"])}</p></section>')
-        if sample:
-            method_intro += (f'<section class="method-example"><p class="section-kicker">{esc(label(catalog, "beat", sample.get("beat")))}</p>'
-                             f'<h2><a href="{esc(self._story_href(locale, sample))}">{esc(headline(sample, locale["code"], catalog))}</a></h2>'
-                             f'<p>{esc(truncate(dek(sample, locale["code"], catalog), 220))}</p>'
-                             f'<p>{esc(s["story"]["evidence"])} · {esc(label(catalog, "evidence_class", sample.get("evidence_class")))} · '
-                             f'{esc(s["story"]["confidence"].format(level=label(catalog, "confidence", sample.get("confidence"))))}</p></section>')
+                        f'<p class="method-scope">{esc(localized_method["scope"])}</p>')
         pages = [
             ("about/", s["nav"]["about"], f'<p>{esc(s["site"]["description"])}</p><p>{esc(s["footer"]["automated_notice"])}</p>', "about"),
             ("method/", s["nav"]["method"], method_intro, "method"),
@@ -991,7 +1007,7 @@ class PaperBuilder:
                 from tools.paper.templates import d_pages
                 page_body = d_pages.method(catalog, content, stories=ranked, locale=locale, base=self.base,
                                            plate_html=self._plate_html(sample,catalog,"16:9",self.base) if sample else "")
-            self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=truncate(content.replace("<p>", " ").replace("</p>", " ")), body=page_body, kind=kind)
+            self._write_page(locale=locale, suffix=suffix, title=f"{title} — FCMO AI", description=truncate(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", content)).strip()), body=page_body, kind=kind)
         subscribe, subscribe_script = community.render_subscribe(locale_code=locale["code"], path_prefix=locale["path_prefix"], base=self.base, portal_url=self.portal_url, page=True)
         recent = sorted(self.live, key=lambda story: (story.get("event_at", ""), story["id"]), reverse=True)[:3]
         cards = "".join(self._record_card(story, locale) for story in recent)
