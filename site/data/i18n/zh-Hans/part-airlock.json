@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "f32bb1080acb37d39cc1496291e48a38834b7aff6da0353e6c7af34ce60d2b1a",
+  "canonical_source_sha256": "8c5aa8f0839909b05b96114772eecab17b374681568e5bcc751f7e84ad727329",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -25188,6 +25188,70 @@
       },
       "title": "日本发布受条款限制的 5,025 小时 HSR 移动操作数据集",
       "why_it_matters": "一批受条款约束、超过 5,000 小时的真实移动操作数据，可能降低使用 HSR 机器人开展 VLA 研究的数据采集门槛。数据只含单一平台的成功片段，站点分布不均，且仅供研究与开发使用，因此评测和复用均受限制；另行报告的模型性能提升尚未得到独立验证。"
+    },
+    "FCMO-8707BF4EED07": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "作者将扰动—筛选—投票（PSV）形式化为：采样扰动后的预测器，在带标签的任务专用集合上选出表现最佳的成员，并汇总其预测。logit-PSV变体冻结预训练模型，并在生成过程中及不同输入之间复用采样得到的词表偏置。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "按照预印本报告的匹配原始协议，logit PSV与全权重PSV在28组模型—任务对中的22组在统计上无法区分；logit PSV有三组显著更好、三组更差。测试的语言模型最高为OLMo-3-7B-Instruct；匹配比较使用N=5000、K=50及含200个样本的筛选集。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在MATH-500上，作者报告OLMo-3-7B-Instruct的logit PSV准确率为81.3%，全权重PSV为74.7%，未扰动基线为63.3%。在USPTO上，logit PSV较高的原始准确率部分可由多数类预测解释，其平衡准确率低于全权重PSV。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在报告的视觉实验中，分布偏移下的Waterbirds和FMoW上，logit空间方法使最差群体或区域准确率提高5–6个百分点；在均衡的ImageNet上几乎没有增益。确定性的类别频率重新校准恢复了偏移任务中很大一部分增益。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "审阅的证据未能证明结果已被独立复现、适用于参数规模超过7B的语言模型、能改善开放式生成、能提升模型通用能力，或能降低总推理成本。该方法需要带标签的筛选集，并且每个测试输入需要评估模型K次。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "未检查到新logit-PSV结果的独立复现。作者代码和预期输出已公开，但报告中完整运行预计需要约140个H100 GPU小时。",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-30T23:11:52Z"
+        },
+        {
+          "description": "结果能否推广到7B以上语言模型、短答案基准任务、小型带标签筛选集及所测试视觉数据集之外仍未知；论文未在实际服务场景下比较总推理成本。",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-30T23:11:52Z"
+        }
+      ],
+      "importance_rationale": "如果报告的机制具有普遍性，研究者对权重空间后训练结果的解释以及对推理时适配方法的选择都可能改变。目前证据仅限于作者报告的、参数规模最高为7B的模型、部分基准任务和小型带标签验证集上的实验。",
+      "limitations": [
+        "所有新实证结果均由作者报告；未进行独立复现。",
+        "语言实验最高为7B参数，且仅覆盖有限的一组模型和基准任务。",
+        "该方法需要带标签且针对具体任务的筛选集；论文指出它不太适用于开放式生成。",
+        "推理时每个测试输入需要评估模型K次；尚未证明其相较其他方法具有总成本或延迟优势。",
+        "在USPTO上，原始准确率可能掩盖类别坍缩：作者报告，在所引OLMo比较中logit PSV的平衡准确率低于全权重PSV；在部分Qwen比较中，两种方法都可能仅达到恒定多数类基线。",
+        "作者报告称，筛选可能对200个样本的集合过拟合；一阶分析仅适用于扰动幅度足够小的情况。",
+        "视觉增益集中在训练—测试分布偏移的数据集上；均衡ImageNet几乎没有改善，作者将偏移数据上的结果很大程度上归因于输出重新校准。"
+      ],
+      "relationships": [],
+      "summary": "一篇预印本重新评估了Neural Thickets的扰动、筛选、投票流程，并报告称其大部分测得增益无需扰动模型权重。作者对输出logit施加固定随机偏置，使用200个带标签的任务样本筛选成员，再对入选成员投票。在作者报告的、参数规模最高达7B的语言模型测试中，该方法在28组匹配的模型—任务对中有22组与全权重扰动在统计上无法区分，三组显著更好、三组更差；效果因任务而异。在USPTO上，原始准确率部分源自多数类预测。在存在训练—测试分布偏移的视觉任务中，作者将增益主要归因于输出重新校准。这项工作为测得增益提供了另一种解释，但并未证明附近的权重空间结构不存在，也未证明该方法提升了模型的通用能力。",
+      "technical": {
+        "claimed_result": "作者报告称，在大多数推理比较中logit PSV与全权重PSV相当或更好，并认为输出空间重新校准解释了许多报告增益。在一项匹配比较中，28组模型—任务对有22组在统计上无法区分；视觉结果在部分分布偏移数据集上最强。",
+        "compute_or_cost": "该方法无需重新训练模型权重，但仓库称完整复现约需140个H100 GPU小时。推理仍需对每个测试样本评估模型K次，而在筛选集上为N个成员打分还会增加大量前置计算。尚未证明总成本或服务延迟更低。",
+        "demonstrated_result": "已检查arXiv v1论文及其链接的实现文档，可确认作者报告了所述实验并提供代码和复现说明。未进行独立复现或运行。",
+        "implementation_status": "作者提供了官方仓库，其中包含语言模型结果代码、任务评分器及27组复现脚本。仓库说明首次下载需要模型和数据访问权限，以及支持CUDA 12.8的NVIDIA GPU。本次研究激活未运行这些代码。",
+        "mechanism": "对每个成员，采样一个长度等于词表大小的高斯随机偏置，并在贪心解码时加到输出logit上，同时固定模型权重。在带标签且针对具体任务的筛选集上为成员评分，保留表现最好的K个成员，并在测试时对其提取的答案进行多数投票。相同偏置会跨解码步骤和输入保持不变，因此成员在筛选集上的表现决定了可复用的token偏好模式。",
+        "novelty": "论文质疑了观察到的RandOpt/Neural Thickets增益必须依赖权重空间中邻近专家这一说法：报告称，输出多样性、验证集筛选和投票可恢复大部分效果，而logit空间扰动提供了更简单的实现。",
+        "regime": "语言实验使用0.5B至3B的Qwen2.5模型及OLMo-3-7B-Instruct，涵盖七类任务，并使用含200个样本的带标签筛选集。匹配原始协议的比较使用N=5000、K=50。作者代码中的27组logit-PSV复现使用N=1000、K最高为50，每个小规模运行使用一块H100；完整报告结果的复现预计约需140个H100 GPU小时。视觉实验使用最高6.7B的冻结DINOv3骨干网络，数据集包括FMoW、Waterbirds和均衡ImageNet。",
+        "reproducibility": "作者维护的实现和预期输出已公开。README说明结果对硬件和版本敏感；本次审查未找到或进行独立复现。",
+        "strongest_baseline": "论文以作者发布的代码、原始提示词、数据划分、评分器及N=5000/K=50设置，与所引用的Neural Thickets全权重扰动方法进行匹配比较；其他基线包括调温采样加多数投票，以及视觉任务中的确定性重新校准。"
+      },
+      "title": "Logit扰动无需改变权重即可复现Neural Thickets报告的许多增益",
+      "why_it_matters": "这一结果将推理时观察到的增益与其几何解释区分开来：验证集筛选和对输出多样性的投票，可能在不改变权重的情况下解释大部分报告效果。若能在已测试模型和任务之外复现，研究者对权重空间适配的解释以及对更低成本或更直接测试时方法的设计都可能改变。该方法仍需要带标签的筛选集，并且每个测试输入需要评估模型K次，因此论文并未证明总推理成本更低。"
     },
     "FCMO-87CD00EDD30A": {
       "claims": [
@@ -62808,6 +62872,48 @@
       "why_it_matters": {
         "locale_sha256": "ed49e4a94190d310a688c4285f860190dd12c63843c3d78b6d0cd47c649f287b",
         "source_sha256": "25e09a3d706687d866ae8d2a895f0c22a6e8d35897c007cdecfcc8509ea3f3b6"
+      }
+    },
+    "FCMO-8707BF4EED07": {
+      "claims": {
+        "locale_sha256": "07b498df5cec6d751d0f151a0cbfc1d8746c791642d8c1c0cb479f7f0a5128ef",
+        "source_sha256": "0783f4e075070b0e60a69419715174f5a407ecccc1838e02ead4196aa17e9fd6"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "5b4a51009a130d81d430d4061f6822a7e56448f25cc91da2309cd45c297af34e",
+        "source_sha256": "8e25f05330658b6c3b6238e4551752e5d792c1551473462b6e58d306933b8ad8"
+      },
+      "importance_rationale": {
+        "locale_sha256": "972c8c3ae1b3c68a3bb9f0043ed7376be0ecad4fc57efaca79a90bc830164742",
+        "source_sha256": "af3e847c4b9d4d482c551fe7ae13de702f82cdbcfdee0c8545e839fbac9d9659"
+      },
+      "limitations": {
+        "locale_sha256": "262d0c5e794e3eb38b8b0e2d17361bbe2bdab64a4c42b7db4ae4f0180ed83992",
+        "source_sha256": "45f97a10fcefdc5e1e6d14e761c2ef66a965178813a14ab94a636cf345c88181"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "04b7103ac09c3acb35d69d1a1e6c40255703dab806487267bff0bab2cbdc6a8f",
+        "source_sha256": "4bea487584d40bcc0ef9fb4e54e45ad1bf2f78df2bbacdc644e60b12283c111d"
+      },
+      "technical": {
+        "locale_sha256": "99387b2ad0b580751ce6f587db3fcb50641986d2a260160e1899dcb234464619",
+        "source_sha256": "cceb7415f0391c8ec0da705ade44696b0ba8278d21a50c8d4bb06c428a77ca85"
+      },
+      "title": {
+        "locale_sha256": "8dc1cdb3b49ce7c14e1630537f1dc678f73eea26985a9ad0087556ede9091c9f",
+        "source_sha256": "2cee8295f7e738f573264396cee46e8b0d87d2e3987269eeff17075c3a93383a"
+      },
+      "why_it_matters": {
+        "locale_sha256": "53a635c25ef223d4fbaa689d23f2c46fe929a358b78c1a65184ce2c65b78ac5e",
+        "source_sha256": "49392d4a3a39b6ee5f745c1b41d2b1876635379ec57d3838ff0e800ebc39903c"
       }
     },
     "FCMO-87CD00EDD30A": {

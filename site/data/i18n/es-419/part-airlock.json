@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "f32bb1080acb37d39cc1496291e48a38834b7aff6da0353e6c7af34ce60d2b1a",
+  "canonical_source_sha256": "8c5aa8f0839909b05b96114772eecab17b374681568e5bcc751f7e84ad727329",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -25188,6 +25188,70 @@
       },
       "title": "Japón publica un conjunto de manipulación móvil HSR de 5,025 horas sujeto a términos de uso",
       "why_it_matters": "Un lanzamiento sujeto a términos con más de 5,000 horas de datos reales de manipulación móvil podría reducir las barreras de recolección para investigar modelos VLA con robots HSR. El conjunto solo contiene éxitos de una plataforma, está desequilibrado por sitio y solo puede usarse para investigación y desarrollo, lo que limita la evaluación y reutilización; la afirmación independiente sobre el rendimiento del modelo no está comprobada."
+    },
+    "FCMO-8707BF4EED07": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores formalizan perturb-select-vote (PSV) como el muestreo de predictores perturbados, la selección de los mejores en un conjunto etiquetado específico de la tarea y la agregación de sus predicciones. La variante logit-PSV mantiene congelado el modelo preentrenado y reutiliza durante la generación y entre entradas un sesgo de vocabulario muestreado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Según el protocolo original equiparado que informa el preprint, logit PSV y PSV con pesos completos no difirieron estadísticamente en 22 de 28 pares de modelo y tarea; logit PSV fue significativamente mejor en tres y peor en tres. Los modelos de lenguaje probados llegan hasta OLMo-3-7B-Instruct; la comparación equiparada usa N=5000 y K=50, y un conjunto de selección de 200 ejemplos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para OLMo-3-7B-Instruct en MATH-500, los autores informan una exactitud de 81.3% para logit PSV, 74.7% para PSV con pesos completos y 63.3% para la base sin perturbaciones en la comparación descrita. En USPTO, las predicciones de la clase mayoritaria explican en parte la mayor exactitud bruta de logit PSV, cuya exactitud balanceada es menor que la de PSV con pesos completos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En los experimentos de visión informados, los métodos en espacio de logits mejoraron entre 5 y 6 puntos la exactitud del peor grupo o región en Waterbirds y FMoW bajo cambio de distribución, pero casi no mejoraron en ImageNet balanceado. Una recalibración determinista por frecuencia de clase recuperó buena parte de la mejora en las tareas con cambio."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La evidencia revisada no demuestra una reproducción independiente, aplicabilidad a modelos de lenguaje mayores de 7B, beneficios en generación abierta, mejora de la capacidad general del modelo ni menor costo total de inferencia. El método requiere un conjunto etiquetado de selección y K evaluaciones del modelo por entrada de prueba."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una reproducción independiente de los nuevos resultados de logit-PSV. El código de los autores y las salidas esperadas están disponibles, pero la ejecución completa informada se estima en unas 140 horas de GPU H100.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-10-30T23:11:52Z"
+        },
+        {
+          "description": "Se desconoce si los resultados se transfieren más allá de modelos de lenguaje de hasta 7B, tareas de referencia con respuestas breves, conjuntos pequeños de selección etiquetados y los conjuntos de visión estudiados. El costo total de inferencia no se compara en condiciones prácticas de servicio.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-10-30T23:11:52Z"
+        }
+      ],
+      "importance_rationale": "Si el mecanismo informado se generaliza, podría cambiar la interpretación de los resultados de posentrenamiento en el espacio de pesos y la elección de métodos de adaptación durante la inferencia. Por ahora, la evidencia se limita a experimentos informados por los autores con modelos de hasta 7B, tareas de referencia seleccionadas y conjuntos pequeños de validación etiquetados.",
+      "limitations": [
+        "Todos los nuevos resultados empíricos son informados por los autores; no se realizó una reproducción independiente.",
+        "Los experimentos de lenguaje llegan hasta 7B parámetros y abarcan un conjunto acotado de modelos y tareas de referencia.",
+        "El método requiere un conjunto de selección etiquetado y específico de la tarea; el artículo indica que es menos adecuado para la generación abierta.",
+        "Durante la inferencia, el método requiere K evaluaciones del modelo por entrada de prueba; no se establece una ventaja de costo total o latencia frente a otras alternativas.",
+        "En USPTO, la exactitud bruta puede ocultar el colapso hacia una clase: los autores informan menor exactitud balanceada para logit PSV que para PSV con pesos completos en la comparación citada con OLMo, y ambos métodos pueden igualar una referencia constante de clase mayoritaria en algunas comparaciones con Qwen.",
+        "Los autores informan que la selección puede sobreajustarse al conjunto de 200 ejemplos y que el análisis de primer orden solo se aplica con escalas de perturbación suficientemente pequeñas.",
+        "Las mejoras de visión se concentran en conjuntos con cambio de distribución entre entrenamiento y prueba. ImageNet balanceado casi no muestra mejora y los autores atribuyen gran parte del resultado bajo cambio a la recalibración de salidas."
+      ],
+      "relationships": [],
+      "summary": "Un preprint vuelve a evaluar el procedimiento perturb-select-vote de Neural Thickets e informa que buena parte de la mejora medida no requiere perturbar los pesos del modelo. Los autores aplican un sesgo aleatorio fijo a los logits de salida, seleccionan variantes con 200 ejemplos etiquetados de la tarea y luego votan entre las seleccionadas. En pruebas informadas por los autores con modelos de lenguaje de hasta 7B parámetros, el método no difiere estadísticamente de las perturbaciones de pesos completos en 22 de 28 pares equiparados de modelo y tarea; es significativamente mejor en tres y peor en tres. Los efectos varían por tarea y, en USPTO, la exactitud bruta refleja en parte predicciones de la clase mayoritaria. En tareas de visión con cambio entre entrenamiento y prueba, los autores atribuyen las mejoras principalmente a una recalibración de salidas. El trabajo ofrece una explicación alternativa de las mejoras medidas; no demuestra que falte estructura cercana en el espacio de pesos ni que el método mejore la capacidad general del modelo.",
+      "technical": {
+        "claimed_result": "Los autores informan que logit PSV iguala o supera a PSV con pesos completos en la mayoría de las comparaciones de razonamiento y que la recalibración en espacio de salidas explica muchas de las mejoras reportadas. En una comparación equiparada, informan que no hubo diferencia estadística en 22 de 28 pares modelo-tarea; los resultados de visión son más sólidos en ciertos conjuntos con cambio de distribución.",
+        "compute_or_cost": "El método no vuelve a entrenar los pesos, pero el repositorio indica que la reproducción completa requiere unas 140 horas de GPU H100. La inferencia aún exige K evaluaciones del modelo por elemento de prueba, y puntuar N variantes sobre el conjunto de selección añade un cómputo inicial considerable. No se demuestra un menor costo total ni una menor latencia de servicio.",
+        "demonstrated_result": "Se inspeccionaron el artículo v1 de arXiv y la documentación de implementación enlazada, lo que confirma que los autores informan los experimentos descritos y ofrecen código e instrucciones de reproducción. No se realizó una ejecución ni reproducción independiente.",
+        "implementation_status": "Los autores ofrecen un repositorio oficial con código para los resultados de modelos de lenguaje, evaluadores de tareas y scripts de reproducción de 27 celdas. El repositorio indica que la primera descarga requiere acceso a modelos y datos, además de una GPU NVIDIA compatible con CUDA 12.8. No se ejecutó durante esta activación de investigación.",
+        "mechanism": "Para cada variante, se muestrea un sesgo gaussiano aleatorio del tamaño del vocabulario y se suma a los logits de salida durante la decodificación voraz, con los pesos del modelo fijos. Se puntúan las variantes en un conjunto de selección etiquetado y específico de la tarea, se conservan las K mejores y, durante la prueba, se vota por mayoría entre sus respuestas extraídas. El mismo sesgo persiste entre pasos de decodificación y entradas, de modo que el rendimiento de una variante en el conjunto de selección determina un patrón de preferencia por tokens reutilizable.",
+        "novelty": "El artículo cuestiona que las mejoras observadas con RandOpt/Neural Thickets requieran expertos cercanos en el espacio de pesos: informa que gran parte del efecto puede recuperarse mediante diversidad de salidas, selección con datos de validación y votación, con perturbaciones en el espacio de logits como implementación más sencilla.",
+        "regime": "Los experimentos de lenguaje usan modelos Qwen2.5 de 0.5B a 3B y OLMo-3-7B-Instruct en siete familias de tareas, con un conjunto de selección etiquetado de 200 ejemplos. La comparación equiparada con el protocolo original usa N=5000 y K=50. La reproducción de logit-PSV en 27 celdas del código de los autores usa N=1000, K de hasta 50 y una H100 por ejecución pequeña; la reproducción completa informada se estima en unas 140 horas de GPU H100. En visión se usan redes troncales DINOv3 congeladas de hasta 6.7B en FMoW, Waterbirds e ImageNet balanceado.",
+        "reproducibility": "Hay una implementación mantenida por los autores y salidas esperadas disponibles públicamente. El README documenta la sensibilidad al hardware y a las versiones; durante esta revisión no se encontró ni realizó una reproducción independiente.",
+        "strongest_baseline": "La comparación equiparada del artículo con el método citado de perturbación de pesos completos de Neural Thickets usa código publicado por los autores y los prompts, particiones, evaluadores y parámetros originales N=5000/K=50. Otras referencias incluyen muestreo con temperatura ajustada y votación por mayoría, y recalibración determinista en visión."
+      },
+      "title": "Las perturbaciones de logits reproducen muchas de las mejoras atribuidas a Neural Thickets sin cambiar los pesos",
+      "why_it_matters": "El resultado separa una mejora observada durante la inferencia de la explicación geométrica propuesta: la selección con datos de validación y la votación sobre diversidad de salidas podrían explicar buena parte del efecto informado sin cambiar los pesos. Si se reproduce en más modelos y tareas, cambiaría la forma de interpretar la adaptación en el espacio de pesos y de diseñar métodos de prueba más directos o económicos. El método aún requiere un conjunto etiquetado de selección y K evaluaciones del modelo por entrada de prueba; el artículo no demuestra un menor costo total de inferencia."
     },
     "FCMO-87CD00EDD30A": {
       "claims": [
@@ -62808,6 +62872,48 @@
       "why_it_matters": {
         "locale_sha256": "6a25666bbdf9a4db6b17f204cfbd5dfa2b13a3676f7bb3a605e321a6dbd90a96",
         "source_sha256": "25e09a3d706687d866ae8d2a895f0c22a6e8d35897c007cdecfcc8509ea3f3b6"
+      }
+    },
+    "FCMO-8707BF4EED07": {
+      "claims": {
+        "locale_sha256": "03b4cadd885677a1ecce565cc723f6eafba82052d956e64ee1dbb73517b9e336",
+        "source_sha256": "0783f4e075070b0e60a69419715174f5a407ecccc1838e02ead4196aa17e9fd6"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "20dcfd4a25466187cc6211b4deeaa65f0b067409d064a8f0754e4eb9d1b37c38",
+        "source_sha256": "8e25f05330658b6c3b6238e4551752e5d792c1551473462b6e58d306933b8ad8"
+      },
+      "importance_rationale": {
+        "locale_sha256": "5416fe6f52ce3e75dfad120ea9770df4886784b4440901c39fff1887a10cc10d",
+        "source_sha256": "af3e847c4b9d4d482c551fe7ae13de702f82cdbcfdee0c8545e839fbac9d9659"
+      },
+      "limitations": {
+        "locale_sha256": "5818f366f12e943c4cfb63b5323c91f1fbe0baab654f9daefe513c6072855d57",
+        "source_sha256": "45f97a10fcefdc5e1e6d14e761c2ef66a965178813a14ab94a636cf345c88181"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "0db700428c6556b2e24c1d9f972bafa6f2bb27fae521a0237c0b07e55ef9a92a",
+        "source_sha256": "4bea487584d40bcc0ef9fb4e54e45ad1bf2f78df2bbacdc644e60b12283c111d"
+      },
+      "technical": {
+        "locale_sha256": "b576e2179c28c0006960a6ec09fd1d3a628fbe3c9ab008e5ee628d1ac331982d",
+        "source_sha256": "cceb7415f0391c8ec0da705ade44696b0ba8278d21a50c8d4bb06c428a77ca85"
+      },
+      "title": {
+        "locale_sha256": "a4fd001d0b54d0a4bf427d22b1918d999d254906a8bde656f373acc7a77b01ba",
+        "source_sha256": "2cee8295f7e738f573264396cee46e8b0d87d2e3987269eeff17075c3a93383a"
+      },
+      "why_it_matters": {
+        "locale_sha256": "3b4217227623f5203ddd96c6aff6dcd82d2180162c73a4153a23f00c02cbf359",
+        "source_sha256": "49392d4a3a39b6ee5f745c1b41d2b1876635379ec57d3838ff0e800ebc39903c"
       }
     },
     "FCMO-87CD00EDD30A": {
