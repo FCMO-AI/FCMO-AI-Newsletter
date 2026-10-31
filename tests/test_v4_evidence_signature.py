@@ -30,7 +30,10 @@ BOARD = re.compile(r'<section[^>]*id="evidence-board".*?</section>', re.S)
 # listings (topic/org/beat/archive) carry the same class chip row (list-evrow) per card instead of
 # the old evidence strip, so they are held to the same per-item rule as the front.
 BAND = re.compile(r'<section class="method-band" id="method-band".*?</section>', re.S)
-FRONT_ITEM = re.compile(r'<(?:article|li) class="(?:plate-card|wire-row)[^"]*"[^>]*data-story-id="([^"]+)"(.*?)</(?:article|li)>', re.S)
+# R4: the front's story rows are the rank rows (the wire/essentials rows were retired); each carries its class
+# as a sample (d-claim--<class>), its word, and the primary-source and open-gap counts.
+FRONT_ITEM = re.compile(r'<li data-story-id="([^"]+)"[^>]*><article class="d-rank-entry">(.*?)</article></li>', re.S)
+RANK_CLASS = re.compile(r'd-claim--(shown|claimed|not-established)')
 EVROW = re.compile(r'<(p|div) class="[^"]*\bevrow\b[^"]*" data-evidence-class="([^"]*)">(.*?)</\1>', re.S)
 BAND_TRIO = re.compile(r'<div class="band-trio">(.*?)</div><p class="band-note">', re.S)
 BAND_NUMS = re.compile(r'<li>([0-9]+)<span>', re.S)
@@ -141,17 +144,17 @@ class EvidenceSignatureTests(unittest.TestCase):
         proof = self.catalogs[code]["strings"]["proof"]
         for story_id, body in rows:
             with self.subTest(story=story_id):
-                found = EVROW.findall(body)
+                found = RANK_CLASS.findall(body)
                 self.assertEqual(len(found), 1)
-                klass = found[0][1]
+                klass = found[0].replace("-", "_")
                 story = stories[story_id]
                 self.assertEqual(klass, derived_class(story))
-                visible = text(found[0][2])
+                visible = text(body)
                 self.assertIn(proof[klass], visible)
                 self.assertIn(plural(self.catalogs[code], "primary_source", primary(story)), visible)
                 self.assertIn(plural(self.catalogs[code], "open_gap", gaps(story)), visible)
-        for _, klass, _ in EVROW.findall(page):
-            self.assertIn(klass, CLASSES)
+        for klass in re.findall(r'<li data-story-id="[^"]+" data-evidence-class="([^"]*)"><article class="d-rank-entry">', page):
+            self.assertIn({"DEMONSTRATED": "shown", "CLAIMED": "claimed", "": "not_established"}.get(klass, klass), CLASSES)
 
     def assert_listing_rows_match_corpus(self, page: str, code: str, stories: dict, *, minimum: int) -> None:
         cards = CARD.findall(page)
@@ -185,8 +188,6 @@ class EvidenceSignatureTests(unittest.TestCase):
     def test_board_aggregates_every_live_story_in_every_locale(self):
         # c6: the aggregate is the front's method band (class trio + corpus figures).
         counts = Counter(derived_class(s) for s in self.live)
-        topics = len({t for s in self.live for t in s.get("topics", [])})
-        orgs = len({o for s in self.live for o in s.get("organizations", [])})
         for code, band in self.boards().items():
             catalog = self.catalogs[code]
             proof = catalog["strings"]["proof"]
@@ -197,8 +198,10 @@ class EvidenceSignatureTests(unittest.TestCase):
                 self.assertEqual([text(cell) for cell in cells],
                                  [f"{proof[key]} · {plural(catalog, 'story', counts[key])}" for key in CLASSES])
                 self.assertEqual(sum(counts.values()), len(self.live))
-                self.assertEqual([int(n) for n in BAND_NUMS.findall(band)], [len(self.live), topics, orgs])
-                self.assertIn('/method/"', band)
+                # R4: the band is the legend only; the counts row and the ordering link are retired. The corpus
+                # is still stated by the trio, whose class counts add up to every live story (asserted above).
+                self.assertNotIn("band-counts", band)
+                self.assertNotIn('/method/"', band)
 
     def test_visible_labels_are_localized_and_the_catalog_covers_the_live_corpus(self):
         english = {value for group in ("confidence", "claim_label", "evidence_class")
@@ -219,7 +222,7 @@ class EvidenceSignatureTests(unittest.TestCase):
             proof = self.catalogs[code]["strings"]["proof"]
             for key in CLASSES:
                 self.assertIn(proof[key], board)
-            strips = " ".join(text(body) for _, _, body in EVROW.findall(fronts[code]))
+            strips = " ".join(text(body) for _, body in FRONT_ITEM.findall(fronts[code]))
             self.assertTrue(strips)
             if code == "en":
                 continue

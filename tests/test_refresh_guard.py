@@ -190,7 +190,7 @@ class RefreshWorkflowOrder(unittest.TestCase):
         inventory = guard._import("tools.data_dependent_tests")
         listed = {l.strip() for l in (ROOT / guard.MODULE_LIST).read_text(encoding="utf-8").splitlines()
                   if l.strip() and not l.lstrip().startswith("#")}
-        browser_only = {"test_v4_mobile_first_viewport"}  # needs Chromium, installed only by Deploy
+        browser_only = {"test_v4_mobile_first_viewport", "test_d_band_collapse"}  # needs Chromium, installed only by Deploy
         not_live = {  # name the data files or build only as TEXT or as fixtures; reviewed one by one
             "test_agent_layer": "builds from tests/fixtures",
             "test_pages_workflow": "reads workflow text", "test_protected_publishing": "reads workflow text",

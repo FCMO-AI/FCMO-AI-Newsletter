@@ -106,20 +106,19 @@ class LocalizedKickerTests(unittest.TestCase):
                 self.assertEqual(self.first_kicker(self.page(prefix, self.edition_suffix(locale))),
                                  self.expected(locale, "archive"))
                 self.assertEqual(self.first_kicker(self.page(prefix, "status/")), self.expected(locale, "operations"))
-                earlier = EARLIER.search(self.page(prefix, ""))
-                self.assertIsNotNone(earlier)
+                # R4 retired the EARLIER wire from the front: its kicker must not come back in any locale.
+                front = self.page(prefix, "")
+                self.assertIsNone(EARLIER.search(front))
                 strings = self.catalogs[locale]["strings"]
-                self.assertEqual(text(EARLIER_LABEL.search(earlier.group()).group(1)), strings["wire"]["title"])
-                self.assertEqual(text(EARLIER_TITLE.search(earlier.group()).group(1)), strings["earlier"]["title"])
+                self.assertNotIn(f'>{strings["wire"]["title"]}<', front)
 
     def test_english_kickers_still_read_in_english(self):
         self.assertEqual(self.first_kicker(self.page("", "archive/")), "FCMO AI · archive")
         self.assertEqual(self.first_kicker(self.page("", self.edition_suffix("en"))), "FCMO AI · archive")
         self.assertEqual(self.first_kicker(self.page("", "status/")), "FCMO AI · operations")
-        earlier = EARLIER.search(self.page("", ""))
-        self.assertIsNotNone(earlier)
-        self.assertEqual(text(EARLIER_LABEL.search(earlier.group()).group(1)), "The wire")
-        self.assertEqual(text(EARLIER_TITLE.search(earlier.group()).group(1)), "Earlier")
+        front = self.page("", "")
+        self.assertIsNone(EARLIER.search(front))  # R4 retired the EARLIER wire from the front
+        self.assertNotIn('>The wire<', front)
 
     def test_generator_has_no_hard_coded_english_kicker(self):
         hits = [str(path.relative_to(ROOT)) for path in (ROOT / "tools/paper").rglob("*.py")

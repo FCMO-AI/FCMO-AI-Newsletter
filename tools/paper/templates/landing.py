@@ -225,42 +225,7 @@ def _band(stories: list[dict], ctx: _Ctx, method_href: str) -> str:
             f'</div></section>')
 
 
-_FILTER_SCRIPT = (
-    "<script>(function(){var nav=document.querySelector('[data-format-filter]');if(!nav)return;"
-    "var rows=document.querySelectorAll('.wire-row');nav.addEventListener('click',function(ev){"
-    "var a=ev.target.closest('a[data-format]');if(!a)return;ev.preventDefault();"
-    "nav.querySelectorAll('a').forEach(function(x){x.removeAttribute('aria-current')});"
-    "a.setAttribute('aria-current','true');var f=a.getAttribute('data-format');"
-    "rows.forEach(function(r){r.hidden=f!=='all'&&r.getAttribute('data-format')!==f})})})();</script>")
-
-
-def _wire(stories: list[dict], ctx: _Ctx) -> str:
-    if not stories:
-        return ""
-    present = [f for f in plan_mod.FORMATS if any(plan_mod.story_format(s) == f for s in stories)]
-    chips = ""
-    if len(present) > 1:
-        fm = ctx.s["formats"]
-        links = f'<a href="#earlier" data-format="all" aria-current="true">{_e(fm["all"])}</a>' + "".join(
-            f'<a href="#earlier" data-format="{f}">{_e(fm[f + "_plural"])}</a>' for f in present)
-        chips = f'<nav class="format-filter" data-format-filter aria-label="{_e(ctx.s["a11y"]["format_filter"])}">{links}</nav>'
-    rows = []
-    # The wire follows the plan order (importance); the section dek says so, because the dates are not monotonic.
-    for story in stories:
-        rows.append(
-            f'<li class="wire-row" data-format="{plan_mod.story_format(story)}" data-story-id="{_e(story["id"])}">'
-            f'<time class="wire-date rubric" datetime="{_e(story["event_at"])}">{_e(story["event_at"][:10])}</time>'
-            f'<span class="wire-format rubric">{_e(ctx.format_label(story))}</span>'
-            f'<div><h3 class="wire-title"><a href="{_e(ctx.story_href(story))}">{_e(ctx.head(story))}</a></h3>'
-            f'{_evrow(story, ctx, cls="wire-meta evrow")}</div>'
-            f'<span class="wire-topic rubric">{_e(ctx.topic_label(story))}</span></li>')
-    return (f'<section class="block surface-bone" id="earlier" aria-labelledby="earlier-title"><div class="frame">'
-            f'<div class="block-head"><div><p class="rubric rubric-accent">{_e(ctx.s["wire"]["title"])}</p>'
-            f'<h2 class="block-title" id="earlier-title">{_e(ctx.s["earlier"]["title"])}</h2>'
-            f'<p>{_e(ctx.s["earlier"]["dek"])}</p></div></div>'
-            f'<details class="d-wire-more"><summary>{_e(plural(ctx.catalog, "story", len(rows)))}</summary>{chips}'
-            f'<ol class="wire" aria-label="{_e(ctx.s["a11y"]["wire_table"])}">{"".join(rows)}</ol></details></div></section>'
-            f'{_FILTER_SCRIPT if chips else ""}')
+# R4 retired the EARLIER wire block from the front (its builder and filter script were removed with it).
 
 
 TOPIC_PAGE_MIN = 3  # build.py writes topic/<slug>/ only for topics with at least this many stories
@@ -273,9 +238,13 @@ def _topics(stories: list[dict], ctx: _Ctx) -> str:
         for topic, count in plan_mod.topic_counts(stories, ctx.topic_labels) if count >= TOPIC_PAGE_MIN)  # a tile only for a topic that has a page
     if not tiles:
         return ""
-    return (f'<section class="block surface-bone" id="topics" aria-labelledby="topics-title"><div class="frame">'
-            f'<div class="block-head"><div><h2 class="block-title" id="topics-title">{_e(ctx.s["topics"]["title"])}</h2>'
-            f'<p>{_e(ctx.s["topics"]["dek"])}</p></div></div><ul class="topic-tiles">{tiles}</ul></div></section>')
+    # R4 has no TOPICS block after the Bone band; the nav's «Topics» link still needs a real, visible target, so the
+    # tiles live in one closed disclosure row above the Letters strip. It opens when the nav (or a link) targets #topics.
+    return (f'<section class="frame d-front-topics" id="topics" aria-labelledby="topics-title"><details>'
+            f'<summary><span id="topics-title">{_e(ctx.s["topics"]["title"])}</span></summary>'
+            f'<p>{_e(ctx.s["topics"]["dek"])}</p><ul class="topic-tiles">{tiles}</ul></details>'
+            "<script>(function(){function o(){if(location.hash==='#topics'){var d=document.querySelector('#topics details');if(d)d.open=true}}"
+            "o();addEventListener('hashchange',o)})()</script></section>")
 
 
 def _trio(home: str, ctx: _Ctx) -> str:
@@ -335,6 +304,7 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
     return '<div class="landing d-front">' + "".join([
         d_front.cover(feature, slots["cover"], ctx),
         d_front.rank(([slots["cover"]] if slots["cover"] else []) + slots["board"], ctx),
+        _topics(order, ctx),
         letters,
         d_front.follow(home, base, ctx, order),
     ]) + "</div>"

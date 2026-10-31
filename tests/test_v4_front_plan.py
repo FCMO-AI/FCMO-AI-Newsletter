@@ -187,28 +187,28 @@ class FrontPlanBuildTests(unittest.TestCase):
                 for link, story_id in zip(links, shown):
                     self.assertTrue(link.startswith(f"{BASE}{prefix}"))
                     self.assertIn(html.escape(headline(self.by_id[story_id], locale, self.catalogs[locale])), rank)
-                shown += [re.search(r'data-story-id="([^"]+)"', attrs).group(1)
-                          for attrs, _ in WIRE_ITEM.findall(WIRE_SECTION.search(page).group())]
+                # R4 retired the EARLIER wire: the blocks that remain are the hero and the rank. No other block
+                # may carry a story row, so nothing repeats below the rank.
+                self.assertIsNone(WIRE_SECTION.search(page))
+                self.assertNotIn('wire-row', page)
                 self.assertEqual(len(shown), len(set(shown)), shown)
-                self.assertGreaterEqual(len(shown), 12)
                 self.assertTrue(set(shown) <= set(self.by_id))
                 self.assertEqual(shown, ids(self.order[:len(shown)]))
 
     def test_essential_items_carry_only_their_story_id_and_link_to_it(self):
-        # The wire rows replace the essentials list: each row carries its story id (and its
-        # format) and a headline link that resolves to that very story.
+        # The wire rows are retired (R4). The same promise now holds for the rank rows: each carries its story id
+        # and a headline link that resolves to that very story; the wire block no longer exists.
         for locale, prefix in LOCALES:
             with self.subTest(locale=locale):
-                listing = WIRE_SECTION.search(self.page(prefix)).group()
-                items = WIRE_ITEM.findall(listing)
-                self.assertEqual(len(items), min(WIRE_COUNT, len(self.order) - BOARD_COUNT))
-                self.assertEqual(listing.count('<li class="wire-row"'), len(items))
-                for attributes, inner in items:
-                    story_id = re.fullmatch(r' class="wire-row" data-format="[a-z]+" data-story-id="([^"]+)"', attributes).group(1)
-                    link = WIRE_LINK.search(inner)
-                    self.assertEqual(self.resolve(link.group(1)), story_id)
-                    self.assertEqual(html.unescape(link.group(2)),
-                                     headline(self.by_id[story_id], locale, self.catalogs[locale]))
+                page = self.page(prefix)
+                self.assertIsNone(WIRE_SECTION.search(page))
+                rank = BOARD_SECTION.search(page).group()
+                ids_ = BOARD_ID.findall(rank)
+                links = re.findall(r'<h3><a href="([^"]+)">([^<]+)</a></h3>', rank)
+                self.assertEqual(len(ids_), len(links))
+                for story_id, (link, text) in zip(ids_, links):
+                    self.assertEqual(self.resolve(link), story_id)
+                    self.assertEqual(html.unescape(text), headline(self.by_id[story_id], locale, self.catalogs[locale]))
 
     def test_edition_cards_show_count_and_lead_headline(self):
         # The front no longer carries edition cards (DIRECCION s6). The edition pages they

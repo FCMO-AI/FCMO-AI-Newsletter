@@ -216,24 +216,26 @@ class FrontFreshnessBuildTests(unittest.TestCase):
         self.assertEqual(buckets, sorted(buckets))
 
     def test_essentials_and_beat_sections_use_the_same_order(self):
-        # The wire (the old essentials and beat blocks) takes, in the same order, the stories
-        # right after the five rank rows; it never repeats them or the hero.
-        start = BOARD_COUNT
-        expected = ids(self.order[start:start + WIRE_COUNT])
-        self.assertTrue(expected)
+        # R4 retired the wire (EARLIER): the front is hero, rank, letters and the Bone band. What stays true:
+        # the rank rows follow the plan order exactly, and no wire block or row remains to disagree with it.
+        expected = ids(self.order[:BOARD_COUNT])
         for locale, prefix in LOCALES:
             with self.subTest(locale=locale):
-                wire = WIRE_SECTION.search(self.page(prefix)).group()
-                self.assertEqual(WIRE_ID.findall(wire), expected)
-                self.assertEqual([self.resolve(link) for link in WIRE_LINK.findall(wire)], expected)
+                page = self.page(prefix)
+                self.assertIsNone(WIRE_SECTION.search(page))
+                self.assertNotIn('wire-row', page)
+                self.assertEqual(BOARD_ID.findall(BOARD_SECTION.search(page).group()), expected)
 
     def test_developing_well_skips_lead_and_top_stories(self):
-        shown = set(ids(self.order[:BOARD_COUNT]))
+        # With the wire gone nothing can repeat the lead or the top stories below the rank; the rank itself
+        # lists each story once.
         for locale, prefix in LOCALES:
             with self.subTest(locale=locale):
-                wire = set(WIRE_ID.findall(WIRE_SECTION.search(self.page(prefix)).group()))
-                self.assertTrue(wire)
-                self.assertFalse(shown & wire)
+                page = self.page(prefix)
+                self.assertNotIn('class="wire"', page)
+                shown = BOARD_ID.findall(BOARD_SECTION.search(page).group())
+                self.assertEqual(len(shown), len(set(shown)))
+                self.assertEqual(shown, ids(self.order[:BOARD_COUNT]))
 
     def test_publication_gates_pass_on_the_fresh_build(self):
         results = run_all.run(self.out)

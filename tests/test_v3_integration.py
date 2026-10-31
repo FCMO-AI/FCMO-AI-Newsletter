@@ -131,9 +131,11 @@ class V3IntegrationTests(unittest.TestCase):
         parsed_status = StructureParser()
         parsed_status.feed(status)
 
-        self.assertEqual(parsed_front.classes.get("band-counts"), 1)
+        # R4: the Bone band is the legend only; the counts row (stories / topics / organizations) is retired.
+        self.assertIsNone(parsed_front.classes.get("band-counts"))
+        self.assertEqual(parsed_front.classes.get("band-trio"), 1)
         for label in ("stories", "topics", "organizations"):
-            self.assertIn(f"<span>{label}</span>", front)
+            self.assertNotIn(f"<span>{label}</span>", front)
         self.assertGreaterEqual(parsed_archive.classes.get("archive-item", 0), 10)
         self.assertTrue(all(row[:3] == ["time", "a", "img"] or row[:2] == ["time", "a"] for row in parsed_archive.rows[:1]))
         self.assertEqual(parsed_status.classes.get("status-card"), 5)
