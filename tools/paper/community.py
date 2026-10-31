@@ -290,18 +290,50 @@ def render_letters_shelf(letters: list[dict[str, Any]], locale_code: str) -> str
     return '<div class="d-letters-shelf">' + "".join(rows) + "</div>"
 
 
+_AUTHOR_ROLE = {  # approved biography only (Hub profile): Javier Castellanos is the founder; no other role is asserted
+    "javier": {"en": "Founder, FCMO", "es-419": "Fundador, FCMO", "zh-Hans": "创始人，FCMO"},
+}
+_KIND_TONE = {"letter": "intelligence", "essay": "living", "note": "foundry"}
+
+
+def _author_cards(letters: list[dict[str, Any]], names_of, locale_code: str) -> str:
+    from . import d_plates
+    seen: dict[str, str] = {}
+    cards, done = [], set()
+    for letter in letters:
+        for name in names_of(letter):
+            key = name.casefold()
+            if key in done or len(done) >= 2:
+                continue
+            done.add(key)
+            role = next((v.get(locale_code) or v["en"] for k, v in _AUTHOR_ROLE.items() if key.startswith(k)), "")
+            plate = d_plates.choose({"id": f"author|{key}", "topics": [key]}, seen, wide=False)
+            cards.append(f'<article class="d-author-card"><img src="/assets/img/d-plates/d-{plate}-thumb.webp" alt="" '
+                         f'width="360" height="225" loading="lazy" decoding="async"><div><h2>{_e(name)}</h2>'
+                         f'{f"<p>{_e(role)}</p>" if role else ""}</div></article>')
+    return f'<div class="d-author-cards">{"".join(cards)}</div>' if cards else ""
+
+
 def render_letters_index(letters: list[dict[str, Any]], locale_code: str) -> str:
     """Render the index rows; the page shell and route belong to paper.build."""
     labels = {
-        "en": ("Letters", "Written by the people behind FCMO.", "Date", "Author", "Title", "Type"),
-        "es-419": ("Cartas", "Escritas por las personas detrás de FCMO.", "Fecha", "Autor", "Título", "Tipo"),
-        "zh-Hans": ("来信", "由 FCMO 背后的人亲自撰写。", "日期", "作者", "标题", "类型"),
-    }.get(locale_code, ("Letters", "Written by the people behind FCMO.", "Date", "Author", "Title", "Type"))
+        "en": ("Letters", "Written by the people behind FCMO.", "Date", "Author", "Title", "Type", "Letters from FCMO", "Letters by email"),
+        "es-419": ("Cartas", "Escritas por las personas detrás de FCMO.", "Fecha", "Autor", "Título", "Tipo", "Cartas de FCMO", "Cartas por correo"),
+        "zh-Hans": ("来信", "由 FCMO 背后的人亲自撰写。", "日期", "作者", "标题", "类型", "FCMO 来信", "邮件来信"),
+    }.get(locale_code, ("Letters", "Written by the people behind FCMO.", "Date", "Author", "Title", "Type", "Letters from FCMO", "Letters by email"))
+    kind_labels = {
+        "en": {"letter": "Letter", "essay": "Essay", "note": "Note"},
+        "es-419": {"letter": "Carta", "essay": "Ensayo", "note": "Nota"},
+        "zh-Hans": {"letter": "来信", "essay": "随笔", "note": "短札"},
+    }
+    def names_of(letter):
+        authors = letter.get("authors") or ([letter.get("author")] if letter.get("author") else [])
+        names = [a.get("name") if isinstance(a, dict) else a for a in authors]
+        return [n.strip() for n in names if isinstance(n, str) and n.strip()]
+    ordered = sorted((x for x in letters if isinstance(x, dict) and x.get("status", "published") == "published"),
+                     key=lambda x: x.get("published_at") or x.get("first_published_at") or "", reverse=True)
     rows = []
-    for letter in sorted((x for x in letters if isinstance(x, dict)),
-                         key=lambda x: x.get("published_at") or x.get("first_published_at") or "", reverse=True):
-        if letter.get("status", "published") != "published":
-            continue
+    for letter in ordered:
         card = render_letters_shelf([letter], locale_code)
         if not card:
             continue
@@ -310,27 +342,28 @@ def render_letters_index(letters: list[dict[str, Any]], locale_code: str) -> str
         title = letter.get("title") or (doc.get("title") if isinstance(doc, dict) else "")
         prefix = {"en": "", "es-419": "es/", "zh-Hans": "zh/"}.get(locale_code, "")
         url = letter.get("url") or f'{prefix}cartas/{_e(letter.get("slug", ""))}/'
-        authors = letter.get("authors") or ([letter.get("author")] if letter.get("author") else [])
-        names = [a.get("name") if isinstance(a, dict) else a for a in authors]
-        names = [n.strip() for n in names if isinstance(n, str) and n.strip()]
         date = letter.get("published_at") or letter.get("first_published_at")
         date_text = _date(str(date), locale_code) if isinstance(date, str) and _published(date) else ""
         kind = letter.get("kind")
-        kind_labels = {
-            "en": {"letter": "Letter", "essay": "Essay", "note": "Note"},
-            "es-419": {"letter": "Carta", "essay": "Ensayo", "note": "Nota"},
-            "zh-Hans": {"letter": "来信", "essay": "随笔", "note": "短札"},
-        }
         kind_text = kind_labels.get(locale_code, kind_labels["en"]).get(kind, "") if isinstance(kind, str) else ""
+        tone = _KIND_TONE.get(kind, "stone") if isinstance(kind, str) else "stone"
         excerpt = letter.get("custom_excerpt") or (doc.get("dek") if isinstance(doc, dict) else "")
-        rows.append(f'<li class="d-letter-row"><time aria-label="{_e(date)}">{_e(date_text)}</time><span>{_e(" · ".join(names))}</span><span><a href="{_e(url)}">{_e(title)}</a>{f"<small>{_e(excerpt)}</small>" if excerpt else ""}</span><span>{_e(kind_text)}</span></li>')
+        mins = letter.get("reading_time") or letter.get("read_minutes")
+        read = f'{int(mins)} min' if isinstance(mins, (int, float)) and mins > 0 else ""
+        chip = f'<i class="d-kind-dot d-kind-dot--{tone}" aria-hidden="true"></i>{_e(kind_text)}' if kind_text else ""
+        rows.append(f'<li class="d-letter-row"><time aria-label="{_e(date)}">{_e(date_text)}</time><span>{_e(" · ".join(names_of(letter)))}</span>'
+                    f'<span><a href="{_e(url)}">{_e(title)}</a>{f"<small>{_e(excerpt)}</small>" if excerpt else ""}</span>'
+                    f'<span class="d-letter-kind">{chip}</span><span class="d-letter-read">{_e(read)}</span></li>')
     if not rows:
         return ""
-    title, intro, date, author, entry_title, kind = labels
+    title, intro, date, author, entry_title, kind, list_title, email_title = labels
+    inactive = COPY.get(locale_code, COPY["en"]).get("inactive_title", "")
     return (f'<section class="d-letter-index"><header><p class="d-kicker">FCMO AI · {_e(title)}</p>'
-            f'<h1>{_e(title)}</h1><p>{_e(intro)}</p></header><div class="d-letter-columns" aria-hidden="true">'
-            f'<span>{_e(date)}</span><span>{_e(author)}</span><span>{_e(entry_title)}</span><span>{_e(kind)}</span></div>'
-            f'<ol>{"".join(rows)}</ol></section>')
+            f'<h1>{_e(title)}</h1><p>{_e(intro)}</p></header>{_author_cards(ordered, names_of, locale_code)}'
+            f'<h2 class="d-letters-list-title">{_e(list_title)}</h2><div class="d-letter-columns" aria-hidden="true">'
+            f'<span>{_e(date)}</span><span>{_e(author)}</span><span>{_e(entry_title)}</span><span>{_e(kind)}</span><span></span></div>'
+            f'<ol>{"".join(rows)}</ol>'
+            f'<aside class="d-letters-email"><div><h2>{_e(email_title)}</h2><p>{_e(inactive)}</p></div></aside></section>')
 
 
 def without_empty_cartas_slot(page: str, cartas: str) -> str:

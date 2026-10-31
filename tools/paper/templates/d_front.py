@@ -20,7 +20,7 @@ def rank(stories, ctx):
         kind = {'shown': 'DEMONSTRATED', 'claimed': 'CLAIMED'}.get(evidence_class(story), '')
         art = d_plates.html(story, "16:10", ctx.s, ctx.base, seen, thumb=True) if story.get('media') else ''
         rows.append(f'<li data-story-id="{d.e(story["id"])}" data-evidence-class="{d.e(kind)}"><article class="d-rank-entry">'
-                    f'<b class="d-rank-number">{i}</b><a class="d-rank-art" href="{d.e(ctx.story_href(story))}" aria-hidden="true" tabindex="-1">{art}</a>'
+                    f'<b class="d-rank-number" data-n="{i:02d}">{i}</b><a class="d-rank-art" href="{d.e(ctx.story_href(story))}" aria-hidden="true" tabindex="-1">{art}</a>'
                     f'<div class="d-rank-topic">{d.topic(story, ctx.catalog)}</div>'
                     f'<div class="d-rank-copy"><h3><a href="{d.e(ctx.story_href(story))}">{d.e(ctx.head(story))}</a></h3>'
                     f'<div class="d-rank-mobile-grade">{d.grade(story, ctx.catalog)}</div>'

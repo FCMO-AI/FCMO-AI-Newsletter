@@ -5,6 +5,7 @@ schema has no claim-to-source edges: the diagram preserves two lists rather
 than manufacturing a fully connected network.
 """
 from html import escape
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -320,11 +321,23 @@ def timeline(story, catalog):
 _TOPIC_SIGNALS = json.loads((Path(__file__).resolve().parents[3] / 'design/tokens.json').read_text())['d']['topic_signals']
 
 
+def _topic_signal_fallback(key):
+    """Unmapped topics: keyword family, then a stable hash, so the column keeps R4's colour per topic."""
+    if not key:
+        return 'stone'
+    for words, signal in ((('infra', 'chip', 'hardware', 'compute', 'cloud', 'energy', 'data'), 'foundry'),
+                          (('polic', 'govern', 'regul', 'law', 'society', 'robot', 'health', 'bio', 'education', 'work'), 'living'),
+                          (('agent', 'model', 'eval', 'safety', 'secur', 'research', 'reason', 'learning', 'align'), 'intelligence')):
+        if any(w in key for w in words):
+            return signal
+    return ('foundry', 'living', 'intelligence')[int.from_bytes(hashlib.sha256(key.encode()).digest()[:2], 'big') % 3]
+
+
 def topic(story, catalog):
     """True colors only on a small signal. Unmapped topics stay Stone."""
     labels = catalog.get('labels', {}).get('topic', {})
     key = next((t for t in story.get('topics', []) if t in labels), '')
-    signal = _TOPIC_SIGNALS.get(key, 'stone')
+    signal = _TOPIC_SIGNALS.get(key) or _topic_signal_fallback(key or next(iter(story.get('topics', [])), ''))
     text = labels.get(key) or label(catalog, 'beat', story.get('beat'))
     return f'<span class="d-topic"><i class="d-topic-signal d-topic-signal--{signal}" aria-hidden="true"></i>{e(text)}</span>'
 
