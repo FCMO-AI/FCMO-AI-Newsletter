@@ -16945,6 +16945,68 @@
       "title": "Victoria fija expectativas de planificación y recursos para nuevos centros de datos",
       "why_it_matters": "El plan vincula la expansión de centros de datos con el suministro eléctrico, la ampliación de la red y los costos de infraestructura hídrica, lo que da a los desarrolladores condiciones concretas para evaluar proyectos en Victoria. El volumen informado de solicitudes apunta a una posible presión sobre los recursos, pero no demuestra aprobaciones, construcción ni consumo real. Deben distinguirse las medidas propuestas y las reglas de cumplimiento aún incompletas de los requisitos ya promulgados."
     },
+    "FCMO-58E4DB61926C": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron el preprint arXiv 2610.39840v1 el 29 de octubre de 2026 y enlazaron un repositorio de código."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En flujos controlados con Qwen2.5-1.5B, Qwen2.5-3B y Llama-3.2-3B, los autores informan que el aprendizaje basado solo en sorpresa incorporó entre 84–93% de las falsedades del flujo y entre 99–100% de las afirmaciones contrafácticas sobre hechos conocidos. Con presupuestos de entrenamiento comparables, la tasa general de falsedades fue similar a la selección aleatoria, pero la selección por sorpresa incorporó más falsedades sobre hechos conocidos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que un filtro de conflicto con creencias previas redujo la incorporación de falsedades sobre hechos conocidos, pero también retuvo muchas actualizaciones legítimas. El enrutamiento hacia evidencia de fuentes recuperó algunas actualizaciones cuando las fuentes eran confiables y el atacante no podía alterarlas; fuentes coincidentes plantadas por un atacante comprometieron esa ruta."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el entorno evaluado, los autores informan que las pruebas de regresión sobre hechos no relacionados redujeron el ritmo de aprendizaje sin filtrar el envenenamiento factual dirigido."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los experimentos controlados a pequeña escala no establecen la magnitud del riesgo de envenenamiento ni la eficacia de las mitigaciones en modelos mayores, textos largos o de varios pasos, flujos de usuarios en línea, ataques adaptativos contra verificadores o sistemas de aprendizaje continuo desplegados; esta activación no realizó una reproducción independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta revisión no se encontró ni se realizó una reproducción independiente de las tasas de falsedades, las compensaciones entre filtros o el patrón entre modelos.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo prueba un atacante que filtra afirmaciones según las creencias previas y fuentes coincidentes plantadas, pero no establece resistencia frente a ataques adaptativos que apunten a la vez al verificador y a la ruta de fuentes.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Solo se probaron modelos pequeños y afirmaciones factuales atómicas; siguen sin conocerse la transferencia a mayor escala y el rendimiento con textos largos o de varios pasos.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el mecanismo informado se generaliza, admitir datos según la sorpresa puede priorizar afirmaciones falsas que contradicen lo que el modelo sabe, mientras que las pruebas de regresión habituales quizá no detecten el envenenamiento dirigido. El trabajo es notable por su análisis de filtros de actualización, aunque se limita a flujos de afirmaciones atómicas con datos sintéticos/CounterFact y modelos de hasta 3B.",
+      "limitations": [
+        "Todos los resultados numéricos provienen de los autores; el código se inspeccionó, pero no se ejecutó, y en esta activación no se encontró una reproducción independiente.",
+        "Las afirmaciones son hechos atómicos en flujos controlados, no documentos largos, conocimiento de varios pasos, opiniones ni comentarios reales de usuarios.",
+        "Los estudiantes más grandes evaluados tienen 3B parámetros; se desconoce la transferencia a sistemas desplegados.",
+        "Los filtros de conflicto previo detectan contradicciones con creencias existentes, no la verdad, y pueden bloquear actualizaciones legítimas; un atacante con acceso al modelo puede elegir falsedades que superen el filtro.",
+        "La ruta de evidencia supone que los atacantes no pueden plantar ni copiar fuentes coincidentes; el artículo informa que las fuentes plantadas la comprometen.",
+        "Los autores no midieron la carga de revisión humana o por recuperación ni evaluaron un sistema de aprendizaje continuo en producción."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo preprint informa que el aprendizaje continuo basado solo en sorpresa no filtra afirmaciones envenenadas en flujos controlados y puede incorporar la mayoría de las falsedades presentadas, incluidas casi todas las afirmaciones contrafácticas sobre hechos que el modelo ya conoce. El estudio evalúa Qwen2.5-1.5B, Qwen2.5-3B y Llama-3.2-3B con afirmaciones factuales atómicas, entidades inventadas y ejemplos de CounterFact. Los autores informan que un filtro de conflicto con las creencias previas reduce algunas falsedades sobre hechos conocidos, pero también bloquea muchas actualizaciones legítimas; una ruta basada en evidencia de fuentes ayuda solo bajo el supuesto de que el atacante no puede manipular esas fuentes. Estos resultados provienen de los autores, en modelos pequeños y entornos controlados; no constituyen una validación independiente ni a escala de despliegue.",
+      "technical": {
+        "claimed_result": "En experimentos controlados informados por los autores, la admisión basada solo en sorpresa incorporó 84–93% de las falsedades del flujo y 99–100% de las falsedades contrafácticas sobre hechos conocidos. Un control aleatorio con el mismo presupuesto tuvo una tasa general similar, mientras que la selección por sorpresa incorporó más falsedades sobre hechos conocidos. El filtro previo redujo algunas de ellas, pero también retuvo actualizaciones legítimas; la ruta de evidencia dependía de la integridad de las fuentes.",
+        "demonstrated_result": "Se verificaron la publicación del preprint, los métodos descritos y la existencia del código enlazado. En este registro, los resultados numéricos de los experimentos siguen siendo informes de los autores.",
+        "mechanism": "Un modelo base congelado recibe afirmaciones atómicas por bloques y usa señales de sorpresa, verificaciones opcionales, pruebas de regresión, puntuación de conflicto con creencias previas y enrutamiento hacia evidencia de fuentes para decidir qué afirmaciones entrenan un adaptador LoRA.",
+        "regime": "Modelos instructivos Qwen2.5-1.5B, Qwen2.5-3B y Llama-3.2-3B con LoRA; afirmaciones sujeto-relación-objeto atómicas, tasas controladas de envenenamiento y cinco semillas de prueba reservadas en las secciones posteriores.",
+        "strongest_baseline": "Un control con selección aleatoria y el mismo presupuesto de entrenamiento incorporó 254 frente a 257 falsedades por cada 1,000 afirmaciones aprendidas (IC pareado del 95% para la diferencia: −15 a +9); la selección por sorpresa incorporó más falsedades contrafácticas sobre hechos conocidos en esa configuración."
+      },
+      "title": "Un preprint informa la incorporación de afirmaciones falsas en el aprendizaje continuo guiado por sorpresa",
+      "why_it_matters": "A medida que los modelos incorporan mecanismos para aprender de afirmaciones nuevas, una señal de admisión basada en sorpresa puede seleccionar falsedades precisamente porque contradicen lo que el modelo ya cree. El artículo presenta evidencia controlada sobre este fallo y los costos de los filtros evaluados; la transferencia a sistemas desplegados sigue sin establecerse."
+    },
     "FCMO-593FD04C6D6A": {
       "claims": [
         {
@@ -20990,12 +21052,16 @@
         {
           "label": "CLAIMED",
           "text": "Amazon dice que mantiene una previsión de aproximadamente $220 mil millones de dólares en gastos de capital en efectivo para 2026. Esta previsión de toda la empresa no asigna el gasto a AWS, cargas de trabajo de IA ni proyectos específicos, y el plan de gasto no demuestra utilización productiva ni retornos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El Formulario 10-Q de Amazon para el tercer trimestre informa gastos de capital en efectivo de 75.9 en Q3 2026, frente a 34.2 en Q3 2025, y de 172.2 en los primeros nueve meses de 2026, frente a 89.9 un año antes. Amazon señala que estos desembolsos reflejan principalmente infraestructura tecnológica —en su mayoría para respaldar el crecimiento de AWS— además de capacidad para la red de logística; espera que el gasto de capital en efectivo aumente considerablemente en 2027, principalmente por infraestructura tecnológica. Estas cifras no asignan el gasto a servicios de IA ni demuestran utilización o retornos."
         }
       ],
       "contradictory_evidence": [],
       "evidence_gaps": [
         {
-          "description": "El comunicado ofrece múltiplos de crecimiento del gasto y del volumen de tokens de Bedrock sin bases absolutas, cohortes ni un desglose de ingresos y costos de AWS atribuibles a servicios de IA.",
+          "description": "El comunicado ofrece múltiplos de crecimiento del gasto y del volumen de tokens de Bedrock sin bases absolutas, cohortes ni un desglose de ingresos y costos de AWS atribuibles a servicios de IA. El Formulario 10-Q de Q3 agrega datos de gasto de capital y adiciones de activos de AWS, pero no incluye asignación a servicios de IA, cohortes de clientes, utilización ni vínculo entre ingresos y costos.",
           "kind": "other",
           "state": "open"
         },
@@ -21005,7 +21071,7 @@
           "state": "open"
         },
         {
-          "description": "La empresa atribuye a la inversión en IA la mayor parte del aumento interanual en compras netas de propiedades y equipo y espera aproximadamente $220 mil millones de dólares en gastos de capital en efectivo para toda la empresa en 2026, pero no asigna el gasto a AWS, servicios de IA ni capacidad ya utilizada.",
+          "description": "La empresa atribuye a la inversión en IA la mayor parte del aumento interanual en compras netas de propiedades y equipo y espera aproximadamente $220 mil millones de dólares en gastos de capital en efectivo para toda la empresa en 2026, pero no asigna el gasto a AWS, servicios de IA ni capacidad ya utilizada. El informe de Q3 informa 75.9B de gasto de capital en efectivo en Q3 y 172.2B en lo que va del año, además de 57.1B y 147.2B, respectivamente, en adiciones netas de activos del segmento AWS; el uso compartido y las adiciones no monetarias o bajo arrendamiento impiden asignarlos directamente a IA.",
           "kind": "other",
           "state": "open",
           "updated_at": "2026-10-31T01:26:45Z"
@@ -21018,17 +21084,18 @@
         "El comunicado presenta múltiplos de crecimiento de Bedrock sin bases iniciales o finales de gasto ni de volumen de tokens.",
         "En esta activación no se revisaron telemetría independiente, la grabación de la llamada de resultados ni el informe trimestral 10-Q.",
         "La inversión de capital atribuida a IA no demuestra por sí sola una utilización productiva ni retornos positivos.",
-        "La previsión de aproximadamente $220 mil millones de dólares en gastos de capital en efectivo para 2026 abarca toda la empresa; Amazon no la asigna a IA o AWS ni demuestra utilización productiva o retornos."
+        "La previsión de aproximadamente $220 mil millones de dólares en gastos de capital en efectivo para 2026 abarca toda la empresa; Amazon no la asigna a IA o AWS ni demuestra utilización productiva o retornos.",
+        "El Formulario 10-Q de la SEC informa gasto de capital en efectivo de toda la empresa y adiciones de activos del segmento AWS, pero incluyen infraestructura compartida o no relacionada con IA y no miden capital, utilización, ingresos, márgenes ni retornos específicos de IA."
       ],
       "relationships": [],
-      "summary": "En su comunicado del 29 de octubre de 2026 sobre el Q3, Amazon informa ventas netas de AWS por $46.0 mil millones de dólares, un aumento interanual de 39%, e ingreso operativo de AWS de $17.8 mil millones de dólares. La empresa también informa que el gasto de Fortune 500 en Bedrock fue casi 7x mayor y que el volumen de tokens de Bedrock fue casi 17x mayor interanualmente. Además, indica que decenas de miles de clientes usaron AgentCore y desplegaron el doble de agentes en el trimestre que en los tres trimestres anteriores combinados. Amazon dice que su salida de flujo de caja libre de $42.4 mil millones de dólares en los últimos doce meses refleja principalmente un aumento interanual de $94.8 mil millones de dólares en compras netas de propiedades y equipo, que atribuye principalmente a inversión en IA. Son métricas informadas por la empresa. El comunicado no ofrece ingresos, márgenes, utilización, volumen base de tokens ni economía unitaria específica de IA, por lo que no demuestra que la IA impulsara el crecimiento de AWS ni que fuera rentable. Amazon también prevé aproximadamente $220 mil millones de dólares en gastos de capital en efectivo para toda la empresa en 2026, sin asignar esa previsión a IA ni AWS.",
+      "summary": "En su comunicado del 29 de octubre de 2026 sobre el Q3, Amazon informa ventas netas de AWS por $46.0 mil millones de dólares, un aumento interanual de 39%, e ingreso operativo de AWS de $17.8 mil millones de dólares. La empresa también informa que el gasto de Fortune 500 en Bedrock fue casi 7x mayor y que el volumen de tokens de Bedrock fue casi 17x mayor interanualmente. Además, indica que decenas de miles de clientes usaron AgentCore y desplegaron el doble de agentes en el trimestre que en los tres trimestres anteriores combinados. Amazon dice que su salida de flujo de caja libre de $42.4 mil millones de dólares en los últimos doce meses refleja principalmente un aumento interanual de $94.8 mil millones de dólares en compras netas de propiedades y equipo, que atribuye principalmente a inversión en IA. Son métricas informadas por la empresa. El comunicado no ofrece ingresos, márgenes, utilización, volumen base de tokens ni economía unitaria específica de IA, por lo que no demuestra que la IA impulsara el crecimiento de AWS ni que fuera rentable. Amazon también prevé aproximadamente $220 mil millones de dólares en gastos de capital en efectivo para toda la empresa en 2026, sin asignar esa previsión a IA ni AWS. El Formulario 10-Q de Q3 añade que el gasto de capital en efectivo fue de 75.9 en Q3 2026 frente a 34.2 un año antes, y de 172.2 en los primeros nueve meses frente a 89.9; Amazon dice que la mayor parte de la inversión en infraestructura tecnológica respalda el crecimiento de AWS y espera que el gasto aumente en 2027. El documento no asigna esos montos a servicios de IA ni establece utilización o retornos.",
       "technical": {
-        "claimed_result": "El comunicado trimestral de Amazon informa un aumento interanual de 39% en las ventas de AWS, múltiplos de crecimiento en el uso de Bedrock y cifras de adopción de AgentCore. Son afirmaciones de la empresa, no mediciones verificadas de la economía específica de IA. La empresa también espera aproximadamente $220 mil millones de dólares en gastos de capital en efectivo para 2026, sin asignar esta previsión a AWS o IA.",
-        "demonstrated_result": "Se inspeccionó que Amazon IR publicó las cifras y el texto indicados. En esta revisión no se validaron de forma independiente las métricas operativas ni se revisó la grabación de la llamada de resultados.",
-        "mechanism": "El comunicado atribuye el crecimiento agregado de AWS a inversiones en funcionalidad e infraestructura, y por separado informa crecimiento en el uso de Bedrock y AgentCore. No desglosa una relación causal entre esas métricas y las ventas o ganancias del segmento.",
+        "claimed_result": "El comunicado trimestral de Amazon informa un aumento interanual de 39% en las ventas de AWS, múltiplos de crecimiento en el uso de Bedrock y cifras de adopción de AgentCore. Son afirmaciones de la empresa, no mediciones verificadas de la economía específica de IA. La empresa también espera aproximadamente $220 mil millones de dólares en gastos de capital en efectivo para 2026, sin asignar esta previsión a AWS o IA. El Formulario 10-Q de Q3 presentado ante la SEC informa por separado 75.9B de gasto de capital en efectivo en Q3 2026 (34.2B un año antes) y 172.2B en nueve meses (89.9B un año antes); Amazon dice que reflejan principalmente infraestructura tecnológica, en su mayoría para respaldar AWS, y capacidad de logística.",
+        "demonstrated_result": "Se inspeccionó que Amazon IR publicó las cifras y el texto indicados. En esta revisión no se validaron de forma independiente las métricas operativas ni se revisó la grabación de la llamada de resultados. El documento de la SEC también confirma la publicación de las tablas informadas de gasto de capital agregado y adiciones de activos del segmento AWS; en las secciones revisadas no se encontró una asignación específica a IA ni una medida de utilización.",
+        "mechanism": "El comunicado atribuye el crecimiento agregado de AWS a inversiones en funcionalidad e infraestructura, y por separado informa crecimiento en el uso de Bedrock y AgentCore. No desglosa una relación causal entre esas métricas y las ventas o ganancias del segmento. El documento describe infraestructura tecnológica compartida que respalda tanto AWS como las operaciones internas de Amazon, con costos asignados entre segmentos según su uso; aun así, no separa los servicios de IA.",
         "regime": "Tercer trimestre fiscal de Amazon de 2026, finalizado el 2026-09-30; la comparación es interanual. Las cifras de uso de Bedrock y AgentCore las define la empresa y el comunicado no da sus denominadores.",
         "reproducibility": "Se inspeccionaron el comunicado de resultados y las métricas informadas. En esta revisión no se reprodujeron de forma independiente la contabilidad de la empresa, los conteos de clientes, la telemetría de productos ni la atribución de inversión a IA.",
-        "strongest_baseline": "Amazon informa que las ventas netas de AWS aumentaron 39% interanual, hasta $46.0B, y que su ingreso operativo fue de $17.8B, frente a $11.4B un año antes. No se informa una base comparable de ingresos o costos exclusivamente de IA."
+        "strongest_baseline": "Amazon informa que las ventas netas de AWS aumentaron 39% interanual, hasta $46.0B, y que su ingreso operativo fue de $17.8B, frente a $11.4B un año antes. No se informa una base comparable de ingresos o costos exclusivamente de IA. El Formulario 10-Q de Q3 compara el gasto de capital en efectivo con Q3 y los primeros nueve meses de 2025, pero son cifras de toda la empresa y no ofrecen una base exclusiva de IA."
       },
       "title": "Amazon informa un crecimiento de AWS de 39% y un fuerte aumento del uso de Bedrock en el Q3",
       "why_it_matters": "Si se mantiene, el comunicado apunta al rápido crecimiento del negocio de infraestructura de un importante proveedor de nube y al uso de sus servicios administrados de modelos y agentes. Las cifras pueden orientar la investigación sobre demanda de cómputo, pero las ventas agregadas de AWS y los múltiplos de uso definidos por la empresa no cuantifican ingresos, costos ni retornos de IA."
@@ -25760,6 +25827,67 @@
       },
       "title": "ClinGeX reporta mayor concordancia en genómica clínica con habilidades ejecutables y colaboración con profesionales",
       "why_it_matters": "El estudio prueba un agente con conocimiento especializado en pruebas comparativas, colaboración entre profesionales y una evaluación acotada de trabajo cotidiano, por lo que aporta evidencia más pertinente para decidir que una sola tarea sintética. Si se reproduce de forma independiente, una biblioteca de habilidades que incorpore guías, fuentes de evidencia y procedimientos analíticos podría mejorar cómo los agentes clínicos ensamblan flujos de trabajo auditables. Los resultados no demuestran beneficios para pacientes ni desempeño general fuera de las situaciones evaluadas."
+    },
+    "FCMO-8825A4D7BC22": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "arXiv identifica FARMS como un artículo v1 enviado por Di Wu, Ling Liang y Haizhao Yang el 2026-10-29."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 171 objetivos seleccionados de cuatro fuentes sobre álgebra lineal numérica aleatoria y ecuaciones diferenciales parciales numéricas, los autores informan 157 resultados aceptados por el proceso: 154 sin advertencias sobre las fuentes y tres con advertencias explícitas. La aceptación se define como VERIFIED_PASS o COMPILED_WITH_SOURCE_WARNING; no es una evaluación independiente de la corrección de cada teorema fuente o traducción."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En seis objetivos elegidos al azar, la adaptación de AutoformBot para formalizar enunciados reporta un costo de 2.84 dólares por objetivo para FARMS frente a 58.02 dólares para AutoformBot. La comparación restringió ambos sistemas a los enunciados seleccionados, permitió sorry en las demostraciones objetivo y auxiliares de AutoformBot y requirió cambios de ejecución e interfaz; no es una comparación general de costos con demostraciones completas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores muestran dos aplicaciones acotadas con enunciados Lean vinculados a sus fuentes y demostraciones de conexión: seis ejecuciones prescritas de flujo de calor alcanzaron un error energético discreto de 10^-6, mientras que tres semillas prescritas para respuestas de ondas redujeron de 24 a 8.375 MiB una biblioteca de respuestas de 32 tiempos, bajo un límite de error energético de 0.01 para una familia fija de excitaciones."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo describe revisiones separadas del contexto fuente, compilación Lean, revisión semántica, reparación acotada y abstención. En los ejemplos, los autores informan que recuperaron condiciones matemáticas omitidas y detectaron que a una afirmación de optimalidad de la fuente le faltaba un supuesto de probabilidad de muestreo positiva."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece reproducibilidad independiente, transferencia amplia entre disciplinas matemáticas o hacia literatura de investigación reciente, cobertura del corpus con demostraciones completas al ritmo de aceptación informado ni descubrimiento autónomo de nuevos métodos numéricos. Los autores señalan como trabajo abierto ampliar las fuentes, integrar libros de texto y descubrir métodos nuevos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación no se inspeccionó el repositorio vinculado al artículo, no se fijó un entorno de compilación ni se compilaron de forma independiente enunciados seleccionados y sus demostraciones de aplicación.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La transferencia más allá de cuatro fuentes y dos áreas matemáticas, así como la comparación de costos de seis objetivos con la adaptación de AutoformBot, no se han establecido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se amplían y verifican de forma independiente, las representaciones formales basadas en fuentes que conservan algoritmos y condiciones cuantitativas podrían facilitar la reutilización segura de métodos matemáticos en ciencia computacional. El alcance actual se limita a cuatro fuentes en dos áreas y dos aplicaciones numéricas acotadas.",
+      "limitations": [
+        "Todos los resultados cuantitativos provienen del artículo; no se realizó una reproducción independiente ni una compilación Lean.",
+        "El corpus cubre 171 enunciados seleccionados de cuatro fuentes de álgebra lineal numérica aleatoria y ecuaciones diferenciales parciales numéricas; no abarca diversas disciplinas científicas ni literatura de investigación contemporánea.",
+        "Los 157 resultados aceptados incluyen tres casos con advertencias sobre las fuentes. La aceptación puede ser VERIFIED_PASS o COMPILED_WITH_SOURCE_WARNING y no equivale a una validación independiente del teorema fuente.",
+        "La comparación de seis objetivos con AutoformBot es una adaptación restringida para formalizar enunciados que permite sorry en las demostraciones objetivo y auxiliares; no es una comparación general de costos ni de formalización con demostraciones completas.",
+        "Las aplicaciones de flujo de calor y respuesta de ondas son ejemplos acotados, ejecutados por los autores, sobre problemas numéricos y conjuntos de semillas prescritos; no establecen utilidad general para agentes científicos ni descubrimiento de métodos nuevos."
+      ],
+      "relationships": [],
+      "summary": "FARMS es un proceso descrito por sus autores que vincula el contexto y el significado computacional de fuentes matemáticas con enunciados Lean, y luego aplica revisión semántica, reparación acotada y abstención junto con la compilación. En 171 enunciados seleccionados de álgebra lineal numérica aleatoria y ecuaciones diferenciales parciales numéricas, los autores informan 157 resultados aceptados, incluidos tres con advertencias sobre las fuentes. Dos pequeñas aplicaciones numéricas usan enunciados seleccionados para resolver flujo de calor y comprimir respuestas de ondas. Una comparación de seis objetivos informa costos menores por objetivo que la adaptación de AutoformBot para enunciados de los autores, pero esa adaptación permitió sorry en demostraciones objetivo y auxiliares y se limita a esta configuración. El artículo no establece una reproducción independiente, transferencia amplia entre áreas, cobertura del corpus con demostraciones completas ni descubrimiento automatizado de métodos nuevos.",
+      "technical": {
+        "claimed_result": "Los autores informan 157 resultados aceptados de 171 enunciados seleccionados; costos estimados de 0.85 a 2.29 dólares por objetivo planificado en cuatro colecciones de fuentes; y 2.84 frente a 58.02 dólares por objetivo en seis objetivos elegidos al azar, comparados con una adaptación restringida de AutoformBot para enunciados.",
+        "demonstrated_result": "El artículo inspeccionado describe recuperación y auditoría de fuentes, construcción de enunciados Lean, compilación, revisión semántica, reparación y abstención. En dos aplicaciones acotadas ejecutadas por los autores, algunos enunciados formales respaldan decisiones numéricas de parámetros o precisión. En esta activación no se realizó una compilación ni un experimento independiente.",
+        "mechanism": "Los paquetes de fuentes conservan definiciones, supuestos, descripciones de algoritmos y pasajes de respaldo. Los formalizadores crean enunciados Lean; un árbitro semántico revisa objetos, supuestos, cuantificadores, construcciones algorítmicas y garantías más allá de la compilación. Los hallazgos pasan a reparación acotada o abstención. Después, proposiciones seleccionadas de las fuentes se conectan mediante implicaciones comprobadas en Lean con procedimientos numéricos.",
+        "regime": "171 enunciados seleccionados de cuatro fuentes de álgebra lineal numérica aleatoria y ecuaciones diferenciales parciales numéricas; dos aplicaciones numéricas acotadas; una comparación de costos sobre seis enunciados. Los autores usan Claude Code con claude-opus-5-5 para las principales funciones de revisión y formalización.",
+        "reproducibility": "El texto completo de arXiv v1 está disponible. En esta activación no se inspeccionó el repositorio ni los artefactos de formalización vinculados, tampoco se ejecutó código o una compilación Lean ni se reprodujeron experimentos. Los resultados siguen siendo informes de los autores.",
+        "strongest_baseline": "La comparación de costos en seis objetivos usa una adaptación de AutoformBot para formalizar enunciados con los mismos documentos fuente, pero permite sorry en las demostraciones objetivo y auxiliares e incluye cambios de ejecución e interfaz. No demuestra una comparación amplia y equivalente frente a formalización con demostraciones completas."
+      },
+      "title": "FARMS vincula enunciados Lean con contexto fuente y habilidades numéricas acotadas",
+      "why_it_matters": "Si se amplían y verifican de forma independiente, las representaciones formales con contexto fuente que conservan condiciones de aplicabilidad y garantías cuantitativas podrían ayudar a que los agentes numéricos reutilicen métodos matemáticos con mayor seguridad. La evidencia actual proviene de un solo artículo que cubre cuatro fuentes en dos áreas, con dos aplicaciones acotadas y costos informados por los autores."
     },
     "FCMO-882F5295EDE7": {
       "claims": [
