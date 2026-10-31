@@ -304,16 +304,13 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
         from ..community import _LETTERS_EMPTY
         from .essay import COPY as _EC
         l = _LETTERS_EMPTY[ctx.code]
-        head, none, email_title = l[0], l[8], l[7]
-        inactive = _cm_copy(ctx.code).get("inactive_title", "")
+        head, none = l[0], l[8]
         letters = (f'<section class="frame d-front-letters d-front-letters--empty"><div class="d-letters-head"><h2>{_e(head)}</h2>'
-                   f'<a href="{_e(home)}letters/">{_e(_EC[ctx.code]["back"])} →</a></div><div class="d-letters-cards">'
+                   f'<a href="{_e(home)}letters/">{_e(_EC[ctx.code]["back"])} →</a></div><div class="d-letters-cards d-letters-cards--one">'
                    f'<a class="d-letters-card" href="{_e(home)}letters/"><span class="d-letters-card-art d-letters-card-art--a" aria-hidden="true"></span>'
                    f'<span class="d-letters-card-body"><span class="d-letters-card-kicker">FCMO AI · {_e(head)}</span>'
                    f'<strong data-letters-empty>{_e(none)}</strong></span></a>'
-                   f'<a class="d-letters-card" href="{_e(home)}letters/"><span class="d-letters-card-art d-letters-card-art--b" aria-hidden="true"></span>'
-                   f'<span class="d-letters-card-body"><span class="d-letters-card-kicker">{_e(email_title)}</span>'
-                   f'<strong>{_e(inactive)}</strong></span></a></div></section>')
+                   f'</div></section>')
     return '<div class="landing d-front">' + "".join([
         d_front.cover(feature, slots["cover"], ctx),
         d_front.rank(([slots["cover"]] if slots["cover"] else []) + slots["board"], ctx),

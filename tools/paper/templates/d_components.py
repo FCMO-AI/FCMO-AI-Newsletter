@@ -105,7 +105,9 @@ def legend(catalog, *, stories=None, method_href=''):
     title = gap.join(p[k] for k in ('band_shown', 'band_claimed', 'band_not_established'))
     if stories is not None:
         counts = class_counts(stories)
-        cells = ''.join(f'<div><b>{e(p[k])} · {e(plural(catalog,"story",counts[k]))}</b>'
+        # «Not established» shows no number when no headline claim falls in it: the count is by headline claim, while every
+        # story still carries its own open gaps, so a printed 0 would read as false beside them.
+        cells = ''.join(f'<div><b>{e(p[k])}{(" · " + e(plural(catalog,"story",counts[k]))) if (counts[k] or k != "not_established") else ""}</b>'
                         f'{sample(k.replace("_","-"))}<p>{e(p[k+"_desc"])}</p></div>'
                         for k in ('shown','claimed','not_established'))
         # R4: legend only (the trio). No counts row, ordering link or extra note; the counting rule rides as the trio's tooltip.
@@ -284,6 +286,18 @@ def _lines(text, width, font, factor=.56):
     return n
 
 
+def gap_label(gap):
+    """Short whole label for an open-gap box: the record's own ``short`` when it has one, else the first complete
+    clause (up to a comma, semicolon or colon) when that is a readable 24-90 columns, else the whole first sentence."""
+    if isinstance(gap, dict) and str(gap.get('short') or '').strip():
+        return ' '.join(str(gap['short']).split())
+    text = _first_sentence(gap.get('description', '') if isinstance(gap, dict) else gap)
+    for i, ch in enumerate(text):
+        if ch in ',;:，；：' and 24 <= visual_width(text[:i]) <= 90 and text[i + 1:].strip():
+            return text[:i]
+    return text.rstrip('.。')
+
+
 def _first_sentence(text):
     return next(iter(_SENTENCE.split(' '.join(str(text or '').split()), maxsplit=1)), '')
 
@@ -300,8 +314,9 @@ def evidence_glance(story, catalog, *, evidence, title, max_sources=2, max_gaps=
     sources = rows(story.get('sources'))
     primaries = [s for s in sources if s.get('primary')] or sources
     shown_sources = primaries[:max_sources]
-    gaps = [g.get('description', '') if isinstance(g, dict) else str(g) for g in (evidence.get('gaps') or [])]
-    shown_gaps = [_first_sentence(g) for g in gaps[:max_gaps]]
+    raw_gaps = list(evidence.get('gaps') or [])
+    gaps = [g.get('description', '') if isinstance(g, dict) else str(g) for g in raw_gaps]
+    shown_gaps = [gap_label(g) for g in raw_gaps[:max_gaps]]
     W, G = 600, 20
     out, desc, y = [], [], 4
     letter = story.get('evidence_class')
@@ -343,7 +358,7 @@ def evidence_glance(story, catalog, *, evidence, title, max_sources=2, max_gaps=
         gxs = []
         gextra = len(gaps) - len(shown_gaps)
         gfoot = lambda i: catalog['strings']['proof']['not_established'] + (f' · + {gextra}' if (gextra > 0 and i == len(shown_gaps) - 1) else '')
-        gh = 24 + 24 + max(_lines(t, gw - 32, 22, .5) * 28 for t in shown_gaps) + 6 + 24 + 4
+        gh = 24 + 24 + max(_lines(t, gw - 32, 26, .56) * 32 for t in shown_gaps) + 8 + 24 + 4
         for i, text in enumerate(shown_gaps):
             x = (W - gw) // 2 if len(shown_gaps) == 1 else i * (gw + G)
             out.append(box('gap', x, gy, gw, gh, plural(catalog, 'open_gap_noun', 1), text, foot=gfoot(i)))

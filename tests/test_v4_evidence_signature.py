@@ -196,7 +196,8 @@ class EvidenceSignatureTests(unittest.TestCase):
                 trio = BAND_TRIO.search(band).group(1)
                 cells = re.findall(r"<div><b>(.*?)</b>", trio, re.S)
                 self.assertEqual([text(cell) for cell in cells],
-                                 [f"{proof[key]} · {plural(catalog, 'story', counts[key])}" for key in CLASSES])
+                                 [f"{proof[key]} · {plural(catalog, 'story', counts[key])}" if (counts[key] or key != "not_established") else proof[key]
+                                  for key in CLASSES])  # r6: no «Not established · 0 stories» beside pages full of open gaps
                 self.assertEqual(sum(counts.values()), len(self.live))
                 # R4: the band is the legend only; the counts row and the ordering link are retired. The corpus
                 # is still stated by the trio, whose class counts add up to every live story (asserted above).
