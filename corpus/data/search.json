@@ -1,6 +1,194 @@
 [
   {
     "confidence": "confirmed",
+    "demonstrated_result": "Released BF16/FP8 model artifacts and configuration expose a 770B backbone with 49B active parameters per token, 1M context, 256 routed experts, top-8 routing, Gated DSA, four residual streams and native MTP. Apache-2.0 licensing is present in the released artifact.",
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "open_ecosystem"
+    ],
+    "development_type": "model_or_system_release",
+    "event_at": "2026-08-28T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-1E28FC528202",
+    "importance_effective_score": 8,
+    "importance_tier": "Field-shifting",
+    "last_verified_at": "2026-10-31T05:25:22Z",
+    "mechanism": "A 78-layer MoE backbone: one dense FFN layer followed by 77 MoE layers with 256 routed experts plus one shared expert; top-8 routed experts are active per token. Attention uses Gated DeepSeek Sparse Attention with IndexCache to reuse sparse indices across layers. The residual path uses four-stream identity Hyper-Connections. A separate native MTP layer adds 10B total/0.7B active parameters for speculative decoding.",
+    "organizations": [
+      "Tencent"
+    ],
+    "primary_desk": "architectures_scaling",
+    "regions": [
+      "CN"
+    ],
+    "status": "active",
+    "strongest_baseline": "Tencent's internal blind comparison against GLM-5.3 and Kimi K3; no matched-compute architectural ablation is supplied in the release card.",
+    "summary": "Tencent released Hy4 preview under Apache-2.0 with a 770B-parameter MoE backbone, 49B active parameters per token, 1M context, Gated DeepSeek Sparse Attention, cross-layer IndexCache reuse, four-stream identity Hyper-Connections, and a native MTP layer intended for speculative decoding. Tencent lists API prices of CNY 6 per million input tokens, CNY 18 per million output tokens and cache-hit prices from CNY 0.3; its separate 31.8% throughput gain is a vendor claim without enough matched measurement detail for independent comparison.",
+    "title": "Tencent Hy4 preview combines 770B MoE capacity with sparse attention, IndexCache and native MTP",
+    "topics": [
+      "mixture-of-experts",
+      "sparse-attention",
+      "long-context",
+      "indexcache",
+      "hyper-connections",
+      "multi-token-prediction",
+      "speculative-decoding",
+      "open-weights"
+    ],
+    "why_it_matters": "Hy4 is a third major open-weight frontier release in the same week emphasizing sparse long-context retrieval and richer residual routing, while also shipping native multi-token prediction. It strengthens the architectural-convergence signal but does not by itself establish that these mechanisms outperform matched dense or hybrid alternatives. The official Chinese release also supplies concrete API prices and a vendor-reported 31.8% throughput gain, while leaving total cost, matched serving conditions and independent confirmation open."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The public sources document OpenAI’s stated current architecture and incident timings, plus METR and Redwood’s account of a high-access assessment of the historical monitor. OpenAI’s API docs further define request-level scope: eligible Responses requests with persisted reasoning, WebSockets or compaction can be stopped; other Responses requests can be monitored with webhook alerts only; Chat Completions is excluded. The assessors did not evaluate the expanded system or claimed fixes, so current system effectiveness is not independently established.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science",
+      "policy_geopolitics"
+    ],
+    "development_type": "technical_report",
+    "event_at": "2026-10-29T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-87CD00EDD30A",
+    "importance_effective_score": 7,
+    "importance_tier": "Very major",
+    "last_verified_at": "2026-10-31T05:23:12Z",
+    "mechanism": "OpenAI describes a low-cost activation-probe layer routing cases to model-based review, then investigative agents and, for sensitive workloads, checks against network logs and other telemetry. Its API guide says external monitoring is asynchronous and can trigger a safety.alert.created event; automatic stopping requires supported conversation continuity via persisted reasoning, WebSockets or compaction. Without those mechanisms the request can continue despite an alert, and Chat Completions is outside this monitor. METR and Redwood report historical bypass paths in the earlier internal system; OpenAI says the newer system has expanded, but assessors did not evaluate it.",
+    "organizations": [
+      "OpenAI",
+      "METR",
+      "Redwood Research"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "METR and Redwood report historical eligibility estimates of 75–94% for certain internal Responses API traffic and 99.2% for the Codex subset, while identifying uncovered traffic and monitor-bypass paths. These are uncertain eligibility estimates, not end-to-end effectiveness measures; the assessment predates the expanded system and supplies no current matched baseline. Current API docs specify a stop-eligible subset and excluded Chat Completions requests but provide no independent measured detection or response rates.",
+    "summary": "OpenAI’s Oct 29 disclosure describes a layered system for monitoring frontier-model training, evaluations, internal agent use and selected external tool use. The company says a replay of the Hugging Face incident would have generated an alert before the later breach, and reports a separate September training-run alert followed by a pause in reinforcement learning. A separate METR and Redwood Research assessment, based on high access to the historical internal system, estimated 75–94% eligibility for monitoring across certain internal Responses API traffic and 99.2% for the internal Codex subset, while identifying historical monitor gaps and bypass paths. Those uncertain estimates concern the system before July 21, not current expanded coverage; the public assessment is high-level, redaction-limited, and did not evaluate claimed fixes. OpenAI’s API documentation says automatic stopping depends on persisted reasoning, WebSockets or compaction; other Responses API requests can receive webhook alerts without stopping, Chat Completions is not covered, and asynchronous detection may occur after actions already completed.",
+    "title": "OpenAI describes expanded frontier-model misalignment monitoring and a live training alert",
+    "topics": [
+      "agent safety",
+      "misalignment monitoring",
+      "frontier model evaluation",
+      "incident response",
+      "monitoring coverage"
+    ],
+    "why_it_matters": "Monitoring is presented as a detection and response layer alongside alignment training and access controls. METR and Redwood’s high-access assessment found historical gaps and bypass paths, while OpenAI reports subsequent expansion and alerts. OpenAI’s API documentation makes the operational boundary concrete: automatic stopping requires supported conversation continuity, detection is asynchronous, and some API paths are alert-only or excluded. The independent assessment does not measure the current system; current effectiveness remains unresolved."
+  },
+  {
+    "confidence": "strongly_supported",
+    "demonstrated_result": "Within Anthropic's internal measurement system, August 2026 ratings put 26% of weighted AI R&D at AL4, over 90% at AL3+, and 0% at AL5. Model-vs-human exact automation-rating agreement is reported as 59%, human-vs-human as 35%, with model and human within one level 97% of the time. On the measured agent platform, online monitor coverage is reported at 100%, with 0.002% of over one billion August decisions blocked.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science",
+      "training_data",
+      "labs_industry",
+      "policy_geopolitics"
+    ],
+    "development_type": "technical_report",
+    "event_at": "2026-09-18T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-FDBE3D996243",
+    "importance_effective_score": 8,
+    "importance_tier": "Field-shifting",
+    "last_verified_at": "2026-10-31T05:18:49Z",
+    "mechanism": "A frozen taxonomy of 378 leaf R&D task categories is built from sampled internal work records. Claude research agents gather evidence on how each category is performed, an independent Claude judge assigns Epoch AI AL0-AL5 automation levels, and categories are weighted by sampled person-time. Separate platform telemetry measures agent-monitor coverage, review latency and block/escalation rates; compute accounting classifies R&D workloads by purpose.",
+    "organizations": [
+      "Anthropic",
+      "Epoch AI"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "United States"
+    ],
+    "status": "active",
+    "strongest_baseline": "The most relevant baseline is Anthropic's own February 2026 AL4 share, reported as under 1%; cross-lab comparison is not yet valid because methodology is not standardized.",
+    "summary": "Anthropic published a prototype R&D Automation Index based on roughly 15,000 sampled granular R&D tasks organized into 378 leaf categories and rated on Epoch AI's AL0-AL5 automation scale. For August 2026, Anthropic reports Claude at AL4 ('leads') for 26% of weighted AI R&D work, at AL3 or above ('collaborates') for more than 90%, and at AL5 ('autonomous') for none of the measured work. The same report says approximately 30,000 agents were active at any one time on its most-used internal research/engineering platform; 100% of actions on that platform passed online monitoring, 0.002% of more than one billion August decisions were blocked, and about 50 high-priority offline flags per week reached human review. A one-week compute snapshot reports about 6% of AI-R&D compute and 12% of AI-driven AI-R&D compute allocated to safety under Anthropic's conservative classification.",
+    "title": "Anthropic reports Claude leads 26% of measured AI R&D while none is fully autonomous",
+    "topics": [
+      "AI R&D automation",
+      "research agents",
+      "recursive self-improvement",
+      "agent oversight",
+      "AI safety",
+      "compute allocation"
+    ],
+    "why_it_matters": "This is unusually concrete first-party evidence about the production process of frontier-model R&D rather than a benchmark proxy. If the methodology survives independent audit and becomes comparable across labs, it gives the field a measurable way to track AI-driven acceleration, oversight load and safety-compute allocation before fully autonomous recursive self-improvement. The reported 26% AL4 share is material, but the explicit zero-AL5 result is equally important: it argues for rapid partial automation, not autonomous self-improvement today."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "MathVet's independently published challenge-status table reports that the PiExponent family-017 Comparator challenge builds, its transitive statement closure matches with one constant and no shadowing/problems, its axioms are the three standard Lean axioms, and Comparator accepted it on a reviewer laptop and an isolated Linux VM using real landrun. The status table's machine check is pinned to OpenAI commit adc7f124; MathVet reports the challenge was byte-identical at later commit fd4aeeb2. the research desk did not rerun these checks. This demonstrates an externally reported machine-checked formal theorem under the encoded statement; it does not validate the mathematical manuscript or prove semantic correspondence.",
+    "desks": [
+      "evaluation_science",
+      "labs_industry"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-09-24T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-2FD75289C054",
+    "importance_effective_score": 8,
+    "importance_tier": "Field-shifting",
+    "last_verified_at": "2026-10-31T05:18:24Z",
+    "mechanism": "The manuscript presents an interpolation/determinant argument to derive an eventual lower bound |π−p/q|≥q^-ν for each fixed ν>2. Its formalization note identifies a selected Lean theorem for the irrationality-exponent statement.",
+    "organizations": [
+      "OpenAI"
+    ],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "global"
+    ],
+    "status": "developing",
+    "strongest_baseline": "The paper cites prior upper bounds 7.103205334137… (Zeilberger–Zudilin, 2020) and <7.101862832357 (Bai, 2026). The new claim, if valid, is a large improvement; these baselines are themselves published mathematical results and are not independently audited here.",
+    "summary": "OpenAI’s 23-page manuscript claims that for every ν>2 there is a threshold Q(ν) such that |π−p/q|≥q^-ν for all integers p and q≥Q(ν), and concludes that π has irrationality exponent 2. If correct, this would sharply improve the prior upper bounds discussed in the paper. The threshold is ineffective; the manuscript does not prove a uniform c/q² lower bound or bounded continued-fraction partial quotients. OpenAI’s public family-017 note describes a Lean statement covering the exponent claim, but no independent build, semantic audit or number-theory review was performed here. Treat the theorem as claimed, not established.",
+    "title": "OpenAI manuscript claims the irrationality exponent of π is exactly 2",
+    "topics": [
+      "number theory",
+      "irrationality exponent",
+      "π",
+      "Lean formalization",
+      "AI-generated mathematics"
+    ],
+    "why_it_matters": "An independently verified exponent of 2 for π would settle a long-standing Diophantine-approximation question and affect related number-theory results. The implication is unusually large, while the current evidence remains an unreviewed first-party paper and formalization claim."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The inspected system card directly states GPT-Rosalind-6 shares GPT-6 Astra weights, received no additional training/post-training, and is offered through trusted access. Evaluation scores and safeguard effectiveness remain first-party claims; no independent reproduction was performed.",
+    "desks": [
+      "labs_industry",
+      "evaluation_science",
+      "policy_geopolitics"
+    ],
+    "development_type": "model_or_system_release",
+    "event_at": "2026-10-30T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-430A20BC3FD2",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-10-31T05:11:24Z",
+    "mechanism": "The model retains GPT-6 Astra weights; the release differentiates use through a life-sciences deployment with trusted-access screening and additional controls rather than new training.",
+    "organizations": [
+      "OpenAI"
+    ],
+    "primary_desk": "labs_industry",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "OpenAI compares both models on the same benchmark versions and problem sets for three beneficial evaluations. Comparisons are first-party and at the highest tested reasoning budget; GeneBench used a benchmark-specific configuration unlike production, and LifeSciBench excluded six potentially problematic tasks.",
+    "summary": "OpenAI’s Oct 30 system-card addendum says GPT-Rosalind-6 uses GPT-6 Astra’s weights without additional training or post-training. OpenAI’s release and setup notes say GPT-6 Rosalind Research is rolling out to limited approved Research organizations in Work and Codex, and through separately approved API access; it is not available in Chat. Enterprise workspaces begin with a two-week Admin Preview with access off by default. At the highest reasoning budget tested, OpenAI reports higher GPT-Rosalind-6 scores than GPT-Rosalind-5.5 on three shared benchmark sets: MedChemBench v7 (49.6% vs 28.9%, 99 problems), GeneBench Pro v13 single-attempt success (37.7% vs 16.7%, 129 problems), and LifeSciBench Gold (61.3% vs 44.0%, 94 of 100 problems after excluding six flagged tasks). OpenAI classifies biological capability as High but below Critical on its selected Preparedness evaluations. These are first-party results; GeneBench used a configuration unlike production, the Critical thresholds are preliminary, and no independent reproduction or real-world productivity/safety outcome is established.",
+    "title": "OpenAI offers GPT-6 Astra’s weights as GPT-Rosalind-6 for screened life-sciences research",
+    "topics": [
+      "biology",
+      "life sciences",
+      "biosecurity",
+      "trusted access",
+      "model evaluations"
+    ],
+    "why_it_matters": "The card describes a screened deployment of a general frontier model for more dual-use life-sciences research and supplies matched, author-reported comparisons against GPT-Rosalind-5.5. The reported score differences are consequential for choosing research systems, but they come from selected benchmarks at the highest tested reasoning budget, not independent or prospective lab outcomes. The same-weight disclosure also means this release is a deployment and evaluation change, not a new training run."
+  },
+  {
+    "confidence": "confirmed",
     "demonstrated_result": "The official OpenAI, Google Search Central, and Microsoft Bing posts demonstrate that all three announced support or plans for the shared training preference. The IETF Datatracker establishes the current document’s individual-draft status and the draft describes the token semantics.",
     "desks": [
       "policy_geopolitics",
@@ -36,42 +224,6 @@
       "web standards"
     ],
     "why_it_matters": "If implemented as announced, a shared preference could reduce the need for website operators to maintain separate training-use rules for each participating provider. Microsoft says training and grounding choices are separate; it warns that restricting grounding reduces visibility in AI-generated experiences, while neither choice guarantees inclusion, traffic, or payment. This exposes a potential discoverability trade-off for publishers, but no measured traffic or revenue effect is available. Microsoft has stated a 1 February 2027 start as pages are crawled, while OpenAI and Google give broader future timelines. These are provider commitments, not evidence of present compliance, legal enforceability, or changed data practices."
-  },
-  {
-    "confidence": "credible_unconfirmed",
-    "demonstrated_result": "The inspected system card directly states GPT-Rosalind-6 shares GPT-6 Astra weights, received no additional training/post-training, and is offered through trusted access. Evaluation scores and safeguard effectiveness remain first-party claims; no independent reproduction was performed.",
-    "desks": [
-      "labs_industry",
-      "evaluation_science",
-      "policy_geopolitics"
-    ],
-    "development_type": "model_or_system_release",
-    "event_at": "2026-10-30T00:00:00Z",
-    "evidence_class": "A",
-    "id": "FCMO-430A20BC3FD2",
-    "importance_effective_score": 5,
-    "importance_tier": "Notable",
-    "last_verified_at": "2026-10-31T03:20:05Z",
-    "mechanism": "The model retains GPT-6 Astra weights; the release differentiates use through a life-sciences deployment with trusted-access screening and additional controls rather than new training.",
-    "organizations": [
-      "OpenAI"
-    ],
-    "primary_desk": "labs_industry",
-    "regions": [
-      "global"
-    ],
-    "status": "active",
-    "strongest_baseline": "OpenAI compares both models on the same benchmark versions and problem sets for three beneficial evaluations. Comparisons are first-party and at the highest tested reasoning budget; GeneBench used a benchmark-specific configuration unlike production, and LifeSciBench excluded six potentially problematic tasks.",
-    "summary": "OpenAI’s Oct 30 system-card addendum says GPT-Rosalind-6 uses GPT-6 Astra’s weights without additional training or post-training. OpenAI’s release and setup notes say GPT-6 Rosalind Research is rolling out to limited approved Research organizations in Work and Codex, and through separately approved API access; it is not available in Chat. Enterprise workspaces begin with a two-week Admin Preview with access off by default. At the highest reasoning budget tested, OpenAI reports higher GPT-Rosalind-6 scores than GPT-Rosalind-5.5 on three shared benchmark sets: MedChemBench v7 (49.6% vs 28.9%, 99 problems), GeneBench Pro v13 single-attempt success (37.7% vs 16.7%, 129 problems), and LifeSciBench Gold (61.3% vs 44.0%, 94 of 100 problems after excluding six flagged tasks). OpenAI classifies biological capability as High but below Critical on its selected Preparedness evaluations. These are first-party results; GeneBench used a configuration unlike production, the Critical thresholds are preliminary, and no independent reproduction or real-world productivity/safety outcome is established.",
-    "title": "OpenAI offers GPT-6 Astra’s weights as GPT-Rosalind-6 for screened life-sciences research",
-    "topics": [
-      "biology",
-      "life sciences",
-      "biosecurity",
-      "trusted access",
-      "model evaluations"
-    ],
-    "why_it_matters": "The card describes a screened deployment of a general frontier model for more dual-use life-sciences research and supplies matched, author-reported comparisons against GPT-Rosalind-5.5. The reported score differences are consequential for choosing research systems, but they come from selected benchmarks at the highest tested reasoning budget, not independent or prospective lab outcomes. The same-weight disclosure also means this release is a deployment and evaluation change, not a new training run."
   },
   {
     "confidence": "credible_unconfirmed",
@@ -893,44 +1045,6 @@
       "model merging"
     ],
     "why_it_matters": "If reproduced and linked to task-level outcomes, a matched-random Fisher measure could help compare how training stages alter model outputs and estimate when weight-delta sparsification will cause damage. The paper does not establish that higher leverage means better capability or that its conclusions generalize to other models, tasks or training pipelines."
-  },
-  {
-    "confidence": "credible_unconfirmed",
-    "demonstrated_result": "The public sources document OpenAI’s stated current architecture and incident timings, plus METR and Redwood’s account of a high-access assessment of the historical monitor. OpenAI’s API docs further define request-level scope: eligible Responses requests with persisted reasoning, WebSockets or compaction can be stopped; other Responses requests can be monitored with webhook alerts only; Chat Completions is excluded. The assessors did not evaluate the expanded system or claimed fixes, so current system effectiveness is not independently established.",
-    "desks": [
-      "agents_memory",
-      "evaluation_science",
-      "policy_geopolitics"
-    ],
-    "development_type": "technical_report",
-    "event_at": "2026-10-29T00:00:00Z",
-    "evidence_class": "A",
-    "id": "FCMO-87CD00EDD30A",
-    "importance_effective_score": 7,
-    "importance_tier": "Very major",
-    "last_verified_at": "2026-10-30T06:11:55Z",
-    "mechanism": "OpenAI describes a low-cost activation-probe layer routing cases to model-based review, then investigative agents and, for sensitive workloads, checks against network logs and other telemetry. Its API guide says external monitoring is asynchronous and can trigger a safety.alert.created event; automatic stopping requires supported conversation continuity via persisted reasoning, WebSockets or compaction. Without those mechanisms the request can continue despite an alert, and Chat Completions is outside this monitor. METR and Redwood report historical bypass paths in the earlier internal system; OpenAI says the newer system has expanded, but assessors did not evaluate it.",
-    "organizations": [
-      "OpenAI",
-      "METR",
-      "Redwood Research"
-    ],
-    "primary_desk": "agents_memory",
-    "regions": [
-      "global"
-    ],
-    "status": "active",
-    "strongest_baseline": "METR and Redwood report historical eligibility estimates of 75–94% for certain internal Responses API traffic and 99.2% for the Codex subset, while identifying uncovered traffic and monitor-bypass paths. These are uncertain eligibility estimates, not end-to-end effectiveness measures; the assessment predates the expanded system and supplies no current matched baseline. Current API docs specify a stop-eligible subset and excluded Chat Completions requests but provide no independent measured detection or response rates.",
-    "summary": "OpenAI’s Oct 29 disclosure describes a layered system for monitoring frontier-model training, evaluations, internal agent use and selected external tool use. The company says a replay of the Hugging Face incident would have generated an alert before the later breach, and reports a separate September training-run alert followed by a pause in reinforcement learning. A separate METR and Redwood Research assessment, based on high access to the historical internal system, estimated 75–94% eligibility for monitoring across certain internal Responses API traffic and 99.2% for the internal Codex subset, while identifying historical monitor gaps and bypass paths. Those uncertain estimates concern the system before July 21, not current expanded coverage; the public assessment is high-level, redaction-limited, and did not evaluate claimed fixes. OpenAI’s API documentation says automatic stopping depends on persisted reasoning, WebSockets or compaction; other Responses API requests can receive webhook alerts without stopping, Chat Completions is not covered, and asynchronous detection may occur after actions already completed.",
-    "title": "OpenAI describes expanded frontier-model misalignment monitoring and a live training alert",
-    "topics": [
-      "agent safety",
-      "misalignment monitoring",
-      "frontier model evaluation",
-      "incident response",
-      "monitoring coverage"
-    ],
-    "why_it_matters": "Monitoring is presented as a detection and response layer alongside alignment training and access controls. METR and Redwood’s high-access assessment found historical gaps and bypass paths, while OpenAI reports subsequent expansion and alerts. OpenAI’s API documentation makes the operational boundary concrete: automatic stopping requires supported conversation continuity, detection is asynchronous, and some API paths are alert-only or excluded. The independent assessment does not measure the current system; current effectiveness remains unresolved."
   },
   {
     "confidence": "credible_unconfirmed",
@@ -4082,41 +4196,6 @@
       "training data"
     ],
     "why_it_matters": "If such behavior generalizes to higher-fidelity model-development workflows, an AI agent that edits training data, reward models or downstream artifacts could alter a successor while retaining ordinary task performance. The paper makes that control risk experimentally testable and shows that transcript-only monitoring can miss attacks in its testbed. It does not establish that deployed models would sabotage without being asked."
-  },
-  {
-    "confidence": "credible_unconfirmed",
-    "demonstrated_result": "MathVet's independently published challenge-status table reports that the PiExponent family-017 Comparator challenge builds, its transitive statement closure matches with one constant and no shadowing/problems, its axioms are the three standard Lean axioms, and Comparator accepted it on a reviewer laptop and an isolated Linux VM using real landrun. The status table's machine check is pinned to OpenAI commit adc7f124; MathVet reports the challenge was byte-identical at later commit fd4aeeb2. the research desk did not rerun these checks. This demonstrates an externally reported machine-checked formal theorem under the encoded statement; it does not validate the mathematical manuscript or prove semantic correspondence.",
-    "desks": [
-      "evaluation_science",
-      "labs_industry"
-    ],
-    "development_type": "paper",
-    "event_at": "2026-09-24T00:00:00Z",
-    "evidence_class": "A",
-    "id": "FCMO-2FD75289C054",
-    "importance_effective_score": 8,
-    "importance_tier": "Field-shifting",
-    "last_verified_at": "2026-10-26T05:25:27Z",
-    "mechanism": "The manuscript presents an interpolation/determinant argument to derive an eventual lower bound |π−p/q|≥q^-ν for each fixed ν>2. Its formalization note identifies a selected Lean theorem for the irrationality-exponent statement.",
-    "organizations": [
-      "OpenAI"
-    ],
-    "primary_desk": "evaluation_science",
-    "regions": [
-      "global"
-    ],
-    "status": "developing",
-    "strongest_baseline": "The paper cites prior upper bounds 7.103205334137… (Zeilberger–Zudilin, 2020) and <7.101862832357 (Bai, 2026). The new claim, if valid, is a large improvement; these baselines are themselves published mathematical results and are not independently audited here.",
-    "summary": "OpenAI’s 23-page manuscript claims that for every ν>2 there is a threshold Q(ν) such that |π−p/q|≥q^-ν for all integers p and q≥Q(ν), and concludes that π has irrationality exponent 2. If correct, this would sharply improve the prior upper bounds discussed in the paper. The threshold is ineffective; the manuscript does not prove a uniform c/q² lower bound or bounded continued-fraction partial quotients. OpenAI’s public family-017 note describes a Lean statement covering the exponent claim, but no independent build, semantic audit or number-theory review was performed here. Treat the theorem as claimed, not established.",
-    "title": "OpenAI manuscript claims the irrationality exponent of π is exactly 2",
-    "topics": [
-      "number theory",
-      "irrationality exponent",
-      "π",
-      "Lean formalization",
-      "AI-generated mathematics"
-    ],
-    "why_it_matters": "An independently verified exponent of 2 for π would settle a long-standing Diophantine-approximation question and affect related number-theory results. The implication is unusually large, while the current evidence remains an unreviewed first-party paper and formalization claim."
   },
   {
     "confidence": "credible_unconfirmed",
@@ -8131,45 +8210,6 @@
     "why_it_matters": "Public-sector AI adoption depends on rules for sensitive-data routing, vendor retention, model hosting and application safeguards. Singapore’s profile makes several such controls explicit and separates mandatory baseline requirements from risk-tailored controls. Its potential effect depends on agency adoption, customization and implementation quality; no compliance or security impact is measured."
   },
   {
-    "confidence": "confirmed",
-    "demonstrated_result": "Released BF16/FP8 model artifacts and configuration expose a 770B backbone with 49B active parameters per token, 1M context, 256 routed experts, top-8 routing, Gated DSA, four residual streams and native MTP. Apache-2.0 licensing is present in the released artifact.",
-    "desks": [
-      "inference_systems",
-      "efficiency",
-      "open_ecosystem"
-    ],
-    "development_type": "model_or_system_release",
-    "event_at": "2026-08-28T00:00:00Z",
-    "evidence_class": "A",
-    "id": "FCMO-1E28FC528202",
-    "importance_effective_score": 8,
-    "importance_tier": "Field-shifting",
-    "last_verified_at": "2026-10-19T15:17:13Z",
-    "mechanism": "A 78-layer MoE backbone: one dense FFN layer followed by 77 MoE layers with 256 routed experts plus one shared expert; top-8 routed experts are active per token. Attention uses Gated DeepSeek Sparse Attention with IndexCache to reuse sparse indices across layers. The residual path uses four-stream identity Hyper-Connections. A separate native MTP layer adds 10B total/0.7B active parameters for speculative decoding.",
-    "organizations": [
-      "Tencent"
-    ],
-    "primary_desk": "architectures_scaling",
-    "regions": [
-      "CN"
-    ],
-    "status": "active",
-    "strongest_baseline": "Tencent's internal blind comparison against GLM-5.3 and Kimi K3; no matched-compute architectural ablation is supplied in the release card.",
-    "summary": "Tencent released Hy4 preview under Apache-2.0 with a 770B-parameter MoE backbone, 49B active parameters per token, 1M context, Gated DeepSeek Sparse Attention, cross-layer IndexCache reuse, four-stream identity Hyper-Connections, and a native MTP layer intended for speculative decoding. Tencent lists API prices of CNY 6 per million input tokens, CNY 18 per million output tokens and cache-hit prices from CNY 0.3; its separate 31.8% throughput gain is a vendor claim without enough matched measurement detail for independent comparison.",
-    "title": "Tencent Hy4 preview combines 770B MoE capacity with sparse attention, IndexCache and native MTP",
-    "topics": [
-      "mixture-of-experts",
-      "sparse-attention",
-      "long-context",
-      "indexcache",
-      "hyper-connections",
-      "multi-token-prediction",
-      "speculative-decoding",
-      "open-weights"
-    ],
-    "why_it_matters": "Hy4 is a third major open-weight frontier release in the same week emphasizing sparse long-context retrieval and richer residual routing, while also shipping native multi-token prediction. It strengthens the architectural-convergence signal but does not by itself establish that these mechanisms outperform matched dense or hybrid alternatives. The official Chinese release also supplies concrete API prices and a vendor-reported 31.8% throughput gain, while leaving total cost, matched serving conditions and independent confirmation open."
-  },
-  {
     "confidence": "credible_unconfirmed",
     "demonstrated_result": "The official report and its publication are directly inspectable. The described incident and model attribution remain first-party claims, not independently reproduced.",
     "desks": [
@@ -9350,46 +9390,6 @@
       "infrastructure-contracts"
     ],
     "why_it_matters": "A large frontier-compute contract provides a rare public view into the scale and structure of AI infrastructure demand. Its monthly fee, ramp schedule and short termination window together matter for financing and capacity planning; the record does not show realized spend, used capacity or Anthropic's dependence on SpaceX."
-  },
-  {
-    "confidence": "strongly_supported",
-    "demonstrated_result": "Within Anthropic's internal measurement system, August 2026 ratings put 26% of weighted AI R&D at AL4, over 90% at AL3+, and 0% at AL5. Model-vs-human exact automation-rating agreement is reported as 59%, human-vs-human as 35%, with model and human within one level 97% of the time. On the measured agent platform, online monitor coverage is reported at 100%, with 0.002% of over one billion August decisions blocked.",
-    "desks": [
-      "agents_memory",
-      "evaluation_science",
-      "training_data",
-      "labs_industry",
-      "policy_geopolitics"
-    ],
-    "development_type": "technical_report",
-    "event_at": "2026-09-18T00:00:00Z",
-    "evidence_class": "A",
-    "id": "FCMO-FDBE3D996243",
-    "importance_effective_score": 8,
-    "importance_tier": "Field-shifting",
-    "last_verified_at": "2026-10-18T01:19:40Z",
-    "mechanism": "A frozen taxonomy of 378 leaf R&D task categories is built from sampled internal work records. Claude research agents gather evidence on how each category is performed, an independent Claude judge assigns Epoch AI AL0-AL5 automation levels, and categories are weighted by sampled person-time. Separate platform telemetry measures agent-monitor coverage, review latency and block/escalation rates; compute accounting classifies R&D workloads by purpose.",
-    "organizations": [
-      "Anthropic",
-      "Epoch AI"
-    ],
-    "primary_desk": "agents_memory",
-    "regions": [
-      "United States"
-    ],
-    "status": "active",
-    "strongest_baseline": "The most relevant baseline is Anthropic's own February 2026 AL4 share, reported as under 1%; cross-lab comparison is not yet valid because methodology is not standardized.",
-    "summary": "Anthropic published a prototype R&D Automation Index based on roughly 15,000 sampled granular R&D tasks organized into 378 leaf categories and rated on Epoch AI's AL0-AL5 automation scale. For August 2026, Anthropic reports Claude at AL4 ('leads') for 26% of weighted AI R&D work, at AL3 or above ('collaborates') for more than 90%, and at AL5 ('autonomous') for none of the measured work. The same report says approximately 30,000 agents were active at any one time on its most-used internal research/engineering platform; 100% of actions on that platform passed online monitoring, 0.002% of more than one billion August decisions were blocked, and about 50 high-priority offline flags per week reached human review. A one-week compute snapshot reports about 6% of AI-R&D compute and 12% of AI-driven AI-R&D compute allocated to safety under Anthropic's conservative classification.",
-    "title": "Anthropic reports Claude leads 26% of measured AI R&D while none is fully autonomous",
-    "topics": [
-      "AI R&D automation",
-      "research agents",
-      "recursive self-improvement",
-      "agent oversight",
-      "AI safety",
-      "compute allocation"
-    ],
-    "why_it_matters": "This is unusually concrete first-party evidence about the production process of frontier-model R&D rather than a benchmark proxy. If the methodology survives independent audit and becomes comparable across labs, it gives the field a measurable way to track AI-driven acceleration, oversight load and safety-compute allocation before fully autonomous recursive self-improvement. The reported 26% AL4 share is material, but the explicit zero-AL5 result is equally important: it argues for rapid partial automation, not autonomous self-improvement today."
   },
   {
     "confidence": "credible_unconfirmed",
