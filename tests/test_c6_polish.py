@@ -18,10 +18,23 @@ oracle = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(oracle)
 
 from tools.paper.i18n import visual_width  # noqa: E402
-from tools.paper.playwright_module import missing_playwright_message, resolve_playwright_module  # noqa: E402
+from tools.paper.playwright_module import browser_unavailable, resolve_playwright_module  # noqa: E402
 from tools.paper.templates.reader import brief20, first_sentence, rest_after  # noqa: E402
 
 BASE = "/FCMO-AI-Newsletter/"
+
+
+def standalone_page(html_text: str, out: Path) -> str:
+    """The built page with every stylesheet it links inlined (paper.css and the D sheets) and scripts dropped, so Chromium
+    judges the CSS the page really ships with. A link that does not resolve inside the build is an error, never skipped."""
+    def inline(match):
+        href = match.group(1)
+        self_path = out / href.split(BASE, 1)[1] if BASE in href else None
+        if not self_path or not self_path.is_file():
+            raise AssertionError(f"stylesheet {href} does not resolve inside the build")
+        return f"<style>{self_path.read_text(encoding='utf-8')}</style>"
+    linked = re.sub(r'<link rel="stylesheet" href="([^"]*\.css)">', inline, html_text)
+    return re.sub(r"<script\b.*?</script>", "", linked, flags=re.S)
 BROWSER_PROBE = r"""
 const { chromium } = require(process.argv[1]);
 const jobs = JSON.parse(process.argv[2]);
@@ -35,9 +48,10 @@ const jobs = JSON.parse(process.argv[2]);
       const rect = (el) => { if (!el) return null; const r = el.getBoundingClientRect(); return { w: r.width, h: r.height }; };
       const style = (el, pseudo) => { const c = getComputedStyle(el, pseudo || null); return { bg: c.backgroundColor, image: c.backgroundImage, border: c.borderTopStyle, borderWidth: c.borderTopWidth, content: c.content, opacity: c.opacity, color: c.color, display: c.display }; };
       const plate = document.querySelector('.story-cover .plate');
-      const swatch = (sel) => { const el = document.querySelector(sel); return el ? { box: rect(el), style: style(el), after: style(el, '::after'), rowOpacity: getComputedStyle(el.closest('div') || el).opacity } : null; };
-      return { plate: plate && { box: rect(plate), display: getComputedStyle(plate).display }, zeroShown: swatch('.er-legend .er-zero .sample-shown'),
-               claimed: swatch('.er-legend .sample-claimed'), gap: swatch('.er-legend .sample-gap'), zeroRows: document.querySelectorAll('.er-legend .er-zero').length };
+      const swatch = (sel) => { const el = document.querySelector(sel); return el ? { box: rect(el), style: style(el), after: style(el, '::after'), hatch: el.querySelectorAll('svg path').length, rowOpacity: getComputedStyle(el.parentElement).opacity } : null; };
+      // D «Libro de evidencias» legend (d_components.legend): .d-legend-items > div > span.d-sample.d-claim--<class>.
+      return { plate: plate && { box: rect(plate), display: getComputedStyle(plate).display }, zeroShown: swatch('.d-legend-items .d-claim--shown'),
+               claimed: swatch('.d-legend-items .d-claim--claimed'), gap: swatch('.d-legend-items .d-claim--not-established'), legends: document.querySelectorAll('.d-legend-items').length };
     }));
     await page.close();
   }
@@ -73,7 +87,7 @@ class BuiltPageBehaviour(unittest.TestCase):
     def setUpClass(cls):
         cls.module = resolve_playwright_module()
         if not cls.module:
-            raise unittest.SkipTest(missing_playwright_message())
+            browser_unavailable()
         cls.tmp = tempfile.TemporaryDirectory(prefix="c6-polish-")
         out = Path(cls.tmp.name) / "site"
         built = subprocess.run([sys.executable, str(ROOT / "tools/paper/build.py"),
@@ -83,19 +97,18 @@ class BuiltPageBehaviour(unittest.TestCase):
                                cwd=ROOT, text=True, capture_output=True)
         if built.returncode:
             raise AssertionError(built.stdout + built.stderr)
-        css = (out / "assets/css/paper.css").read_text(encoding="utf-8")
         routes = json.loads((out / "data/routes.json").read_text(encoding="utf-8"))
         cls.pages = []
         for row in [r for r in routes if r["kind"] == "story" and r["locale"] == "en"]:
             html_text = (out / row["path"] / "index.html").read_text(encoding="utf-8")
-            if re.search(r'class="er-zero"><dt><span class="sample sample-shown"', html_text) and re.search(r'<dl class="er-legend">.*sample-claimed.*sample-gap', html_text, re.S) and "story-cover" in html_text:
+            if re.search(r'<div class="d-legend-items">.*d-claim--shown.*d-claim--claimed.*d-claim--not-established', html_text, re.S) and "story-cover" in html_text:
                 target = Path(cls.tmp.name) / f"page{len(cls.pages)}.html"
-                target.write_text(re.sub(r"<script\b.*?</script>", "", re.sub(r'<link rel="stylesheet" href="[^"]*paper\.css">', lambda _: f"<style>{css}</style>", html_text), flags=re.S), encoding="utf-8")
+                target.write_text(standalone_page(html_text, out), encoding="utf-8")
                 cls.pages.append(target)
             if len(cls.pages) == 2:
                 break
         if not cls.pages:
-            raise AssertionError("no built story page has a zero-Shown legend row with Claimed and Not-established samples")
+            raise AssertionError("no built story page has the Shown, Claimed and Not-established legend swatches")
 
     @classmethod
     def tearDownClass(cls):
@@ -113,25 +126,34 @@ class BuiltPageBehaviour(unittest.TestCase):
                 box = found["plate"]["box"]
                 self.assertGreaterEqual(box["w"] / box["h"], 2.5, f"plate {box} at {width}")
 
-    def test_story_plate_keeps_its_desktop_shape_and_is_gone_on_a_phone(self):
+    def test_story_plate_is_a_bounded_banner_on_desktop_and_a_short_one_on_a_phone(self):
+        # D «Libro de evidencias» (d-story.css): a full-width banner, 25.5vw tall capped at 380px, 180px on a phone.
         for found in self.measure(1440):
             box = found["plate"]["box"]
-            self.assertLess(box["w"] / box["h"], 2.0, box)
+            self.assertGreaterEqual(box["w"] / box["h"], 2.5, box)
+            self.assertLessEqual(box["h"], 380, box)
         for found in self.measure(390):
-            self.assertEqual(found["plate"]["display"], "none")
+            box = found["plate"]["box"]
+            self.assertLessEqual(box["w"], 390, box)
+            self.assertLessEqual(box["h"], 200, box)
+            self.assertGreaterEqual(box["w"] / box["h"], 1.5, box)
 
-    def test_shown_swatch_is_solid_and_the_zero_state_adds_no_box_numeral_or_dimming(self):
+    def test_shown_swatch_is_solid_claimed_is_hatched_and_not_established_is_dashed_and_empty(self):
         for found in self.measure(1440):
             shown = found["zeroShown"]
+            self.assertEqual(found["legends"], 1)
             self.assertGreater(shown["box"]["w"], 8)
             self.assertNotIn(shown["style"]["bg"], ("rgba(0, 0, 0, 0)", "transparent"))
             self.assertEqual(shown["style"]["bg"], shown["style"]["color"], "a solid swatch is filled with the text colour")
             self.assertIn(shown["after"]["content"], ("none", "normal"))
             self.assertEqual(shown["rowOpacity"], "1")
             self.assertEqual(shown["style"]["image"], "none")
-            self.assertIn("gradient", found["claimed"]["style"]["image"])
+            self.assertEqual(shown["hatch"], 0, "the solid swatch carries no hatching")
+            self.assertGreater(found["claimed"]["hatch"], 0, "Claimed is marked with hatching, never by colour alone")
+            self.assertEqual(found["claimed"]["style"]["bg"], "rgba(0, 0, 0, 0)")
             self.assertEqual(found["gap"]["style"]["border"], "dashed")
             self.assertEqual(found["gap"]["style"]["bg"], "rgba(0, 0, 0, 0)")
+            self.assertEqual(found["gap"]["hatch"], 0)
 
 
 class HeaderDekTests(unittest.TestCase):
@@ -358,13 +380,13 @@ const jobs = JSON.parse(process.argv[2]);
 
     def _phone(self, locale_code, width=390, count=6):
         if not self.module:
-            self.skipTest(missing_playwright_message())
-        css = (self.out / "assets/css/paper.css").read_text(encoding="utf-8")
+            browser_unavailable()
+        css = "".join(f.read_text(encoding="utf-8") for f in [self.out / "assets/css/paper.css", *sorted((self.out / "assets/css/d").glob("*.css"))])
         files = []
         for row in [r for r in self.stories if r["locale"] == locale_code][:count]:
             html_text = (self.out / row["path"] / "index.html").read_text(encoding="utf-8")
             target = Path(self.tmp.name) / f"{locale_code}-{len(files)}.html"
-            target.write_text(re.sub(r"<script\b.*?</script>", "", re.sub(r'<link rel="stylesheet" href="[^"]*paper\.css">', lambda _: f"<style>{css}</style>", html_text), flags=re.S), encoding="utf-8")
+            target.write_text(standalone_page(html_text, self.out), encoding="utf-8")
             files.append((row, target))
         jobs = [{"file": str(t), "width": width} for _, t in files]
         result = subprocess.run(["node", "-e", self.PHONE_PROBE, self.module, json.dumps(jobs)], text=True, capture_output=True, timeout=240)
@@ -389,8 +411,8 @@ const jobs = JSON.parse(process.argv[2]);
     def test_the_phone_only_cell_is_visible_at_390_and_hidden_at_820_and_1440(self):
         # The committed corpus has no one-sentence summary, so build the page shape from brief20 itself.
         if not self.module:
-            self.skipTest(missing_playwright_message())
-        css = (self.out / "assets/css/paper.css").read_text(encoding="utf-8")
+            browser_unavailable()
+        css = "".join(f.read_text(encoding="utf-8") for f in [self.out / "assets/css/paper.css", *sorted((self.out / "assets/css/d").glob("*.css"))])
         sentence = "A one sentence summary that is also the header dek."
         brief = brief20({}, _catalog(), summary=sentence, why="Why it matters.", evidence={}, header_dek=sentence)
         self.assertIn('class="read20-cell read20-phone"', brief)

@@ -19,6 +19,8 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from tools.paper.playwright_module import browser_unavailable  # noqa: E402
+
 from tools.paper.i18n import format_date, load_catalogs  # noqa: E402
 from tools.paper.playwright_module import resolve_playwright_module  # noqa: E402
 from tools.paper.status_banner import render  # noqa: E402
@@ -421,7 +423,7 @@ class OracleInBrowserTests(unittest.TestCase):
     def test_the_real_build_passes_the_first_viewport_oracle(self):
         module = resolve_playwright_module()
         if not module:
-            self.skipTest("Playwright module does not resolve from this checkout")
+            browser_unavailable("Playwright module does not resolve from this checkout")
         result = subprocess.run([sys.executable, str(ORACLE), "--playwright-module", module, "--print-measurements"],
                                 cwd=ROOT, capture_output=True, text=True, timeout=2400)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -468,7 +470,7 @@ const fs = require('fs');
     def test_a_long_unbroken_token_in_zh_text_does_not_overflow_at_390(self):
         module = resolve_playwright_module()
         if not module:
-            self.skipTest("Playwright module does not resolve from this checkout")
+            browser_unavailable("Playwright module does not resolve from this checkout")
         css = PAPER_CSS.read_text(encoding="utf-8")
         text = f"十月20日，llm-d发布了v1.0.0，标签指向提交{self.TOKEN}。版本说明将18个核心组件统一到v1.0.0。"
         page = (f'<!doctype html><html lang="zh-Hans"><meta charset="utf-8"><style>{css}</style><body>'
