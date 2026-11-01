@@ -80,6 +80,12 @@ def story_locale(story: dict, locale_code: str, *, catalog: dict | None = None) 
     codes.extend(("correction_kind", item.get("kind")) for item in story.get("corrections") or [])
     for group, code in codes:
         if code and not label(catalog, group, code):
+            # Live corpus values can arrive before the frozen UI catalogue is
+            # expanded.  Gap kinds have an explicit generic label, so an
+            # otherwise complete native edition must not become translation
+            # debt merely because its new enum value is not yet named.
+            if group == "gap_kind" and label(catalog, group, "other"):
+                continue
             missing_paths.append(f"labels.{group}.{code}")
     missing = list(dict.fromkeys([*(entry.get("missing") or []),
                                   *(".".join(path.split("[")[0].split(".")[:2]) if not path.startswith("labels.")
