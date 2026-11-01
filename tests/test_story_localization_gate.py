@@ -79,6 +79,18 @@ class StoryFieldCoverage(unittest.TestCase):
         self.assertEqual(status['state'], 'PENDING')
         self.assertIn('labels.story_status.live', status['missing_paths'])
 
+    def test_new_gap_kind_uses_generic_label_without_creating_translation_debt(self):
+        story = story_fixture()
+        story['evidence']['gaps'] = [{'kind': 'missing_original_language', 'description': 'The original-language source is unavailable.'}]
+        story['l10n']['es-419']['fields'].update(
+            headline='Un titular distinto', dek='Una entrada distinta.',
+            evidence={'gaps': [{'description': 'La fuente en el idioma original no está disponible.'}],
+                      'claims': [], 'limitations': [], 'contradictory': []},
+        )
+        status = i18n.story_locale(story, 'es-419')
+        self.assertEqual(status['state'], 'NATIVE_ARB')
+        self.assertNotIn('labels.gap_kind.missing_original_language', status['missing_paths'])
+
     def test_paper_withholds_body_on_false_complete_and_localizes_original_link(self):
         story = story_fixture()
         builder = PaperBuilder.__new__(PaperBuilder)
