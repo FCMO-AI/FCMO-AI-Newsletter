@@ -14,7 +14,7 @@ def paragraphs(text, per=2):
     return [sep.join(parts[i:i + per]) for i in range(0, len(parts), per)]
 
 
-def opening(summary, header_dek, full_dek, catalog, with_more=False):
+def opening(summary, header_dek, full_dek, catalog, with_more=False, prose_html=d.e):
     """Keep the opening fact on phones and continue after the visible dek on desktop."""
     whole = ' '.join(str(summary or '').split())
     happened = rest_after(summary, full_dek or header_dek) if header_dek else whole
@@ -25,8 +25,8 @@ def opening(summary, header_dek, full_dek, catalog, with_more=False):
     phone_only = bool(header_dek) and _same(first_sentence(summary,10_000),header_dek) and happened == whole
     paras = paragraphs(happened, per=1)
     shown, later = paras[:3], paras[3:]
-    content = (f'<span class="brief-open">{d.e(opener)} </span>' if opener else '') + ' <i class="d-pb"></i>'.join(d.e(x) for x in shown)
-    more = f'<div class="d-story-more">{"".join(f"<p>{d.e(x)}</p>" for x in later)}</div>' if later else ''
+    content = (f'<span class="brief-open">{prose_html(opener)} </span>' if opener else '') + ' <i class="d-pb"></i>'.join(prose_html(x) for x in shown)
+    more = f'<div class="d-story-more">{"".join(f"<p>{prose_html(x)}</p>" for x in later)}</div>' if later else ''
     html = (f'<ol class="d-story-opening"><li class="read20-cell{" read20-phone" if phone_only else ""}">'
             f'<b>{d.e(catalog["strings"]["design"]["happened"])}</b><span class="brief-val">{content}</span></li></ol>')
     return (html, more) if with_more else html + more
@@ -35,14 +35,14 @@ def opening(summary, header_dek, full_dek, catalog, with_more=False):
 def render(*, story, catalog, code, title, dek_text, beat_label, home_href,
            evidence, summary, why, technical, status_html, automation_html,
            byline, dates_line, plate_html, note_html, taxonomy_html,
-           navigation_html, topic_nav_html, machine_html, title_class='', dek_full=''):
+           navigation_html, topic_nav_html, machine_html, title_class='', dek_full='', prose_html=d.e):
     st = catalog['strings']
     text = st['story']
     p = st['proof']
-    argument, more_html = opening(summary,dek_text,dek_full,catalog,with_more=True)
+    argument, more_html = opening(summary,dek_text,dek_full,catalog,with_more=True,prose_html=prose_html)
     if why:
-        more_html += f'<section class="d-story-why"><h2>{d.e(text["why_it_matters"])}</h2>{"".join(f"<p>{d.e(x)}</p>" for x in paragraphs(why))}</section>'
-    tech = ''.join(f'<section><h3>{d.e(st["technical_field"].get(k,k))}</h3><p>{d.e(v)}</p></section>' for k,v in technical.items() if v)
+        more_html += f'<section class="d-story-why"><h2>{d.e(text["why_it_matters"])}</h2>{"".join(f"<p>{prose_html(x)}</p>" for x in paragraphs(why))}</section>'
+    tech = ''.join(f'<section><h3>{d.e(st["technical_field"].get(k,k))}</h3><p>{prose_html(v)}</p></section>' for k,v in technical.items() if v)
     plate_block = f'<div class="d-story-plate">{plate_html}</div>' if plate_html else ''
     header = (f'<div class="story-cover d-story-cover"><header class="story-header"><div class="frame"><p class="d-kicker">'
               f'<span><a href="{d.e(home_href)}">{d.e(st["nav"]["today"])}</a> / {d.e(beat_label)} / {d.topic(story,catalog)}</span><span class="d-story-dates">{d.e(dates_line)}</span></p>'
@@ -66,12 +66,12 @@ def render(*, story, catalog, code, title, dek_text, beat_label, home_href,
     layers = ('<div class="layers">' + layer('technical',st['design']['technical_title'],st['design']['layer_r3'],f'<div id="technical">{tech}</div>',is_open=False) + '</div>' if technical else '')
     # R4 core: opening + ledger -> sources diagram -> timeline -> Bone band. The rest of the record is content, kept
     # reachable in one disclosure between the timeline and the band so it never pushes the core apart.
-    extra = (f'{unknowns_box(evidence,catalog)}{layers}{machine_html}'
+    extra = (f'{unknowns_box(evidence,catalog,prose_html)}{layers}{machine_html}'
              f'<details class="d-story-taxonomy"><summary>{d.e(text["topics"])}</summary>{taxonomy_html}</details>'
              f'<div class="story-after">{topic_nav_html}{navigation_html}</div>')
     return (header + f'<div class="frame"><div class="d-story-disclosure">{d.e(byline)} · {automation_html}{status_html}</div>'
             f'<div class="d-story-reading"><div class="d-story-argument"><div class="story-body"><div class="brief">{argument}</div></div>{cont}</div>'
-            f'<aside class="d-story-ledger">{d.ledger(evidence,catalog)}</aside></div>'
-            f'<div class="data-hero">{d.claims_sources(story,evidence,catalog)}</div>'
+            f'<aside class="d-story-ledger">{d.ledger(evidence,catalog,prose_html)}</aside></div>'
+            f'<div class="data-hero">{d.claims_sources(story,evidence,catalog,prose_html)}</div>'
             f'{d.section(d.copy(catalog)["timeline"])}{d.timeline(story,catalog,state_text)}'
             f'<details class="d-story-extra"><summary>{d.e(d.copy(catalog)["full_record"])}</summary>{extra}</details></div>{foot}' + LAYER_SCRIPT)

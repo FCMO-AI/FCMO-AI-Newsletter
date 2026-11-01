@@ -7,7 +7,7 @@ import argparse
 from collections import Counter, defaultdict
 from datetime import datetime
 import hashlib
-from html import escape
+from html import escape, unescape
 import json
 import os
 from pathlib import Path
@@ -59,6 +59,7 @@ ROOT = Path(__file__).resolve().parents[2]
 from tools.publication_freshness import publication_status, reader_status
 BEATS = ("technology", "business", "policy", "society", "research")
 LISTING_PAGE_SIZE = 100
+INTERNAL_REFERENCE = re.compile(r"\bFCMO-[0-9A-F]{12}\b")
 STORY_DEK_COLUMNS = 480  # eight 60ch lines of the tablet/desktop header dek; the dek is hidden under 761px
 LANDING_DEK_COLUMNS = 300  # the receipt column holds it; the hero title and its next line are in the other column
 
@@ -109,6 +110,8 @@ class PaperBuilder:
         self.catalogs = load_catalogs(ROOT)
         self.stories = self.payload["stories"]
         self.live = [story for story in self.stories if story.get("status") == "live"]
+        self.public_references = {story.get("id"): story for story in self.live
+                                  if isinstance(story.get("id"), str)}
         self.edition_dates = sorted(set(self.payload.get("published_edition_dates", [])) | {story["url_date"] for story in self.live}, reverse=True)
         self.freshness = corpus_freshness(self.live, self.status.get("status_updated_at"))
         self.status["publication_status"] = publication_status(self.freshness, self.status, stories=self.stories)
@@ -191,6 +194,30 @@ class PaperBuilder:
 
     def _story_href(self, locale: dict, story: dict) -> str:
         return href(self.base, story_path(locale, story))
+
+    def _prose(self, value: object, locale: dict, *, links: bool = True) -> str:
+        """Escape prose while resolving internal IDs to public story links or neutral text."""
+        text = str(value or "")
+        code = locale["code"]
+        neutral = {"en": "a related FCMO AI note", "es-419": "una nota relacionada de FCMO AI",
+                   "zh-Hans": "FCMO AI 的一篇相关报道"}.get(code, "a related FCMO AI note")
+        parts: list[str] = []
+        cursor = 0
+        for match in INTERNAL_REFERENCE.finditer(text):
+            parts.append(esc(text[cursor:match.start()]))
+            target = self.public_references.get(match.group(0))
+            if target is None:
+                parts.append(esc(neutral))
+            else:
+                title = (field(target, code, "headline") or field(target, code, "title")
+                         or headline(target, "en", self.catalogs["en"]))
+                if links:
+                    parts.append(f'<a href="{esc(self._story_href(locale, target))}">{esc(title)}</a>')
+                else:
+                    parts.append(esc(title))
+            cursor = match.end()
+        parts.append(esc(text[cursor:]))
+        return "".join(parts)
 
     def _correction_href(self, locale: dict, story: dict) -> str:
         return href(self.base, locale["path_prefix"] + "corrections/story/" + story["slug"] + "/")
@@ -548,7 +575,8 @@ class PaperBuilder:
             return
         complete = is_complete(story, code, catalog=catalog)
         title = headline(story, code, catalog) if complete else strings["l10n"]["pending_title"]
-        description = truncate(dek(story, code, catalog))
+        title = unescape(self._prose(title, locale, links=False))
+        description = unescape(self._prose(truncate(dek(story, code, catalog)), locale, links=False))
         suffix = story_path({**locale, "path_prefix": ""}, story)
         event = format_date(story["event_at"], catalog, precision=story.get("date_precision", "day"))
         published = format_date(story["first_published_at"], catalog, precision="minute")
@@ -581,22 +609,22 @@ class PaperBuilder:
             argument, dossier, technical_layer = [], [], []
             for heading_key, value in (("what_changed", field(story, code, "summary")), ("why_it_matters", field(story, code, "why_it_matters"))):
                 if value:
-                    argument.append(f'<section><h2>{esc(strings["story"][heading_key])}</h2><p>{esc(value)}</p></section>')
+                    argument.append(f'<section><h2>{esc(strings["story"][heading_key])}</h2><p>{self._prose(value, locale)}</p></section>')
             claims = evidence.get("claims") or []
             if claims:
                 items = []
                 for claim in claims:
                     claim_label = label(catalog, "claim_label", claim.get("label"), fallback=label(catalog, "claim_label", f'{claim.get("label","")}_{claim.get("qualifier","")}', fallback=""))
-                    items.append(f'<li data-kind="{esc(claim_kind(claim.get("label")))}"><span class="evidence-label">{esc(claim_label)}</span>{esc(claim.get("text",""))}</li>')
+                    items.append(f'<li data-kind="{esc(claim_kind(claim.get("label")))}"><span class="evidence-label">{esc(claim_label)}</span>{self._prose(claim.get("text", ""), locale)}</li>')
                 dossier.append(f'<section><h2>{esc(strings["story"]["evidence"])}</h2><ol class="evidence-list">{"".join(items)}</ol></section>')
             for heading_key, evidence_key in (("limitations", "limitations"), ("unknowns", "gaps"), ("contradictory", "contradictory")):
                 values = evidence.get(evidence_key) or []
                 if values:
-                    lis = "".join(f'<li>{esc(v.get("description","") if isinstance(v,dict) else v)}</li>' for v in values)
+                    lis = "".join(f'<li>{self._prose(v.get("description","") if isinstance(v,dict) else v, locale)}</li>' for v in values)
                     dossier.append(f'<section><h2>{esc(strings["story"][heading_key])}</h2><ul>{lis}</ul></section>')
             technical = field(story, code, "technical", {})
             if isinstance(technical, dict) and technical:
-                details = "".join(f'<section><h3>{esc(strings["technical_field"].get(key,key))}</h3><p>{esc(value)}</p></section>' for key, value in technical.items() if value)
+                details = "".join(f'<section><h3>{esc(strings["technical_field"].get(key,key))}</h3><p>{self._prose(value, locale)}</p></section>' for key, value in technical.items() if value)
                 technical_layer.append(f'<section class="developing-well"><h2>{esc(strings["story"]["technical"])}</h2>{details}</section>')
             sources = story.get("sources") or []
             if sources:
@@ -611,7 +639,7 @@ class PaperBuilder:
                 story=story, catalog=catalog, code=code, title=title, dek_text=first_sentence(dek(story, code, catalog), STORY_DEK_COLUMNS, clause=True), dek_full=first_sentence(dek(story, code, catalog), 10_000),
                 beat_label=label(catalog, "beat", story.get("beat")), home_href=href(self.base, locale["path_prefix"]),
                 evidence=evidence, summary=field(story, code, "summary"), why=field(story, code, "why_it_matters"),
-                technical=technical_fields, status_html=status_chip(self.status, catalog),
+                technical=technical_fields, prose_html=lambda value: self._prose(value, locale), status_html=status_chip(self.status, catalog),
                 automation_html=automation_badge(self.status, catalog), byline=strings["story"]["byline"],
                 dates_line=f'{strings["story"]["event_date"].format(date=event)} · {strings["story"]["published"].format(date=published)}',
                 plate_html=self._plate_html(story, catalog, "16:10", self.base) if story.get("media") else "", note_html=note, taxonomy_html=self._facts(story, locale),
@@ -628,7 +656,7 @@ class PaperBuilder:
         sources = self._source_urls(story)
         structured = {"@context": "https://schema.org", "@type": "NewsArticle", "identifier": story["id"], "headline": title, "description": description, "datePublished": story["first_published_at"], "dateModified": story["updated_at"], "inLanguage": locale["code"], "mainEntityOfPage": story_url, "citation": self._citation_permalink(story), "isBasedOn": sources, "image": [image], "author": {"@type": "Organization", "name": "FCMO AI Research Desk"}, "publisher": {"@type": "Organization", "name": "FCMO AI"}}
         if complete:
-            structured["articleBody"] = str(field(story, code, "summary") or "")
+            structured["articleBody"] = unescape(self._prose(field(story, code, "summary"), locale, links=False))
         if story.get("corrections"):
             structured["correction"] = [c.get("note") or c.get("reason") or c.get("kind", "Correction") for c in story["corrections"]]
         story_api = absolute(self.base_url, f"api/v1/stories/{story['id']}.json")

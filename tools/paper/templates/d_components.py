@@ -116,10 +116,10 @@ def legend(catalog, *, stories=None, method_href=''):
     return f'<section class="d-legend"><h2>{e(title)}</h2><div class="d-legend-items">{items}</div></section>'
 
 
-def ledger(evidence, catalog):
+def ledger(evidence, catalog, prose_html=e):
     items = []
     for i, item in enumerate(rows(evidence.get('claims')), 1):
-        items.append(f'<li data-ledger-item="{i}"><b class="d-number">{i:02d}</b><div>{claim(item.get("label"), catalog)}<p>{e(item.get("text"))}</p></div></li>')
+        items.append(f'<li data-ledger-item="{i}"><b class="d-number">{i:02d}</b><div>{claim(item.get("label"), catalog)}<p>{prose_html(item.get("text"))}</p></div></li>')
     body = f'<ol>{"".join(items)}</ol>' if items else f'<p>{e(catalog["strings"]["record"]["none"])}</p>'
     return f'<section class="d-ledger" id="claims">{section(catalog["strings"]["ledger"]["title"])}{body}</section>'
 
@@ -143,7 +143,7 @@ def _source(source):
 _CH, _CG, _SH, _SG = 56, 10, 72, 12   # claim box / gap and source box / gap heights (px): fixed so connectors are exact
 
 
-def claims_sources(story, evidence, catalog):
+def claims_sources(story, evidence, catalog, prose_html=e):
     """R4 «Sources and claims»: a connector diagram derived from the record.
 
     Claims at the left, sources at the right, open gaps (dashed) hanging under the sources. The record has no
@@ -167,14 +167,14 @@ def claims_sources(story, evidence, catalog):
     hs = [max(_CH, _lines(t, 520, 14, .52) * 19 + 20) for t in shorts]
     offs = [sum(hs[:i]) + i * _CG for i in range(len(hs))]
     claims = ''.join(
-        f'<li class="d-cl d-cl--{proof_kind(c.get("label"))}" style="min-height:{hs[i-1]}px"><b>{i:02d}</b><span class="d-cl-text">{e(shorts[i-1])}</span></li>'
+        f'<li class="d-cl d-cl--{proof_kind(c.get("label"))}" style="min-height:{hs[i-1]}px"><b>{i:02d}</b><span class="d-cl-text">{prose_html(shorts[i-1])}</span></li>'
         for i, c in enumerate(claim_rows, 1))
     sources = ''.join(
         f'<li class="d-src">{_source(s)}' + (f'<small>{mark}{e(grade_text or st["primary_source"])}</small>' if s.get('primary') else '') + '</li>'
         for s in source_rows)
     k = min(len(gap_rows), 3)
     gaps = ''.join(
-        f'<li class="d-gap{" d-gap--top" if i < k else ""}"><span class="d-gap-text">{e(g)}</span></li>'
+        f'<li class="d-gap{" d-gap--top" if i < k else ""}"><span class="d-gap-text">{prose_html(g)}</span></li>'
         for i, g in enumerate(gap_rows))
     # connectors: x runs 0..100 across the gutter (stretched), y is real px
     primaries = [j for j, s in enumerate(source_rows) if s.get('primary')] or list(range(len(source_rows)))

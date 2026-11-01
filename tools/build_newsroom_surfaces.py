@@ -43,6 +43,40 @@ LOCALES = {
     "es-419": {"slug": "es", "hreflang": "es", "name": "Español"},
     "zh-Hans": {"slug": "zh-hans", "hreflang": "zh-Hans", "name": "简体中文"},
 }
+INTERNAL_REFERENCE = re.compile(r"\bFCMO-[0-9A-F]{12}\b")
+
+
+def neutral_reference(locale: str) -> str:
+    return {
+        "en": "a related FCMO AI note",
+        "es-419": "una nota relacionada de FCMO AI",
+        "zh-Hans": "FCMO AI 的一篇相关报道",
+    }.get(locale, "a related FCMO AI note")
+
+
+def reference_text(value: Any, locale: str, references: dict[str, Any], *, links: bool = True) -> str:
+    """Render prose references as public headlines or a locale-specific neutral label."""
+    text = str(value or "")
+    parts: list[str] = []
+    cursor = 0
+    for match in INTERNAL_REFERENCE.finditer(text):
+        parts.append(safe(text[cursor:match.start()]))
+        identifier = match.group(0)
+        brief = references.get(identifier)
+        if isinstance(brief, dict) and brief.get("title"):
+            title = safe(brief["title"])
+            if links:
+                slug = LOCALES.get(locale, LOCALES["en"])["slug"]
+                parts.append(f'<a href="{BASE}/news/{slug}/{identifier}.html">{title}</a>')
+            else:
+                parts.append(title)
+        else:
+            parts.append(safe(neutral_reference(locale)))
+        cursor = match.end()
+    parts.append(safe(text[cursor:]))
+    return "".join(parts)
+
+
 def newsroom_labels(locale: str) -> dict[str, str]:
     strings = localization.load_ui_catalog(locale)["strings"]
     story = strings["story"]
@@ -194,7 +228,11 @@ def citation_record(brief: dict[str, Any], canonical_story_url: str) -> tuple[st
     return citation_url, {**payload, "version": version}
 
 
-def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_links: dict[str, str], citation_url: str | None = None) -> str:
+def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_links: dict[str, str], citation_url: str | None = None,
+                 references: dict[str, Any] | None = None) -> str:
+    references = references or {}
+    prose = lambda value: reference_text(value, locale, references)
+    metadata = lambda value: reference_text(value, locale, references, links=False)
     label = newsroom_labels(locale)
     catalog = localization.load_ui_catalog(locale)
     strings = catalog["strings"]["story"]
@@ -216,7 +254,7 @@ def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_
     claims = []
     for claim in brief.get("claims") or []:
         if isinstance(claim, dict):
-            claims.append(f"<li><strong>{safe(localization.label(locale, 'claim_label', claim.get('label')))}</strong> — {safe(claim.get('text'))}</li>")
+            claims.append(f"<li><strong>{safe(localization.label(locale, 'claim_label', claim.get('label')))}</strong> — {prose(claim.get('text'))}</li>")
     technical = brief.get("technical") or {}
     caveats = list(brief.get("limitations") or []) + list(brief.get("contradictory_evidence") or [])
     gaps = [str(x.get("description") or "") for x in brief.get("evidence_gaps") or [] if isinstance(x, dict)]
@@ -228,13 +266,18 @@ def article_html(locale: str, brief: dict[str, Any], story: dict[str, Any], all_
     ld = {"@context":"https://schema.org","@type":"NewsArticle","identifier":brief.get("id"),"headline":brief.get("title"),"description":brief.get("summary"),"datePublished":story.get("published_at"),"dateModified":story.get("modified_at"),"inLanguage":locale,"mainEntityOfPage":url,"citation":citation_url,"isBasedOn":sources,"author":{"@type":"Organization","name":"FCMO AI Research Desk"},"publisher":{"@type":"Organization","name":"FCMO AI Newsletter","url":BASE+"/"}}
     if image: ld["image"] = [image]
     alternates = "\n".join(f'<link rel="alternate" hreflang="{LOCALES[key]["hreflang"]}" href="{safe(href)}">' for key, href in all_links.items()) + f'\n<link rel="alternate" hreflang="x-default" href="{safe(all_links["en"])}">'
-    return f'''<!doctype html><html lang="{safe(locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{safe(brief.get("title"))} · FCMO AI Newsletter</title><meta name="description" content="{safe(brief.get("summary"))}"><link rel="canonical" href="{safe(url)}">{alternates}<link rel="stylesheet" href="{NEWSROOM_STYLESHEET}"><script type="application/ld+json">{json.dumps(ld, ensure_ascii=False).replace('</','<\\/')}</script></head><body><header class="wire-head"><a href="{BASE}/">{safe(label["back"])}</a><span>FCMO WIRE</span></header><main class="story"><div class="kicker">{safe(story_type)} · {safe(desk)}</div><h1>{safe(brief.get("title"))}</h1><p class="dek">{safe(brief.get("summary"))}</p><p class="byline">{safe(strings["byline"])} · {safe(published)} · {safe(event)}</p><p class="method">{safe(label["method"])}</p>{f'<figure><img src="{safe(image)}" alt="{safe(brief.get("title"))}"><figcaption>{safe(caption)}</figcaption></figure>' if image else ''}<section><h2>{safe(label["what_changed"])}</h2><p>{safe(brief.get("summary"))}</p></section><section><h2>{safe(label["evidence"])}</h2><ul>{''.join(claims)}</ul></section><section><h2>{safe(label["baseline"])}</h2><p>{safe(technical.get("strongest_baseline"))}</p></section><section><h2>{safe(label["caveat"])}</h2>{list_html([str(x) for x in caveats])}</section><section><h2>{safe(label["unknown"])}</h2>{list_html(gaps)}</section><section><h2>{safe(label["lens"])}</h2><p>{safe(brief.get("why_it_matters"))}</p></section><section><h2>{safe(label["sources"])}</h2>{source_links([str(x) for x in brief.get("source_urls") or []])}</section><section><h2>{safe(label["context"])}</h2>{source_links(context_urls)}</section></main></body></html>'''
+    ld["headline"] = html.unescape(metadata(brief.get("title")))
+    ld["description"] = html.unescape(metadata(brief.get("summary")))
+    caveat_html = "<ul>" + "".join(f"<li>{prose(x)}</li>" for x in caveats if x) + "</ul>" if caveats else "<p>—</p>"
+    gap_html = "<ul>" + "".join(f"<li>{prose(x)}</li>" for x in gaps if x) + "</ul>" if gaps else "<p>—</p>"
+    return f'''<!doctype html><html lang="{safe(locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{metadata(brief.get("title"))} · FCMO AI Newsletter</title><meta name="description" content="{metadata(brief.get("summary"))}"><link rel="canonical" href="{safe(url)}">{alternates}<link rel="stylesheet" href="{NEWSROOM_STYLESHEET}"><script type="application/ld+json">{json.dumps(ld, ensure_ascii=False).replace('</','<\\/')}</script></head><body><header class="wire-head"><a href="{BASE}/">{safe(label["back"])}</a><span>FCMO WIRE</span></header><main class="story"><div class="kicker">{safe(story_type)} · {safe(desk)}</div><h1>{prose(brief.get("title"))}</h1><p class="dek">{prose(brief.get("summary"))}</p><p class="byline">{safe(strings["byline"])} · {safe(published)} · {safe(event)}</p><p class="method">{safe(label["method"])}</p>{f'<figure><img src="{safe(image)}" alt="{metadata(brief.get("title"))}"><figcaption>{safe(caption)}</figcaption></figure>' if image else ''}<section><h2>{safe(label["what_changed"])}</h2><p>{prose(brief.get("summary"))}</p></section><section><h2>{safe(label["evidence"])}</h2><ul>{''.join(claims)}</ul></section><section><h2>{safe(label["baseline"])}</h2><p>{prose(technical.get("strongest_baseline"))}</p></section><section><h2>{safe(label["caveat"])}</h2>{caveat_html}</section><section><h2>{safe(label["unknown"])}</h2>{gap_html}</section><section><h2>{safe(label["lens"])}</h2><p>{prose(brief.get("why_it_matters"))}</p></section><section><h2>{safe(label["sources"])}</h2>{source_links([str(x) for x in brief.get("source_urls") or []])}</section><section><h2>{safe(label["context"])}</h2>{source_links(context_urls)}</section></main></body></html>'''
 
 
-def index_html(locale: str, stories: list[tuple[dict[str, Any], str]]) -> str:
+def index_html(locale: str, stories: list[tuple[dict[str, Any], str]], references: dict[str, Any] | None = None) -> str:
     label=newsroom_labels(locale)
     strings = localization.load_ui_catalog(locale)["strings"]["story"]
-    cards="".join(f'<article><div class="kicker">{safe(localization.label(locale,"story_type",story.get("story_type")))}</div><h2><a href="{safe(href)}">{safe(story["headline"])}</a></h2><p>{safe(story["dek"])}</p><small>{safe(strings["published"].format(date=localization.format_date(story.get("published_at"),locale,"minute","datetime")))}</small></article>' for story,href in stories)
+    references = references or {}
+    cards="".join(f'<article><div class="kicker">{safe(localization.label(locale,"story_type",story.get("story_type")))}</div><h2><a href="{safe(href)}">{reference_text(story["headline"], locale, references)}</a></h2><p>{reference_text(story["dek"], locale, references)}</p><small>{safe(strings["published"].format(date=localization.format_date(story.get("published_at"),locale,"minute","datetime")))}</small></article>' for story,href in stories)
     return f'<!doctype html><html lang="{safe(locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FCMO WIRE · {safe(label["latest"])}</title><link rel="stylesheet" href="{NEWSROOM_STYLESHEET}"></head><body><header class="wire-head"><a href="{BASE}/">FCMO AI Newsletter</a><span>FCMO WIRE</span></header><main class="story"><h1>{safe(label["latest"])}</h1><p class="method">{safe(label["method"])}</p><div class="cards">{cards}</div></main></body></html>'
 
 
@@ -446,13 +489,13 @@ def main(argv:list[str]|None=None)->int:
             else:
                 brief = merge_overlay(briefs[rid], overlay or {}) if locale != "en" else briefs[rid]
                 story["headline"], story["dek"] = brief.get("title"), brief.get("summary")
-                page = article_html(locale, brief, story, links, citations[rid][0])
+                page = article_html(locale, brief, story, links, citations[rid][0], references=briefs)
             (folder / f"{rid}.html").write_text(page, encoding="utf-8")
             localized_cards.append((story, url))
             pages.append({"url": url, "language": meta["hreflang"], "headline": story["headline"],
                           "published_at": str(story.get("published_at") or ""),
                           "modified_at": str(story.get("modified_at") or "")})
-        (folder/"index.html").write_text(index_html(locale,localized_cards),encoding="utf-8")
+        (folder/"index.html").write_text(index_html(locale,localized_cards,briefs),encoding="utf-8")
     (args.site/"news").mkdir(exist_ok=True); (args.site/"news"/"index.html").write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=en/"><script>location.replace("en/"+location.search+location.hash)</script>',encoding="utf-8")
     notices=write_story_layer_outputs(args.site,v2,corpus) if v2 else 0
     localization.render_pending(args.site, briefs, args.site / "data/i18n")
