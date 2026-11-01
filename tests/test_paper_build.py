@@ -324,7 +324,12 @@ class PaperBuildTests(unittest.TestCase):
         self.assertTrue((font_dir / "SourceSerif4-normal-400_700-latin.woff2").is_file())
         text = (self.out / "index.html").read_text(encoding="utf-8")
         preloads = re.findall(r'<link rel="preload" href="([^"]+)" as="font"', text)
-        self.assertEqual(len(preloads), 3)
+        self.assertEqual(len(preloads), 2)
+        self.assertEqual({Path(value).name for value in preloads},
+                         {"InterTight-normal-400_900-latin.woff2", "JetBrainsMono-normal-400-latin.woff2"})
+        self.assertFalse(any("SourceSerif" in value for value in preloads))
+        for value in preloads:
+            self.assertTrue((self.out / value.removeprefix("/FCMO-AI-Newsletter/")).is_file(), value)
         self.assertTrue(all("-latin.woff2" in value for value in preloads), preloads)
 
     def test_legacy_redirects_have_new_canonical(self):

@@ -76,9 +76,9 @@ class DesignV2Build(unittest.TestCase):
             landing = (self.out / prefix / "index.html").read_text(encoding="utf-8")
             self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}cartas/', landing)
             self.assertNotIn(f'/FCMO-AI-Newsletter/{prefix}empieza/', landing)
-            # The method band carries the live counts (DIRECCION section 2: it replaces the old counts row).
-            self.assertIn('class="band-counts"', landing)
-            self.assertEqual(landing.split('class="band-counts"', 1)[1].split("</ul>", 1)[0].count("<span>"), 3)
+            # R4: the Bone band is the legend only; the counts row is retired and the trio (3 classes) remains.
+            self.assertNotIn('class="band-counts"', landing)
+            self.assertEqual(landing.split('class="band-trio"', 1)[1].split('</section>', 1)[0].count("<p>"), 3)
 
     def test_404_has_all_three_locale_destinations(self):
         page = (self.out / "404.html").read_text(encoding="utf-8")

@@ -88,7 +88,12 @@ class _Ctx:
 
     def evidence(self, story: dict) -> dict:
         value = story.get("evidence") if self.code == "en" else field(story, self.code, "evidence", {})
-        return value if isinstance(value, dict) else {}
+        if not isinstance(value, dict):
+            return {}
+        canonical = (story.get("evidence") or {}).get("claims") or []
+        return {**value, "claims": [{**claim, **({key: canonical[i][key] for key in ("label", "qualifier") if key in canonical[i]} if i < len(canonical) else {})}
+                                      for i, claim in enumerate(value.get("claims") or [])]}
+
 
 
 def _counts(story: dict) -> tuple[int, int]:
@@ -103,8 +108,10 @@ _SAMPLE = {"shown": "shown", "claimed": "claimed", "not_established": "gap"}
 
 def _chip(klass: str, ctx: _Ctx) -> str:
     kind = _SAMPLE[klass]
-    return (f'<span class="chip chip-{kind}"><span class="sample sample-{kind}" aria-hidden="true"></span>'
-            f'<span class="chip-word"><strong>{_e(ctx.s["proof"][klass])}</strong></span></span>')
+    from .d_components import sample as proof_sample
+    glyph = proof_sample(klass.replace('_', '-')).replace('class="d-sample', 'class="sample d-sample')
+    return f'<span class="chip chip-{kind}">{glyph}<span class="chip-word"><strong>{_e(ctx.s["proof"][klass])}</strong></span></span>'
+
 
 
 def _grade(story: dict, ctx: _Ctx) -> str:
@@ -218,56 +225,25 @@ def _band(stories: list[dict], ctx: _Ctx, method_href: str) -> str:
             f'</div></section>')
 
 
-_FILTER_SCRIPT = (
-    "<script>(function(){var nav=document.querySelector('[data-format-filter]');if(!nav)return;"
-    "var rows=document.querySelectorAll('.wire-row');nav.addEventListener('click',function(ev){"
-    "var a=ev.target.closest('a[data-format]');if(!a)return;ev.preventDefault();"
-    "nav.querySelectorAll('a').forEach(function(x){x.removeAttribute('aria-current')});"
-    "a.setAttribute('aria-current','true');var f=a.getAttribute('data-format');"
-    "rows.forEach(function(r){r.hidden=f!=='all'&&r.getAttribute('data-format')!==f})})})();</script>")
+# R4 retired the EARLIER wire block from the front (its builder and filter script were removed with it).
 
 
-def _wire(stories: list[dict], ctx: _Ctx) -> str:
-    if not stories:
-        return ""
-    present = [f for f in plan_mod.FORMATS if any(plan_mod.story_format(s) == f for s in stories)]
-    chips = ""
-    if len(present) > 1:
-        fm = ctx.s["formats"]
-        links = f'<a href="#earlier" data-format="all" aria-current="true">{_e(fm["all"])}</a>' + "".join(
-            f'<a href="#earlier" data-format="{f}">{_e(fm[f + "_plural"])}</a>' for f in present)
-        chips = f'<nav class="format-filter" data-format-filter aria-label="{_e(ctx.s["a11y"]["format_filter"])}">{links}</nav>'
-    rows = []
-    # The wire follows the plan order (importance); the section dek says so, because the dates are not monotonic.
-    for story in stories:
-        rows.append(
-            f'<li class="wire-row" data-format="{plan_mod.story_format(story)}" data-story-id="{_e(story["id"])}">'
-            f'<time class="wire-date rubric" datetime="{_e(story["event_at"])}">{_e(story["event_at"][:10])}</time>'
-            f'<span class="wire-format rubric">{_e(ctx.format_label(story))}</span>'
-            f'<div><h3 class="wire-title"><a href="{_e(ctx.story_href(story))}">{_e(ctx.head(story))}</a></h3>'
-            f'{_evrow(story, ctx, cls="wire-meta evrow")}</div>'
-            f'<span class="wire-topic rubric">{_e(ctx.topic_label(story))}</span></li>')
-    return (f'<section class="block surface-bone" id="earlier" aria-labelledby="earlier-title"><div class="frame">'
-            f'<div class="block-head"><div><p class="rubric rubric-accent">{_e(ctx.s["wire"]["title"])}</p>'
-            f'<h2 class="block-title" id="earlier-title">{_e(ctx.s["earlier"]["title"])}</h2>'
-            f'<p>{_e(ctx.s["earlier"]["dek"])}</p></div></div>{chips}'
-            f'<ol class="wire" aria-label="{_e(ctx.s["a11y"]["wire_table"])}">{"".join(rows)}</ol></div></section>'
-            f'{_FILTER_SCRIPT if chips else ""}')
-
-
+TOPIC_INDEX_MAX = 12
 TOPIC_PAGE_MIN = 3  # build.py writes topic/<slug>/ only for topics with at least this many stories
 
 
 def _topics(stories: list[dict], ctx: _Ctx) -> str:
-    tiles = "".join(
-        f'<li><a href="{_e(ctx.topic_href(topic))}"><b>{_e(ctx.topic_labels[topic])}</b>'
-        f'<span class="rubric">{_e(plural(ctx.catalog, "story", count))}</span></a></li>'
-        for topic, count in plan_mod.topic_counts(stories, ctx.topic_labels) if count >= TOPIC_PAGE_MIN)  # a tile only for a topic that has a page
+    ranked = sorted(((t, c) for t, c in plan_mod.topic_counts(stories, ctx.topic_labels) if c >= TOPIC_PAGE_MIN),  # a link only for a topic that has a page
+                    key=lambda tc: -tc[1])[:TOPIC_INDEX_MAX]
+    tiles = "".join(f'<li><a href="{_e(ctx.topic_href(topic))}">{_e(ctx.topic_labels[topic])}</a></li>' for topic, count in ranked)
     if not tiles:
         return ""
-    return (f'<section class="block surface-bone" id="topics" aria-labelledby="topics-title"><div class="frame">'
-            f'<div class="block-head"><div><h2 class="block-title" id="topics-title">{_e(ctx.s["topics"]["title"])}</h2>'
-            f'<p>{_e(ctx.s["topics"]["dek"])}</p></div></div><ul class="topic-tiles">{tiles}</ul></div></section>')
+    # R4 has no TOPICS block after the Bone band; the nav's «Topics» link still needs a real, visible target, so the
+    # tiles live in one closed disclosure row above the Letters strip. It opens when the nav (or a link) targets #topics.
+    # R4 has no Topics block between the board and Letters. The nav's «Topics» link still needs a real, visible target:
+    # a quiet index of the busiest topics closes the page above the footer, like a table of contents.
+    return (f'<section class="d-front-topics" id="topics" aria-labelledby="topics-title"><div class="frame">'
+            f'<h2 id="topics-title">{_e(ctx.s["topics"]["title"])}</h2><ul>{tiles}</ul></div></section>')
 
 
 def _trio(home: str, ctx: _Ctx) -> str:
@@ -290,6 +266,11 @@ def _subscribe(home: str, base: str, ctx: _Ctx) -> str:
             f'<ul class="feeds">{feeds}</ul></div><div>{subscribe_block("all", ctx.code)}</div></div></section>')
 
 
+def _cm_copy(code):
+    from ..community import COPY
+    return COPY.get(code, COPY['en'])
+
+
 def front_context(*, order: list[dict], base: str) -> dict:
     """What the build hands to ``render``: the full ``front_order`` list and the site base."""
     return {"order": order, "base": base}
@@ -307,19 +288,33 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
     if not feature:
         return (f'<div class="landing"><section class="landing-intro" aria-labelledby="landing-title">'
                 f'<p class="rubric rubric-accent">FCMO AI</p><h1 id="landing-title">{_e(s["brand"]["motto"])}</h1>'
-                f'{record}</section></div>')
+                f'{record}</section>' + (f'<section class="frame d-front-letters">{cartas}</section>' if cartas else '') + '</div>')
     if not front:
         return f'<div class="landing">{_cover(feature, None, None, record)}</div>'
     base = front["base"] if front["base"].endswith("/") else front["base"] + "/"
     ctx = _Ctx(locale, base)
     order = front["order"]
     slots = plan_mod.landing_slots(order)
-    return '<div class="landing">' + "".join([
-        _cover(feature, slots["cover"], ctx, ""),
-        _board(slots["board"], ctx),
-        _band(order, ctx, home + "method/"),
-        _wire(slots["wire"], ctx),
+    from . import d_front
+    if cartas:
+        letters = f'<section class="frame d-front-letters">{cartas}</section>'
+    else:
+        # R4's Letters strip with no letters yet: the same two-card grid, built only from our own interface strings and
+        # material plates. No person, title, date or quote appears, because none exists.
+        from ..community import _LETTERS_EMPTY
+        from .essay import COPY as _EC
+        l = _LETTERS_EMPTY[ctx.code]
+        head, none = l[0], l[8]
+        letters = (f'<section class="frame d-front-letters d-front-letters--empty"><div class="d-letters-head"><h2>{_e(head)}</h2>'
+                   f'<a href="{_e(home)}letters/">{_e(_EC[ctx.code]["back"])} →</a></div><div class="d-letters-cards d-letters-cards--one">'
+                   f'<a class="d-letters-card" href="{_e(home)}letters/"><span class="d-letters-card-art d-letters-card-art--a" aria-hidden="true"></span>'
+                   f'<span class="d-letters-card-body"><span class="d-letters-card-kicker">FCMO AI · {_e(head)}</span>'
+                   f'<strong data-letters-empty>{_e(none)}</strong></span></a>'
+                   f'</div></section>')
+    return '<div class="landing d-front">' + "".join([
+        d_front.cover(feature, slots["cover"], ctx),
+        d_front.rank(([slots["cover"]] if slots["cover"] else []) + slots["board"], ctx),
+        letters,
+        d_front.follow(home, base, ctx, order),
         _topics(order, ctx),
-        _trio(home, ctx),
-        _subscribe(home, base, ctx),
     ]) + "</div>"

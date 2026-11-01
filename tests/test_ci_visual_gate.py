@@ -12,7 +12,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 ORACLE = ROOT / "tests" / "oraculos" / "verificar_ci_visual.py"
 sys.path.insert(0, str(ROOT))
-from tools.paper.playwright_module import resolve_playwright_module  # noqa: E402
+from tools.paper.playwright_module import browser_unavailable, resolve_playwright_module  # noqa: E402
 from tests._browser import skip_unless_browser  # noqa: E402
 
 
@@ -29,6 +29,8 @@ class CiVisualGateTests(unittest.TestCase):
 
     @skip_unless_browser(resolve_playwright_module, "Playwright/Chromium is not installed")
     def test_fixture_with_horizontal_overflow_fails_the_real_browser_oracle(self):
+        if not resolve_playwright_module():
+            browser_unavailable("Playwright/Chromium is not installed")
         with tempfile.TemporaryDirectory(prefix="fcmo-ci-visual-overflow-") as tmp:
             root = Path(tmp)
             for locale, route in (("en", ""), ("es-419", "es/"), ("zh-Hans", "zh/")):

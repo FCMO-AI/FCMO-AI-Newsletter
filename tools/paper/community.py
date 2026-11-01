@@ -243,6 +243,152 @@ def render_cartas(posts: list[dict[str, str | None]], locale_code: str) -> str:
     )
 
 
+def render_letters_shelf(letters: list[dict[str, Any]], locale_code: str) -> str:
+    """Render the data-backed Letters cards used by the front-page shelf.
+
+    Accepts the public Ghost projection and published editorial piece records.
+    Missing metadata stays absent; this renderer never supplies an author or role.
+    """
+    rows = []
+    for letter in letters:
+        if not isinstance(letter, dict):
+            continue
+        if letter.get("status", "published") != "published":
+            continue
+        title = letter.get("title")
+        if not isinstance(title, str) or not title.strip():
+            docs = letter.get("docs") or {}
+            doc = docs.get(locale_code) if isinstance(docs, dict) else None
+            title = doc.get("title") if isinstance(doc, dict) else None
+        if not isinstance(title, str) or not title.strip():
+            continue
+        url = letter.get("url")
+        slug = letter.get("slug")
+        if not url and isinstance(slug, str) and slug:
+            prefix = {"en": "", "es-419": "es/", "zh-Hans": "zh/"}.get(locale_code, "")
+            url = f"{prefix}cartas/{slug}/"
+        if not isinstance(url, str) or not url:
+            continue
+        date = letter.get("published_at") or letter.get("first_published_at")
+        authors = letter.get("authors")
+        if not authors and isinstance(letter.get("author"), str):
+            authors = [letter["author"]]
+        names = [a.get("name") if isinstance(a, dict) else a for a in (authors or [])]
+        names = [name.strip() for name in names if isinstance(name, str) and name.strip()]
+        image_url = letter.get("feature_image")
+        hero = letter.get("hero")
+        if not image_url and isinstance(hero, str):
+            fig = (letter.get("figures") or {}).get(hero, {})
+            image_url = f"editorial/pieces/{letter['slug']}/{fig['file']}" if fig.get("file") and letter.get("slug") else None
+        image = f'<img class="d-letter-image" src="{_e(image_url)}" alt="" loading="lazy">' if isinstance(image_url, str) and image_url else ""
+        date_html = f'<time class="d-letter-date">{_e(_date(str(date), locale_code))}</time>' if isinstance(date, str) and _published(date) else ""
+        author_html = f'<span class="d-letter-author">{_e(" · ".join(names))}</span>' if names else ""
+        image_class = "" if image else " no-image"
+        rows.append(f'<article class="d-letter-card{image_class}">{image}<div class="d-letter-card-copy">{date_html}{author_html}<h3><a href="{_e(url)}">{_e(title.strip())}</a></h3></div></article>')
+    if not rows:
+        return ""
+    return '<div class="d-letters-shelf">' + "".join(rows) + "</div>"
+
+
+_AUTHOR_ROLE = {  # approved biography only (Hub profile): Javier Castellanos is the founder; no other role is asserted
+    "javier": {"en": "Founder, FCMO", "es-419": "Fundador, FCMO", "zh-Hans": "创始人，FCMO"},
+}
+_KIND_TONE = {"letter": "intelligence", "essay": "living", "note": "foundry"}
+
+
+def _author_cards(letters: list[dict[str, Any]], names_of, locale_code: str) -> str:
+    from . import d_plates
+    seen: dict[str, str] = {}
+    cards, done = [], set()
+    for letter in letters:
+        for name in names_of(letter):
+            key = name.casefold()
+            if key in done or len(done) >= 2:
+                continue
+            done.add(key)
+            role = next((v.get(locale_code) or v["en"] for k, v in _AUTHOR_ROLE.items() if key.startswith(k)), "")
+            plate = d_plates.choose({"id": f"author|{key}", "topics": [key]}, seen, wide=False)
+            cards.append(f'<article class="d-author-card"><img src="/assets/img/d-plates/d-{plate}-thumb.webp" alt="" '
+                         f'width="360" height="225" loading="lazy" decoding="async"><div><h2>{_e(name)}</h2>'
+                         f'{f"<p>{_e(role)}</p>" if role else ""}</div></article>')
+    return f'<div class="d-author-cards">{"".join(cards)}</div>' if cards else ""
+
+
+def render_letters_index(letters: list[dict[str, Any]], locale_code: str) -> str:
+    """Render the index rows; the page shell and route belong to paper.build."""
+    labels = {
+        "en": ("Letters", "Written by the people behind FCMO.", "Date", "Author", "Title", "Type", "Letters from FCMO", "Letters by email"),
+        "es-419": ("Cartas", "Escritas por las personas detrás de FCMO.", "Fecha", "Autor", "Título", "Tipo", "Cartas de FCMO", "Cartas por correo"),
+        "zh-Hans": ("来信", "由 FCMO 背后的人亲自撰写。", "日期", "作者", "标题", "类型", "FCMO 来信", "邮件来信"),
+    }.get(locale_code, ("Letters", "Written by the people behind FCMO.", "Date", "Author", "Title", "Type", "Letters from FCMO", "Letters by email"))
+    kind_labels = {
+        "en": {"letter": "Letter", "essay": "Essay", "note": "Note"},
+        "es-419": {"letter": "Carta", "essay": "Ensayo", "note": "Nota"},
+        "zh-Hans": {"letter": "来信", "essay": "随笔", "note": "短札"},
+    }
+    def names_of(letter):
+        authors = letter.get("authors") or ([letter.get("author")] if letter.get("author") else [])
+        names = [a.get("name") if isinstance(a, dict) else a for a in authors]
+        return [n.strip() for n in names if isinstance(n, str) and n.strip()]
+    ordered = sorted((x for x in letters if isinstance(x, dict) and x.get("status", "published") == "published"),
+                     key=lambda x: x.get("published_at") or x.get("first_published_at") or "", reverse=True)
+    rows = []
+    for letter in ordered:
+        card = render_letters_shelf([letter], locale_code)
+        if not card:
+            continue
+        docs = letter.get("docs") or {}
+        doc = docs.get(locale_code, {}) if isinstance(docs, dict) else {}
+        title = letter.get("title") or (doc.get("title") if isinstance(doc, dict) else "")
+        prefix = {"en": "", "es-419": "es/", "zh-Hans": "zh/"}.get(locale_code, "")
+        url = letter.get("url") or f'{prefix}cartas/{_e(letter.get("slug", ""))}/'
+        date = letter.get("published_at") or letter.get("first_published_at")
+        date_text = _date(str(date), locale_code) if isinstance(date, str) and _published(date) else ""
+        kind = letter.get("kind")
+        kind_text = kind_labels.get(locale_code, kind_labels["en"]).get(kind, "") if isinstance(kind, str) else ""
+        tone = _KIND_TONE.get(kind, "stone") if isinstance(kind, str) else "stone"
+        excerpt = letter.get("custom_excerpt") or (doc.get("dek") if isinstance(doc, dict) else "")
+        mins = letter.get("reading_time") or letter.get("read_minutes")
+        read = f'{int(mins)} min' if isinstance(mins, (int, float)) and mins > 0 else ""
+        chip = f'<i class="d-kind-dot d-kind-dot--{tone}" aria-hidden="true"></i>{_e(kind_text)}' if kind_text else ""
+        rows.append(f'<li class="d-letter-row"><time aria-label="{_e(date)}">{_e(date_text)}</time><span>{_e(" · ".join(names_of(letter)))}</span>'
+                    f'<span><a href="{_e(url)}">{_e(title)}</a>{f"<small>{_e(excerpt)}</small>" if excerpt else ""}</span>'
+                    f'<span class="d-letter-kind">{chip}</span><span class="d-letter-read">{_e(read)}</span></li>')
+    if not rows:
+        return ""
+    title, intro, date, author, entry_title, kind, list_title, email_title = labels
+    inactive = COPY.get(locale_code, COPY["en"]).get("inactive_title", "")
+    return (f'<section class="d-letter-index"><header><p class="d-kicker">FCMO AI · {_e(title)}</p>'
+            f'<h1>{_e(title)}</h1><p>{_e(intro)}</p></header>{_author_cards(ordered, names_of, locale_code)}'
+            f'<h2 class="d-letters-list-title">{_e(list_title)}</h2><div class="d-letter-columns" aria-hidden="true">'
+            f'<span>{_e(date)}</span><span>{_e(author)}</span><span>{_e(entry_title)}</span><span>{_e(kind)}</span><span></span></div>'
+            f'<ol>{"".join(rows)}</ol>'
+            f'<aside class="d-letters-email"><div><h2>{_e(email_title)}</h2><p>{_e(inactive)}</p></div></aside></section>')
+
+
+_LETTERS_EMPTY = {
+    "en": ("Letters", "Written by the people behind FCMO. Not generated, not automated.", "Date", "Author", "Title", "Type", "Letters from FCMO", "Letters by email", "No letters have been published yet."),
+    "es-419": ("Cartas", "Escritas por las personas detrás de FCMO. No generadas, no automatizadas.", "Fecha", "Autor", "Título", "Tipo", "Cartas de FCMO", "Cartas por correo", "Aún no hay cartas publicadas."),
+    "zh-Hans": ("来信", "由 FCMO 背后的人亲自撰写。不是生成的，也不是自动化的。", "日期", "作者", "标题", "类型", "FCMO 来信", "邮件来信", "目前尚无已发表的来信。"),
+}
+
+
+def render_letters_empty(locale_code: str, *, plate_html: str = "") -> str:
+    """R4 Letters page with no letters yet: the full structure and an honest empty row.
+
+    No author card, name, date or title is shown, because none exists: the cards and rows
+    appear only from published records (``render_letters_index``)."""
+    title, intro, date, author, entry_title, kind, list_title, email_title, none = _LETTERS_EMPTY.get(locale_code, _LETTERS_EMPTY["en"])
+    inactive = COPY.get(locale_code, COPY["en"]).get("inactive_title", "")
+    plate = f'<div class="d-letters-plate">{plate_html}</div>' if plate_html else ""
+    return (f'<section class="d-letter-index d-letter-index--empty"><header><p class="d-kicker">FCMO AI · {_e(title)}</p>'
+            f'<h1>{_e(title)}</h1><p>{_e(intro)}</p></header>{plate}'
+            f'<h2 class="d-letters-list-title">{_e(list_title)}</h2><div class="d-letter-columns" aria-hidden="true">'
+            f'<span>{_e(date)}</span><span>{_e(author)}</span><span>{_e(entry_title)}</span><span>{_e(kind)}</span><span></span></div>'
+            f'<p class="d-letters-none" data-letters-empty>{_e(none)}</p>'
+            f'<aside class="d-letters-email"><div><h2>{_e(email_title)}</h2><p>{_e(inactive)}</p></div></aside></section>')
+
+
 def without_empty_cartas_slot(page: str, cartas: str) -> str:
     """Remove A3's empty slot wrapper so an outage leaves no visual box."""
     if cartas:

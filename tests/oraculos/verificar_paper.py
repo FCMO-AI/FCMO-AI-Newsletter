@@ -126,8 +126,9 @@ const base = process.argv[1], rows = JSON.parse(require('node:fs').readFileSync(
         await evaluate(() => document.fonts?.ready.then(() => true));
         const result = await evaluate(() => {
           const h = document.querySelector('.landing-feature h1');
-          // The cover has no separate dek: its next line is the evidence row (grade, sources, gaps); it must be above 900 px.
-          const dek = document.querySelector('.landing-feature .cover-dek') || document.querySelector('.landing-feature .cover-evrow');
+          // The dek (legacy .cover-dek, Newsletter D .d-cover-dek) or, without one, the evidence row must start above 900 px.
+          const dek = document.querySelector('.landing-feature .cover-dek') || document.querySelector('.landing-feature .d-cover-dek')
+            || document.querySelector('.landing-feature .cover-evrow');
           // An author-level display rule must never override the hidden attribute (stale banner on a FRESH edition).
           const shownHidden = [...document.querySelectorAll('[hidden]')].filter(e => getComputedStyle(e).display !== 'none')
             .map(e => e.className || e.tagName);

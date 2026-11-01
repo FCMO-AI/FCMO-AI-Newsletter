@@ -70,8 +70,9 @@ class PaperEditorialDepthTests(unittest.TestCase):
                     self.assertIn('class="taxonomy-neighbors"', page)
 
     def test_front_method_and_status_expose_live_publication_facts_in_all_locales(self):
-        live_ids = {s["id"] for s in json.loads((ROOT / "site/data/stories.v2.json").read_text())["stories"]
-                    if s["status"] == "live"}
+        live_rows = [s for s in json.loads((ROOT / "site/data/stories.v2.json").read_text())["stories"]
+                     if s["status"] == "live"]
+        live_ids = {s["id"] for s in live_rows}
         self.assertEqual(len(self.story_routes), len(live_ids) * 3)
         for locale in ("en", "es-419", "zh-Hans"):
             self.assertEqual({route["story_id"] for route in self.story_routes if route["locale"] == locale}, live_ids)
@@ -80,11 +81,18 @@ class PaperEditorialDepthTests(unittest.TestCase):
             method = (self.out / prefix / "method/index.html").read_text(encoding="utf-8")
             status = (self.out / prefix / "status/index.html").read_text(encoding="utf-8")
             with self.subTest(locale=locale):
-                self.assertIn('class="band-counts"', front)  # c6: the method band carries the live counts
+                # R4: the Bone band is the legend only. The live corpus is still stated on the front, as the
+                # per-class story counts of its trio, which must add up to every live story.
+                self.assertNotIn('class="band-counts"', front)
+                from tools.paper.front_plan import class_counts
+                counts = class_counts(live_rows)
+                self.assertEqual(sum(counts.values()), len(live_ids))
+                band = front.split('class="band-trio"', 1)[1].split('</section>', 1)[0]
+                for n in counts.values():
+                    self.assertIn(str(n), band)
                 self.assertIn('class="method-steps"', method)
                 self.assertIn('class="method-example"', method)
                 self.assertIn('class="status-grid"', status)
-                self.assertIn(str(len(live_ids)), front)
                 self.assertIn(str(len(live_ids)), method)
                 # Status comes from the current newsroom receipt; route totals
                 # are asserted above from this exact build.

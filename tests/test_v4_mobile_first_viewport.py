@@ -19,6 +19,8 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from tools.paper.playwright_module import browser_unavailable  # noqa: E402
+
 from tools.paper.i18n import format_date, load_catalogs  # noqa: E402
 from tools.paper.playwright_module import resolve_playwright_module  # noqa: E402
 from tools.paper.status_banner import render  # noqa: E402
@@ -147,13 +149,12 @@ class CompactChromeCssTests(unittest.TestCase):
             if "status-banner" in selector.split(",")[-1].split("+")[-1] or "corpus-freshness" in selector:
                 self.assertNotRegex(body, r"display:none|visibility:hidden|overflow:hidden|max-height|clip|line-clamp")
 
-    def test_final_mobile_chrome_is_top_bar_below_760_and_bottom_tabs_take_the_rest(self):
-        # CONTRACT-CHANGES.md #9: single header. At <=760px the top nav gives way to the bottom tabs.
-        self.assertIn(".topnav,.topbar .btn-cta{display:none}", self.paper)
-        self.assertIn(".tabbar{display:grid;grid-template-columns:repeat(5,1fr)", self.paper)
-        self.assertIn("@media(max-width:760px){", self.paper)
-        self.assertIn("body:has(.tabbar){padding-bottom:var(--l-tabbar)}", self.paper)
-        self.assertNotRegex(self.paper, r"body\s+\.brand-sub\s*\{\s*display:block\s*\}")
+    def test_final_mobile_chrome_uses_a_native_menu_with_44px_control(self):
+        css = (ROOT / "site-src/assets/css/d/d-base.css").read_text()
+        self.assertIn("@media(max-width:1000px){.d-nav .topnav,.d-nav .langsel{display:none}", css)
+        self.assertIn(".d-menu{display:block;margin-left:auto}", css)
+        self.assertIn(".d-menu summary{width:44px;min-height:44px;display:grid;place-items:center}", css)
+        self.assertIn(".d-menu-links a{min-width:44px}", css)
 
     def test_story_prose_wraps_long_unbroken_text_without_story_specific_rules(self):
         rendered = self.module.render(json.loads(TOKENS.read_text(encoding="utf-8")))
@@ -176,15 +177,10 @@ class BuiltFrontChromeTests(unittest.TestCase):
     def tearDownClass(cls):
         cls.temp.cleanup()
 
-    def test_front_has_one_header_a_top_nav_and_the_bottom_tabs_on_every_locale(self):
-        # CONTRACT-CHANGES.md #10: the front is the locale root; one header (top bar), no product brand line.
-        # The top bar carries Today, Topics, Archive, Search, Corrections, Method; the bottom tabs carry the
-        # five reader actions (Today, Archive, Search, Corrections, Subscribe) at <=760px.
+    def test_front_has_one_header_native_menu_and_footer_corrections_in_every_locale(self):
         for code, prefix in LOCALES:
-            top_nav = {f"{BASE}{prefix}", f"{BASE}{prefix}#topics", f"{BASE}{prefix}archive/",
-                       f"{BASE}{prefix}search/?focus=1", f"{BASE}{prefix}corrections/", f"{BASE}{prefix}method/"}
-            tabs = {f"{BASE}{prefix}", f"{BASE}{prefix}archive/", f"{BASE}{prefix}search/?focus=1",
-                    f"{BASE}{prefix}corrections/", f"{BASE}{prefix}subscribe/"}
+            top_nav = {f"{BASE}{prefix}{path}" for path in
+                       ("", "letters/", "#topics", "archive/", "method/", "search/?focus=1")}
             with self.subTest(locale=code):
                 page = (self.out / prefix / "index.html").read_text(encoding="utf-8")
                 self.assertEqual(page.count("<header "), 1)
@@ -193,8 +189,19 @@ class BuiltFrontChromeTests(unittest.TestCase):
                 self.assertNotIn('class="site-header"', page)
                 nav = re.search(r'<nav class="topnav"[^>]*>(.*?)</nav>', header, re.S).group(1)
                 self.assertEqual(set(re.findall(r'href="([^"]*)"', nav)), top_nav)
-                tab = re.search(r'<nav class="tabbar"[^>]*>(.*?)</nav>', page, re.S).group(1)
-                self.assertEqual(set(re.findall(r'href="([^"]*)"', tab)), tabs)
+                menu = re.search(r'<details class="d-menu">(.*?)</details>', header, re.S).group(1)
+                self.assertRegex(menu, r'<summary aria-label="[^"]+">')
+                self.assertEqual(set(re.findall(r'<a href="([^"]*)"(?: aria-current="page")?>', menu)), top_nav)
+                self.assertEqual(set(re.findall(r'<a href="([^"]+)" hreflang="([^"]+)"', menu)),
+                                 {(f"{BASE}{p}", c) for c, p in LOCALES})
+                self.assertNotIn('class="tabbar"', page)
+                footer = re.search(r'<footer class="d-footer.*?</footer>', page, re.S).group()
+                for path in ('corrections/', 'subscribe/'):
+                    self.assertIn(f'href="{BASE}{prefix}{path}"', footer)
+                for url in top_nav:
+                    rel = url.removeprefix(BASE).split('#')[0].split('?')[0]
+                    self.assertTrue((self.out / rel / 'index.html').is_file(), url)
+
 
 
 class EvaluateRulesTests(unittest.TestCase):
@@ -210,24 +217,28 @@ class EvaluateRulesTests(unittest.TestCase):
         r = self.rect
 
         def mobile_for(prefix: str) -> dict:
-            nav = [f"{BASE}{prefix}{path}" for path in ("", "#topics", "archive/", "search/?focus=1", "corrections/", "method/")]
-            tabs = [f"{BASE}{prefix}{path}" for path in ("", "archive/", "search/?focus=1", "corrections/", "subscribe/")]
+            nav = [f"{BASE}{prefix}{path}" for path in ("", "letters/", "#topics", "archive/", "method/", "search/?focus=1")]
+            menu_links = [{"href": href, **r(68 + 44*i, 112 + 44*i, 16, 200)} for i, href in enumerate(nav)]
+            languages = [{"href": f"{BASE}{p}", "lang": code, **r(340, 384, 16+100*i, 100+100*i)}
+                         for i, (code, p) in enumerate(LOCALES)]
             return {
                 "h1": r(165, 273), "leadHref": f"{BASE}{prefix}2026/09/13/lead/", "zoneSwitch": 0,
-                "languages": [r(6, 50, 200, 244), r(6, 50, 246, 290), r(6, 50, 292, 336)],
+                "languages": languages,
                 "banner": {"state": "DELAYED", "clipped": False, **r(60, 82)},
                 "freshness": {"clipped": False, **r(84, 113)},
-                "topbar": {**r(0, 56, 0, 390), "items": [r(6, 50, 16, 120), r(6, 50, 200, 244), r(6, 50, 246, 290), r(6, 50, 292, 336)]},
-                "tabbar": {**r(780, 844, 0, 390), "links": [{"href": href, **r(780, 844, 78 * i, 78 * (i + 1))} for i, href in enumerate(tabs)]},
-                "receiptNa": r(525, 585, 33, 357),
+                "topbar": {**r(0, 68, 0, 390), "items": [r(6, 50, 16, 120), r(6, 50, 200, 244), r(6, 50, 292, 336)]},
+                "menu": {"summary": r(6, 50, 200, 244), "initiallyClosed": True, "opened": True,
+                         "closed": True, "headlineTop": 165, "links": menu_links + languages},
+                "headers": 1, "tabbarPresent": False,
+                "footerLinks": [{"href": f"{BASE}{prefix}{p}", **r(950, 994)} for p in ("corrections/", "subscribe/")],
                 "navLinks": [{"href": href, **r(0, 0, visible=False)} for href in nav],
                 "topicsTarget": True,
-                "visibleHrefs": [*tabs, f"{BASE}{prefix}method/", f"{BASE}{prefix}subscribe/"],
+                "visibleHrefs": nav,
                 "scrollWidth": 390, "clientWidth": 390, "consoleErrors": [], "failedRequests": [],
             }
 
         def desktop_for(prefix: str) -> dict:
-            nav = [f"{BASE}{prefix}{path}" for path in ("", "#topics", "archive/", "search/?focus=1", "corrections/", "method/")]
+            nav = [f"{BASE}{prefix}{path}" for path in ("", "letters/", "#topics", "archive/", "method/", "search/?focus=1")]
             return {"zoneSwitch": 0, "brandmark": True, "freshnessLine": True, "tabbarVisible": False,
                     "topnav": {**r(0, 56, 160, 800), "links": [{"href": href, **r(6, 50, 160 + 100 * i, 250 + 100 * i)} for i, href in enumerate(nav)]},
                     "scrollWidth": 1440, "clientWidth": 1440, "consoleErrors": [], "failedRequests": []}
@@ -243,7 +254,8 @@ class EvaluateRulesTests(unittest.TestCase):
     def test_a_healthy_first_viewport_has_no_violation(self):
         self.assertEqual(self.oracle.evaluate(self.healthy()), [])
         edge = self.healthy()
-        edge["mobile"]["en"]["h1"] = self.rect(460, 780)  # top at the budget, bottom at the tab bar
+        edge["mobile"]["en"]["h1"] = self.rect(460, 844)  # same first-screen budget without bottom tabs
+        edge["mobile"]["en"]["menu"]["headlineTop"] = 460
         fresh = edge["mobile"]["es-419"]
         fresh["banner"] = {"state": "FRESH", "clipped": False, **self.rect(0, 0, visible=False)}
         edge["mobile"]["es-419"]["topbar"]["height"] = 56
@@ -258,10 +270,10 @@ class EvaluateRulesTests(unittest.TestCase):
         def en(key):
             return lambda change: (lambda m: change(m["mobile"]["en"][key]))
 
-        def tab_link(index, **changes):
-            return lambda m: m["mobile"]["es-419"]["tabbar"]["links"][index].update(changes)
+        def menu_link(index, **changes):
+            return lambda m: m["mobile"]["es-419"]["menu"]["links"][index].update(changes)
 
-        languages, banner, fresh, bar, tabs = en("languages"), en("banner"), en("freshness"), en("topbar"), en("tabbar")
+        languages, banner, fresh, bar, menu = en("languages"), en("banner"), en("freshness"), en("topbar"), en("menu")
         cases = [
             ("h1-top", mobile("h1", r(461, 600))),
             ("h1-top", mobile("h1", None)),
@@ -282,20 +294,24 @@ class EvaluateRulesTests(unittest.TestCase):
             ("freshness-above-h1", fresh(lambda f: f.update(visible=False))),
             ("freshness-above-h1", fresh(lambda f: f.update(left=-1))),
             ("freshness-above-h1", mobile("freshness", None)),
-            ("topbar-height", bar(lambda b: b.update(height=57))),
+            ("topbar-height", bar(lambda b: b.update(height=70))),
             ("topbar-height", bar(lambda b: b.update(visible=False))),
             ("topbar-row", bar(lambda b: b["items"][1].update(top=40, bottom=84))),
-            ("topbar-row", bar(lambda b: b["items"][3].update(right=391))),
+            ("topbar-row", bar(lambda b: b["items"][2].update(right=391))),
             ("topbar-row", bar(lambda b: b["items"].clear())),
-            ("tabbar-row", tabs(lambda t: t.update(bottom=845))),
-            ("tabbar-row", tabs(lambda t: t.update(visible=False))),
-            ("tabbar-row", tab_link(3, top=700, bottom=764)),
-            ("tabbar-row", tab_link(4, visible=False)),
-            ("tabbar-row", tab_link(0, href=f"{BASE}elsewhere/")),
-            ("tabbar-row", lambda m: m["mobile"]["es-419"]["tabbar"]["links"].pop()),
-            ("tabbar-clear", mobile("h1", r(400, 781))),
-            ("tabbar-clear", mobile("receiptNa", r(525, 781))),
-            ("tabbar-clear", mobile("receiptNa", None)),
+            ("menu-usable", menu(lambda m: m["summary"].update(right=243))),
+            ("menu-usable", menu(lambda m: m["summary"].update(height=43))),
+            ("menu-usable", menu(lambda m: m.update(opened=False))),
+            ("menu-usable", menu(lambda m: m.update(initiallyClosed=False))),
+            ("menu-usable", menu_link(3, height=43)),
+            ("menu-usable", menu_link(4, visible=False)),
+            ("menu-usable", menu_link(0, href=f"{BASE}elsewhere/")),
+            ("menu-usable", lambda m: m["mobile"]["es-419"]["menu"]["links"].pop()),
+            ("menu-restored", menu(lambda m: m.update(closed=False))),
+            ("menu-restored", menu(lambda m: m.update(headlineTop=166))),
+            ("menu-restored", mobile("headers", 2)),
+            ("menu-restored", mobile("tabbarPresent", True)),
+            ("nav-reachable", lambda m: m["mobile"]["en"]["footerLinks"].pop(0)),
             ("nav-reachable", lambda m: m["mobile"]["en"]["visibleHrefs"].remove(f"{BASE}method/")),
             ("nav-reachable", lambda m: m["mobile"]["en"].update(topicsTarget=False)),
             ("nav-reachable", lambda m: m["mobile"]["en"]["navLinks"][0].update(href=f"{BASE}elsewhere/")),
@@ -323,9 +339,12 @@ class EvaluateRulesTests(unittest.TestCase):
             ("coverage", lambda m: m["mobile"].pop("en")),
             ("coverage", lambda m: m["desktop"].pop("zh-Hans")),
         ]
-        # A missing headline also leaves nothing to measure the banner and freshness line against; a headline ending
-        # past the viewport also ends under the tab bar. Every other mutation reports exactly its own rule.
-        EXTRA = {1: ["h1-top", "banner-above-h1", "freshness-above-h1"], 2: ["h1-bottom", "tabbar-clear"]}
+        # Coupled measurements report both violations: headline movement after closing the menu,
+        # or a language target that breaks both language access and menu usability.
+        EXTRA = {0: ["h1-top", "menu-restored"],
+                 1: ["h1-top", "banner-above-h1", "freshness-above-h1"],
+                 2: ["h1-bottom", "menu-restored"],
+                 5: ["language-nav", "menu-usable"], 6: ["language-nav", "menu-usable"]}
         seen = set()
         for index, (rule, mutate) in enumerate(cases):
             with self.subTest(case=index, rule=rule):
@@ -335,13 +354,14 @@ class EvaluateRulesTests(unittest.TestCase):
                 self.assertEqual(found, EXTRA.get(index, [rule]))
                 seen.add(rule)
         self.assertEqual(seen, {"h1-top", "h1-bottom", "one-fcmo", "language-nav", "banner-above-h1", "freshness-above-h1",
-                                "topbar-height", "topbar-row", "tabbar-row", "tabbar-clear", "nav-reachable", "overflow",
+                                "topbar-height", "topbar-row", "menu-usable", "menu-restored", "nav-reachable", "overflow",
                                 "console", "requests", "desktop-chrome", "desktop-one-fcmo", "desktop-overflow",
                                 "desktop-console", "page-overflow", "page-console", "coverage"})
 
     def test_the_h1_budget_is_460_px_and_a_missing_signal_is_a_violation(self):
         at_461 = self.healthy()
         at_461["mobile"]["en"]["h1"] = self.rect(461, 600)
+        at_461["mobile"]["en"]["menu"]["headlineTop"] = 461
         violations = self.oracle.evaluate(at_461)
         self.assertEqual(len(violations), 1)
         self.assertIn("461px", violations[0])
@@ -413,11 +433,15 @@ class OracleInBrowserTests(unittest.TestCase):
         for code, prefix in LOCALES:
             with self.subTest(locale=code):
                 mobile = measurements["mobile"][code]
-                # The probe must see what CSS hides on a phone: the six top-nav links are hidden (the five tabs
-                # replace them), the five tab links are shown, and no product door exists.
+                # The keyboard-opened native menu exposes all six destinations and three languages;
+                # closing it restores the page. The desktop nav stays hidden on phones.
                 self.assertEqual([link["visible"] for link in mobile["navLinks"]], [False] * 6)
-                self.assertEqual(len(mobile["tabbar"]["links"]), 5)
-                self.assertTrue(all(link["visible"] for link in mobile["tabbar"]["links"]))
+                self.assertEqual(len(mobile["menu"]["links"]), 9)
+                self.assertTrue(all(link["visible"] for link in mobile["menu"]["links"]))
+                self.assertTrue(mobile["menu"]["opened"])
+                self.assertTrue(mobile["menu"]["closed"])
+                self.assertEqual(mobile["headers"], 1)
+                self.assertFalse(mobile["tabbarPresent"])
                 self.assertEqual(mobile["zoneSwitch"], 0)
                 self.assertTrue(mobile["topicsTarget"])
                 self.assertFalse(mobile["banner"]["clipped"])

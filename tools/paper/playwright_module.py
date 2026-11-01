@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import unittest
 import shutil
 import subprocess
 from pathlib import Path
@@ -36,3 +37,16 @@ def resolve_playwright_module() -> str | None:
 
 def missing_playwright_message() -> str:
     return "BROWSER_UNAVAILABLE: set PLAYWRIGHT_MODULE to the installed Node Playwright module path"
+
+
+def browser_required() -> bool:
+    """CI sets FCMO_REQUIRE_BROWSER=1: a missing browser is then a failure, never a silent skip."""
+    return os.environ.get("FCMO_REQUIRE_BROWSER", "").strip().lower() in {"1", "true", "yes"}
+
+
+def browser_unavailable(reason: str | None = None) -> None:
+    """Raise the outcome for a browser test that cannot run: SkipTest locally, AssertionError when the browser is required."""
+    text = reason or missing_playwright_message()
+    if browser_required():
+        raise AssertionError(f"FCMO_REQUIRE_BROWSER=1 but the browser tests cannot run: {text}")
+    raise unittest.SkipTest(text)
