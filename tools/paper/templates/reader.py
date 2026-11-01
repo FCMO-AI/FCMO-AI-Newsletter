@@ -394,22 +394,22 @@ def claim_ledger(evidence: dict, catalog: dict) -> str:
             f'<p class="ledger-intro">{e(st["ledger"]["intro"])}</p>{body}</section>')
 
 
-def _bullets(values: list) -> str:
-    return "".join(f'<li>{e(v.get("description", "") if isinstance(v, dict) else v)}</li>' for v in values)
+def _bullets(values: list, prose_html=e) -> str:
+    return "".join(f'<li>{prose_html(v.get("description", "") if isinstance(v, dict) else v)}</li>' for v in values)
 
 
-def unknowns_box(evidence: dict, catalog: dict) -> str:
+def unknowns_box(evidence: dict, catalog: dict, prose_html=e) -> str:
     """The oxblood «What we still don't know» box and the separate limits list."""
     st = catalog["strings"]
     gaps = evidence.get("gaps") or []
     limits = evidence.get("limitations") or []
     against = evidence.get("contradictory") or []
     out = [f'<aside id="gaps" class="unknowns" aria-labelledby="unknowns-title"><h2 id="unknowns-title" class="unknowns-title">{e(st["ledger"]["unknowns_title"])}</h2>'
-           + (f'<ul>{_bullets(gaps)}</ul>' if gaps else f'<p>{e(st["design"]["none_recorded"])}</p>') + '</aside>']
+           + (f'<ul>{_bullets(gaps, prose_html)}</ul>' if gaps else f'<p>{e(st["design"]["none_recorded"])}</p>') + '</aside>']
     out.append(f'<section id="limits" class="limits"><h2>{e(st["ledger"]["limits_title"])}</h2>'
-               + (f'<ul>{_bullets(limits)}</ul>' if limits else f'<p>{e(st["design"]["none_recorded"])}</p>') + '</section>')
+               + (f'<ul>{_bullets(limits, prose_html)}</ul>' if limits else f'<p>{e(st["design"]["none_recorded"])}</p>') + '</section>')
     if against:
-        out.append(f'<section class="against"><h2>{e(st["story"]["contradictory"])}</h2><ul>{_bullets(against)}</ul></section>')
+        out.append(f'<section class="against"><h2>{e(st["story"]["contradictory"])}</h2><ul>{_bullets(against, prose_html)}</ul></section>')
     return "".join(out)
 
 
@@ -460,7 +460,7 @@ def story_view(*, story: dict, catalog: dict, code: str, title: str, dek_text: s
                evidence: dict, summary: object, why: object, technical: dict, status_html: str,
                automation_html: str, byline: str, dates_line: str, plate_html: str, note_html: str,
                taxonomy_html: str, navigation_html: str, topic_nav_html: str, machine_html: str,
-               title_class: str = "", dek_full: str = "") -> str:
+               title_class: str = "", dek_full: str = "", prose_html=e) -> str:
     """Render the approved D story while retaining the builder's stable interface."""
     context = locals()
     from .d_story import render
