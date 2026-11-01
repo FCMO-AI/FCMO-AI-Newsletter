@@ -196,6 +196,22 @@ jobs:
           python tests/oraculos/verificar_traduccion.py
           python tools/verify_release.py
 
+      # FCMO_REQUIRE_BROWSER=1 (F29, #168) makes the browser gates fail instead of
+      # skipping, so the guard needs the same pinned browser as Deploy. Without it
+      # every rebuild failed with BROWSER_UNAVAILABLE and the newsroom froze.
+      - uses: actions/setup-node@v6
+        if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright and Chromium for the guard
+        if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
+        run: |
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save playwright@1.63.0 axe-core@4.14.0
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "NODE_PATH=$RUNNER_TEMP/playwright/node_modules" >> "$GITHUB_ENV"
+          echo "AXE_CORE_PATH=$RUNNER_TEMP/playwright/node_modules/axe-core/axe.min.js" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium
+
       - name: Guard the candidate against data that would break Deploy
         if: steps.preflight.outputs.path == 'rebuild' || steps.preflight.outputs.path == 'status'
         timeout-minutes: 45
