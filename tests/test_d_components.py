@@ -147,7 +147,7 @@ class FrontVariants(unittest.TestCase):
             html = d_front.rank(stories,ctx)
             self.assertEqual(html.count('<article class="d-rank-entry">'), n)
             if n:
-                self.assertIn(f'<b class="d-rank-number" data-n="{n:02d}">{n}</b>',html)  # R4 desktop numbers 1,2,3; R4 phone shows 01,02 via data-n (CSS)
+                self.assertIn(f'<b class="d-rank-number" data-n="{n:02d}"><span class="d-rank-digit">{n}</span></b>',html)  # R4 desktop numbers 1,2,3; R4 phone shows 01,02 via data-n (CSS) and keeps the digit readable (clipped, not font-size 0)
 
 
 class StoryVariants(unittest.TestCase):
