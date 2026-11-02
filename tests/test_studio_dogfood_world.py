@@ -284,8 +284,8 @@ class RunScoresWorld(unittest.TestCase):
         self.assertEqual(len(run.WORLD_ITEMS), 7)
         self.assertEqual(len(set(run.WORLD_ITEMS)), 7)
         self.assertEqual(run.Journey.expected_total(False, None), run.BASE_ITEMS + 7)
-        self.assertEqual(run.Journey.expected_total(True, None), run.BASE_ITEMS + 7 + 8)
-        self.assertEqual(run.Journey.expected_total(True, '1'), run.BASE_ITEMS + 7 + 9)
+        self.assertEqual(run.Journey.expected_total(True, None), run.BASE_ITEMS + 7 + 9)
+        self.assertEqual(run.Journey.expected_total(True, '1'), run.BASE_ITEMS + 7 + 10)
 
     def test_content_red_piece_renders_and_passes_the_fidelity_check_in_every_locale(self):
         # Causes that kept item 6 from running: a 503 preview (the en text lost the «42» of es-419 and zh-Hans: numeric token
