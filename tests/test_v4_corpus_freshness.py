@@ -30,7 +30,7 @@ LOCALES = (("en", ""), ("es-419", "es/"), ("zh-Hans", "zh/"))
 KEYS = {"state", "checked_at", "newest_at", "lag_hours", "lag_days", "lead_id", "lead_at", "lead_gap_days"}
 EDITION_STATES = ("FRESH", "QUIET", "DELAYED", "TRANSPORT_DOWN")
 FRESHNESS_STATES = ("current", "lagging", "stale", "unknown")
-LINE = re.compile(r'<p class="corpus-freshness"([^>]*)><strong>([^<]*)</strong> ([^<]*)</p>')
+LINE = re.compile(r'<p class="corpus-freshness"([^>]*)><strong>([^<]*)</strong> <span class="cf-detail">([^<]*)</span></p>')
 CARD = re.compile(r'<article class="status-card status-freshness"([^>]*)><span class="eyebrow">([^<]*)</span>'
                   r'<strong>([^<]*)</strong><p>([^<]*)</p>(<p class="freshness-lead">.*?</p>)?</article>', re.S)
 ENGLISH_WORDS = re.compile(r"\b(?:Newest|story|before|our|last|check|days?|Front-page|lead|older|within|newest|"

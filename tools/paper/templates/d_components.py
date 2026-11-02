@@ -111,8 +111,13 @@ def legend(catalog, *, stories=None, method_href=''):
                         f'{sample(k.replace("_","-"))}<p>{e(p[k+"_desc"])}</p></div>'
                         for k in ('shown','claimed','not_established'))
         # R4: legend only (the trio). No counts row, ordering link or extra note; the counting rule rides as the trio's tooltip.
+        cp = copy(catalog)
+        # Phone only (CSS): R4's «How to read» also names the three topic colours, so the dots in the list are decoded.
+        key = ''.join(f'<li><i class="d-topic-signal d-topic-signal--{k}" aria-hidden="true"></i><div><b>{e(cp["key_"+k+"_name"])}</b>'
+                      f'<span>{e(cp["key_"+k])}</span></div></li>' for k in ('foundry', 'living', 'intelligence'))
         return (f'<section class="method-band" id="method-band"><div class="d-legend"><h2>{e(title)}</h2>'
-                f'<div class="band-trio" title="{e(p["count_note"])}">{cells}</div></div></section>')
+                f'<div class="band-trio" title="{e(p["count_note"])}">{cells}</div></div></section>'
+                f'<ul class="d-topic-key" aria-label="{e(cp["how_to_read"])}">{key}</ul>')
     return f'<section class="d-legend"><h2>{e(title)}</h2><div class="d-legend-items">{items}</div></section>'
 
 
@@ -330,7 +335,7 @@ def evidence_glance(story, catalog, *, evidence, title, max_sources=2, max_gaps=
     sw = 340 if n == 1 else (W - G) // 2
     names = [s.get('title') or s.get('domain') or s.get('url') or '' for s in shown_sources]
     extra = len(primaries) - n
-    sh = 24 + 22 + max([_lines(t, sw - 70, 26) * 32 for t in names] or [0]) + (30 if extra else 0) + 8
+    sh = 24 + 22 + max([_lines(t, sw - 70, 26) * 32 for t in names] + [38]) + (30 if extra else 0) + 8
     xs = []
     for i, name in enumerate(names):
         x = (W - sw) // 2 if n == 1 else i * (sw + G)
@@ -358,7 +363,7 @@ def evidence_glance(story, catalog, *, evidence, title, max_sources=2, max_gaps=
         gxs = []
         gextra = len(gaps) - len(shown_gaps)
         gfoot = lambda i: catalog['strings']['proof']['not_established'] + (f' · + {gextra}' if (gextra > 0 and i == len(shown_gaps) - 1) else '')
-        gh = 24 + 24 + max(_lines(t, gw - 32, 26, .56) * 32 for t in shown_gaps) + 8 + 24 + 4
+        gh = 24 + 24 + max(_lines(t, gw - 32, 22, .56) * 27 for t in shown_gaps) + 8 + 24 + 4
         for i, text in enumerate(shown_gaps):
             x = (W - gw) // 2 if len(shown_gaps) == 1 else i * (gw + G)
             out.append(box('gap', x, gy, gw, gh, plural(catalog, 'open_gap_noun', 1), text, foot=gfoot(i)))
@@ -433,9 +438,9 @@ def topic(story, catalog):
 
 # D interface copy only. Editorial prose and all factual values come from records.
 COPY = {
-    'en': {'source_note': 'A source grade describes the source, not the truth of a claim.', 'timeline': 'Timeline', 'sources_and_claims': 'Sources and claims', 'claims_from_article': 'Claims (from the article)', 'full_record': 'The full record', 'graded_title': 'How this story was graded', 'editions': 'Editions', 'filters': 'Filters', 'archive_intro': 'Every edition is a dated snapshot. Corrections are appended, never rewritten.', 'all': 'All', 'stories': 'Stories', 'filter_scope': 'Filter stories on this page', 'process': 'Our editorial process', 'col_image': 'Image', 'col_topic': 'Topic', 'col_story': 'Story', 'col_gaps': 'Gaps', 'source_grade': 'Source grade', 'claim_status': 'Claim status'},
-    'es-419': {'source_note': 'El grado describe la fuente, no la veracidad de una afirmación.', 'timeline': 'Cronología', 'sources_and_claims': 'Fuentes y afirmaciones', 'claims_from_article': 'Afirmaciones (del artículo)', 'full_record': 'El registro completo', 'graded_title': 'Cómo se calificó esta historia', 'editions': 'Ediciones', 'filters': 'Filtros', 'archive_intro': 'Cada edición es un registro fechado. Las correcciones se añaden, nunca se reescriben.', 'all': 'Todos', 'stories': 'Historias', 'filter_scope': 'Filtrar las historias de esta página', 'process': 'Nuestro proceso editorial', 'col_image': 'Imagen', 'col_topic': 'Tema', 'col_story': 'Historia', 'col_gaps': 'Huecos', 'source_grade': 'Grado de la fuente', 'claim_status': 'Estado de la afirmación'},
-    'zh-Hans': {'source_note': '来源评级描述的是来源，而非主张的真实性。', 'timeline': '时间线', 'sources_and_claims': '来源与主张', 'claims_from_article': '主张（出自报道）', 'full_record': '完整记录', 'graded_title': '本报道如何评级', 'editions': '各期刊物', 'filters': '筛选', 'archive_intro': '每期都是带有日期的记录。更正以追加方式保留，不会覆盖原文。', 'all': '全部', 'stories': '报道', 'filter_scope': '筛选本页报道', 'process': '编辑流程', 'col_image': '图片', 'col_topic': '主题', 'col_story': '报道', 'col_gaps': '空白', 'source_grade': '来源评级', 'claim_status': '主张状态'},
+    'en': {'cta_full': 'Read the full story', 'board_book': 'The Evidence Book — Today', 'key_foundry': 'Compute, infrastructure, hardware, robotics.', 'key_living': 'Society, policy, health, the world around us.', 'key_intelligence': 'Models, agents, research.', 'key_foundry_name': 'Foundry', 'key_living_name': 'Living', 'key_intelligence_name': 'Intelligence', 'how_to_read': 'How to read FCMO AI', 'source_note': 'A source grade describes the source, not the truth of a claim.', 'timeline': 'Timeline', 'sources_and_claims': 'Sources and claims', 'claims_from_article': 'Claims (from the article)', 'full_record': 'The full record', 'graded_title': 'How this story was graded', 'editions': 'Editions', 'filters': 'Filters', 'archive_intro': 'Every edition is a dated snapshot. Corrections are appended, never rewritten.', 'all': 'All', 'stories': 'Stories', 'filter_scope': 'Filter stories on this page', 'process': 'Our editorial process', 'col_image': 'Image', 'col_topic': 'Topic', 'col_story': 'Story', 'col_gaps': 'Gaps', 'source_grade': 'Source grade', 'claim_status': 'Claim status'},
+    'es-419': {'cta_full': 'Leer la historia completa', 'board_book': 'El libro de evidencias — hoy', 'key_foundry': 'Cómputo, infraestructura, hardware, robótica.', 'key_living': 'Sociedad, política, salud, el mundo que nos rodea.', 'key_intelligence': 'Modelos, agentes, investigación.', 'key_foundry_name': 'Foundry', 'key_living_name': 'Living', 'key_intelligence_name': 'Intelligence', 'how_to_read': 'Cómo leer FCMO AI', 'source_note': 'El grado describe la fuente, no la veracidad de una afirmación.', 'timeline': 'Cronología', 'sources_and_claims': 'Fuentes y afirmaciones', 'claims_from_article': 'Afirmaciones (del artículo)', 'full_record': 'El registro completo', 'graded_title': 'Cómo se calificó esta historia', 'editions': 'Ediciones', 'filters': 'Filtros', 'archive_intro': 'Cada edición es un registro fechado. Las correcciones se añaden, nunca se reescriben.', 'all': 'Todos', 'stories': 'Historias', 'filter_scope': 'Filtrar las historias de esta página', 'process': 'Nuestro proceso editorial', 'col_image': 'Imagen', 'col_topic': 'Tema', 'col_story': 'Historia', 'col_gaps': 'Huecos', 'source_grade': 'Grado de la fuente', 'claim_status': 'Estado de la afirmación'},
+    'zh-Hans': {'cta_full': '阅读完整报道', 'board_book': '证据之书 — 今日', 'key_foundry': '算力、基础设施、硬件、机器人。', 'key_living': '社会、政策、健康与现实世界。', 'key_intelligence': '模型、智能体、研究。', 'key_foundry_name': 'Foundry', 'key_living_name': 'Living', 'key_intelligence_name': 'Intelligence', 'how_to_read': '如何阅读 FCMO AI', 'source_note': '来源评级描述的是来源，而非主张的真实性。', 'timeline': '时间线', 'sources_and_claims': '来源与主张', 'claims_from_article': '主张（出自报道）', 'full_record': '完整记录', 'graded_title': '本报道如何评级', 'editions': '各期刊物', 'filters': '筛选', 'archive_intro': '每期都是带有日期的记录。更正以追加方式保留，不会覆盖原文。', 'all': '全部', 'stories': '报道', 'filter_scope': '筛选本页报道', 'process': '编辑流程', 'col_image': '图片', 'col_topic': '主题', 'col_story': '报道', 'col_gaps': '空白', 'source_grade': '来源评级', 'claim_status': '主张状态'},
 }
 
 # Method page copy (R4 «Cómo trabajamos»).

@@ -13,6 +13,12 @@ PLATES = ('piedra-grieta', 'acero-junta', 'papel-pila', 'concreto-bloque', 'marm
           'pizarra-capas', 'metal-arista', 'piedra-escalon', 'papel-pliegue', 'hierro-fundido', 'arcilla-seca')
 # d-arcilla-seca is the warmest: it is only used as a thumbnail, never as a wide plate.
 THUMB_ONLY = {'arcilla-seca'}
+# The bank shares one lighting and framing, so same-material plates read as repeats (11-02, M4): a page takes
+# one plate per material family before it reuses a family.
+FAMILY = {'acero-junta': 'metal', 'metal-arista': 'metal', 'hierro-fundido': 'metal',
+          'papel-pila': 'papel', 'papel-pliegue': 'papel', 'concreto-bloque': 'concreto', 'marmol-corte': 'concreto',
+          'piedra-grieta': 'piedra', 'piedra-escalon': 'piedra', 'pizarra-capas': 'piedra', 'arcilla-seca': 'piedra',
+          'madera-veta': 'madera'}
 
 
 def _index(story):
@@ -28,12 +34,14 @@ def choose(story, seen=None, wide=False):
         return seen[sid]
     start = _index(story)
     taken = set(seen.values())
-    for step in range(len(PLATES)):
-        name = PLATES[(start + step) % len(PLATES)]
-        if name in taken or (wide and name in THUMB_ONLY):
-            continue
-        seen[sid] = name
-        return name
+    families = {FAMILY[n] for n in taken}
+    for fresh_family in (True, False):
+        for step in range(len(PLATES)):
+            name = PLATES[(start + step) % len(PLATES)]
+            if name in taken or (wide and name in THUMB_ONLY) or (fresh_family and FAMILY[name] in families):
+                continue
+            seen[sid] = name
+            return name
     name = PLATES[start % len(PLATES)]
     seen[sid] = name
     return name
