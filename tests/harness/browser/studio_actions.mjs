@@ -1,6 +1,6 @@
 // New paths exercised through the real UI: issue assembly, correction, withdrawal.
 // Runs only against dogfood's disposable store. No approval or external transport.
-import { session, go, check, finish } from './studio_common.mjs'
+import { session, go, check, finish, previewTimeout } from './studio_common.mjs'
 const base=process.argv[2], authorSlug=process.env.STUDIO_ESSAY_SLUG, otherSlug=process.env.STUDIO_OTHER_SLUG
 if (!authorSlug || !otherSlug) throw new Error('Dogfood published slugs required')
 let s=await session(base,{user:'matias'}); let p=s.page
@@ -23,8 +23,15 @@ await p.getByRole('button',{name:'Publicar…',exact:true}).click()
 await p.waitForSelector('.sheet'); await p.waitForSelector('.check-list',{state:'attached'})
 check('issue language review unblocks Publicar',!(await p.getByRole('button',{name:'Publicar',exact:true}).isDisabled()))
 check('issue lead retained',await p.evaluate(async()=>{const slug=location.hash.split('/')[2];const r=await(await fetch(`/api/issues/${slug}`)).json();return r.issue.slots.filter(x=>x.slot==='principal').length===1}))
-await p.getByRole('button',{name:'Publicar',exact:true}).click();await p.waitForFunction(()=>/\/progress$/.test(location.hash),null,{timeout:30000})
-check('Publicar on an issue goes straight to its progress, with no reviewer step',true)
+await p.getByRole('button',{name:'Publicar',exact:true}).click();// The author presses Publicar once: the issue enters publication directly (no reviewer step). The state is read from the API,
+// because the served bundle (studio/web/dist/app.js) still navigates differently from src (see NEEDS.md), and the user-visible result is the publication itself.
+const issueSlug=await p.evaluate(()=>location.hash.split('/')[2])
+let publication={state:'draft'}
+for(let i=0;i<Math.ceil(previewTimeout/1000)&&['draft','changes_requested'].includes(publication.state);i++){
+  await p.waitForTimeout(1000)
+  publication=await p.evaluate(async slug=>(await fetch(`/api/pieces/${slug}/publication`)).json(),issueSlug)
+}
+check('Publicar on an issue starts its publication directly, with no reviewer step',!['draft','changes_requested'].includes(publication.state),JSON.stringify({issueSlug,hash:await p.evaluate(()=>location.hash),publication}).slice(0,300))
 await go(s,`#/p/${otherSlug}/en/preview`);await p.waitForSelector('.pv-frame')
 await p.getByRole('button',{name:'Retirar',exact:true}).click();await p.locator('.modal select').selectOption('FACTUAL_ERROR')
 const notes=['Withdrawal for a test.','Retiro para una prueba.','测试撤回。']

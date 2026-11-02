@@ -1,4 +1,4 @@
-// Recovery dialogs belong to their screen; leaving preserves the private buffer.
+// Recovery dialogs belong to their screen; leaving (to the Publish sheet, the author flow of c59d060f9) preserves the private buffer.
 import {session,go,check,finish} from './studio_common.mjs'
 const slug=process.argv[3]||process.env.STUDIO_SLUG
 if(!slug)throw new Error('Seeded fixture required')
@@ -12,7 +12,7 @@ await p.evaluate(async slug=>{
 await go(s,`#/p/${slug}/en/translate/es-419`)
 await p.getByRole('button',{name:'Restaurar tu copia local',exact:true}).waitFor()
 check('a different local buffer requires an explicit recovery choice',await p.locator('.modal').isVisible())
-await go(s,`#/p/${slug}/review`);await p.waitForSelector('.rv-panes')
+await go(s,`#/p/${slug}/publish`);await p.waitForSelector('.check-list',{state:'attached'})
 check('leaving translation dismisses its dialog',await p.locator('.modal').count()===0)
 check('leaving preserves the private local copy',await p.evaluate(slug=>!!localStorage.getItem(`studio:buf:${slug}:es-419`),slug))
 await finish(s)
