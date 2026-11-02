@@ -19235,6 +19235,68 @@
       "title": "OpenAI informa grandes avances en evaluaciones de programación con lenguajes de baja disponibilidad de recursos",
       "why_it_matters": "COBOL, Fortran y otros lenguajes con menos datos de entrenamiento y documentación siguen presentes en software importante. Una mejor programación y migración que conserve el comportamiento podría aliviar un cuello de botella práctico de mantenimiento si estos resultados se transfieren a repositorios reales. Por ahora, la evidencia mide tareas de evaluación controladas; siguen siendo necesarias la revisión experta y las pruebas específicas del sistema, y no se han establecido efectos en producción ni ahorros económicos."
     },
+    "FCMO-652DAA56B19A": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "arXiv registra que la versión 1 del artículo se envió el 12 de octubre de 2026 y señala su aceptación como póster en el taller Agents in the Wild de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una cuadrícula de 280 casos de AgentDojo con acciones generadas por Qwen2.5-7B-Instruct, el artículo informa una predicción débil del compromiso con acciones inseguras antes de ejecutarlas al entrenar con el contraste ingenuo: AUROC de 0.672 para la sonda de activaciones y 0.556 para el texto NLA. Un contraste específico de compromiso eleva a 0.853 el AUROC de la sonda de activaciones. La línea base TF-IDF de texto visible alcanza 0.855 en la misma división de tareas dentro de la distribución."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El autor informa AUROC de 0.896 con Mistral-7B-Instruct-v0.3 y de 0.912 con OLMo-2-7B-Instruct para las sondas de activaciones entrenadas con el contraste de compromiso sobre cuadrículas derivadas de AgentDojo; las líneas base de texto llegan a 0.945 y 0.921, respectivamente. Los tres resultados provienen de un solo artículo y una misma familia de pruebas."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra prevención en interacciones en vivo, resistencia a atacantes adaptativos, umbrales de producción transferibles, costos aceptables de falsas alarmas sobre tráfico seguro ni reproducción independiente de los resultados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Ningún grupo independiente ha reproducido el efecto del contraste ni los AUROC informados; los artefactos públicos están enlazados, pero no se auditaron en esta revisión.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "No se midieron interacciones con entornos en vivo, ataques adaptativos, modelos de API de frontera, umbrales calibrados para despliegue ni costos de falsas alarmas sobre tráfico seguro.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Las tres familias de modelos se evaluaron con cuadrículas derivadas de AgentDojo; se desconoce la transferencia a pruebas externas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el efecto del contraste se generaliza, cambia el diseño y la interpretación de monitores latentes para predecir acciones inseguras en agentes con herramientas. Los resultados se limitan a una prueba y modelos abiertos pequeños; no demuestran una capacidad de seguridad lista para producción.",
+      "limitations": [
+        "El experimento con acciones generadas no es una interacción en vivo; las etiquetas se basan en la primera llamada a herramienta del modelo y en conjuntos de herramientas inseguras inferidos.",
+        "Las tres familias de modelos se probaron con tareas derivadas de AgentDojo; los resultados entre modelos no demuestran transferencia independiente de la prueba.",
+        "La transferencia a plantillas y conjuntos reservados incluye solo 33 y 15 acciones inseguras, respectivamente; el artículo califica estos resultados como indicativos.",
+        "La línea base TF-IDF de texto visible iguala la sonda logística de activaciones dentro de la distribución, y el artículo informa una transferencia débil para algunas sondas.",
+        "El artículo informa que los monitores entrenados con el contraste mixto marcan todos los casos atacados pero seguros y, con el umbral seleccionado, 18 de 40 casos limpios para la sonda de activaciones de Qwen.",
+        "No se evaluaron atacantes adaptativos, umbrales de despliegue, modelos de API de producción ni el costo de falsas alarmas sobre tráfico seguro.",
+        "Esta activación no realizó una reproducción independiente, auditoría de artefactos ni ejecución de código.",
+        "Un artículo previo citado, arXiv:2606.30449v1, informa resultados negativos acotados con sondas para Qwen, Llama y Gemma. Sus tareas, modelos y etiquetas objetivo difieren del contraste de exposición condicionada en AgentDojo de este artículo; la comparación no valida ni refuta directamente el mecanismo propuesto."
+      ],
+      "relationships": [],
+      "summary": "Un artículo informa que los monitores latentes entrenados con una mezcla de casos inseguros y otros casos pueden detectar la presencia de una inyección de instrucciones sin predecir de forma fiable cuál agente expuesto ejecutará una acción insegura con herramientas. En una cuadrícula de acciones generadas de AgentDojo, Qwen obtiene antes de la acción un AUROC de 0.556 para texto NLA y de 0.672 para una sonda de activaciones con el contraste ingenuo; al entrenar solo con casos expuestos, la sonda de activaciones sube a 0.853, cerca de 0.855 de una línea base TF-IDF de texto visible. El artículo informa resultados relacionados para Mistral-7B y OLMo-2-7B, pero las tres familias usan AgentDojo y el estudio no es una interacción en vivo.",
+      "technical": {
+        "claimed_result": "En una cuadrícula de 280 casos de AgentDojo con acciones generadas, el artículo informa una predicción débil antes de la acción con el contraste mixto (AUROC 0.672 para la sonda de activaciones y 0.556 para texto NLA) y cifras mayores con el contraste de compromiso (0.853 para activaciones y 0.855 para TF-IDF de texto visible). Informa sondas de activaciones con señales condicionadas similares para Mistral-7B y OLMo-2-7B.",
+        "demonstrated_result": "La fuente primaria y su fecha declarada están disponibles. Los AUROC y comportamientos son resultados informados por el autor; esta activación revisó el artículo y la página del repositorio, pero no ejecutó código, auditó datos ni reprodujo los resultados de forma independiente.",
+        "mechanism": "El artículo separa la exposición a una inyección (presencia de contenido externo controlado por un atacante) del compromiso (la siguiente acción insegura con herramientas que genera el modelo), tanto al etiquetar la evaluación como al formar los datos de entrenamiento. Sostiene que los negativos de un contraste de casos inseguros contra todos los demás mezclan casos atacados pero seguros con casos limpios, por lo que una sonda puede aprender a detectar exposición en vez de compromiso. Entrenar solo con casos expuestos permite probar la predicción del compromiso condicionada a la exposición.",
+        "novelty": "El protocolo de doble estratificación separa la detección de exposición de la predicción de una acción insegura y muestra que el contraste ingenuo puede aprender señales distintas según la población del modelo. Es un protocolo de evaluación y un resultado acotado de un artículo, no una defensa desplegada.",
+        "regime": "Selección de herramientas generada por Qwen2.5-7B-Instruct en tareas de espacio de trabajo derivadas de AgentDojo; activaciones de una sola L40S y un verbalizador NLA de capa 20. La replicación solo con activaciones usa Mistral-7B-Instruct-v0.3 y OLMo-2-7B-Instruct en la capa 23, a profundidad relativa equivalente. Las tres familias usan la misma familia de pruebas; son trayectorias generadas para una prueba, no interacciones en vivo.",
+        "reproducibility": "El artículo enlaza código, manifiestos, exportaciones y resultados; la página del repositorio muestra pruebas y un arnés simulado determinista. Esta revisión no descargó, ejecutó ni auditó artefactos. También se leyó un artículo citado con resultados negativos para aportar contexto; evalúa sondas distintas y no reproduce ni contradice directamente este efecto del contraste.",
+        "strongest_baseline": "En la tarea de compromiso dentro de la distribución de Qwen, una línea base logística TF-IDF de texto visible alcanza AUROC de 0.855, frente a 0.853 para la sonda logística de activaciones. Al agrupar los pliegues por tarea de usuario, las medias correspondientes son 0.780 y 0.795. La transferencia reservada contiene solo 33 y 15 casos positivos y no demuestra una clasificación estable entre poblaciones."
+      },
+      "title": "Un artículo sostiene que los monitores latentes deben separar la exposición a inyecciones del compromiso con acciones inseguras",
+      "why_it_matters": "Si el efecto del contraste se replica, un detector validado solo con casos atacados frente a casos limpios podría reconocer la exposición sin predecir acciones inseguras. Evaluar por separado exposición y compromiso, tanto en datos de entrenamiento como de prueba, ayuda a distinguir esas señales y a evitar afirmaciones engañosas sobre los monitores. El artículo no demuestra una defensa eficaz para producción."
+    },
     "FCMO-6547920374B7": {
       "claims": [
         {
