@@ -190,9 +190,11 @@ class Journey:
             assert status == 200, login
             self.sessions[user] = headers['Set-Cookie'].split(';')[0], login['csrf']
         self.score('two distinct authenticated sessions', self.sessions['javier'] != self.sessions['matias'])
-        readiness = self.call('GET', '/api/publication-readiness')
-        self.score('missing gh accounts: Studio starts and names both logins',
-                   [c['plain_es'] for c in readiness['credentials']] == ['Javier debe iniciar sesión en GitHub.', 'Matías debe iniciar sesión en GitHub.'])
+        # Since 5fca90a6 each author sees only their own GitHub login, so ask once per session.
+        named = [c['plain_es'] for user in ('javier', 'matias')
+                 for c in self.call('GET', '/api/publication-readiness', user=user)['credentials']]
+        self.score('missing gh accounts: Studio starts and names each login to its owner',
+                   named == ['Javier debe iniciar sesión en GitHub.', 'Matías debe iniciar sesión en GitHub.'])
         piece = self.call('POST', '/api/pieces', {'kind': 'essay', 'title': 'Private before GitHub login', 'source_locale': 'en'})
         self.score('private editor remains usable without GitHub credentials',
                    self.call('GET', '/api/pieces/' + piece['slug'])['slug'] == piece['slug'])
