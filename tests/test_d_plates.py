@@ -31,6 +31,13 @@ class DPlates(unittest.TestCase):
                 d_plates.choose(self._story(offset + i), seen, wide=i == 0)
             self.assertEqual(len({d_plates.FAMILY[n] for n in seen.values()}), len(families))
 
+    def test_families_group_by_look_not_by_material_name(self):
+        # 11-02 design debt: cracked clay (arcilla) next to a cracked stone lead, and a paper slab next to a concrete block.
+        F = d_plates.FAMILY
+        self.assertEqual(F["arcilla-seca"], F["piedra-grieta"])
+        self.assertEqual(F["papel-pliegue"], F["concreto-bloque"])
+        self.assertNotEqual(F["papel-pila"], F["papel-pliegue"])
+
     def test_warm_plate_is_thumb_only(self):
         self.assertIn("arcilla-seca", d_plates.THUMB_ONLY)
 

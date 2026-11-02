@@ -175,3 +175,13 @@ class StoryVariants(unittest.TestCase):
             topic_nav_html='',machine_html='')
         self.assertIn(cat['strings']['l10n']['pending_title'],html)
         self.assertNotIn(cat['strings']['corrections_page']['none'],html)
+
+
+class SourceNames(unittest.TestCase):
+    def test_own_name_then_known_domain_then_org_then_bare_domain(self):
+        from tools.paper.templates.d_components import source_name
+        self.assertEqual(source_name({"title": "Lab note", "domain": "x.org"}), "Lab note")
+        self.assertEqual(source_name({"domain": "www.arxiv.org"}), "arXiv")
+        self.assertEqual(source_name({"domain": "news.tsinghua.edu.cn"}, ["Tsinghua University"]), "Tsinghua University")
+        self.assertEqual(source_name({"domain": "www.zgcforum.com.cn"}, ["Tsinghua University"]), "zgcforum.com.cn")
+
