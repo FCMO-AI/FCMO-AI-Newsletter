@@ -416,6 +416,17 @@ class RealCorpusBacklog(unittest.TestCase):
             for rid, row in before.items():
                 admitted = rid in published_sources and published_sources[rid] == canonical.get(rid)
                 expected = delta[rid] if admitted and rid in delta and rid not in carried else row
+                if expected is row and rid in published_sources and "claims" in row:
+                    # The wording is historical, but the evidence label follows the
+                    # published English source: a downgrade ARB already published
+                    # (626b73213: an external evaluation "conducted with OpenAI" is
+                    # not third-party) must not be reverted to the baseline label
+                    # just because the corpus has since moved past that brief.
+                    source_claims = published_sources[rid].get("claims", [])
+                    expected = {**row, "claims": [
+                        {**claim, "label": source_claims[n]["label"]} if n < len(source_claims) and "label" in source_claims[n] else claim
+                        for n, claim in enumerate(row["claims"])
+                    ]}
                 self.assertEqual(after.get(rid), expected, f"{locale} {rid}: airlocked fields")
             published = {path.stem for path in (ROOT / "release-src/data/briefs").glob("FCMO-*.json")}
             published_canonical = set(canonical) & published
