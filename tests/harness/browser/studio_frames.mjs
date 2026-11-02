@@ -32,7 +32,10 @@ for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
   await go(s, `#/p/${slug}/publish`); await page.waitForSelector('.check-list', { state: 'attached' }); await page.waitForTimeout(500); await shot(page, '10-publicar')
   await go(s, `#/p/${slug}/versions`); await page.waitForSelector('.ver-list'); await shot(page, '11-versiones')
   await go(s, '#/issues'); await page.waitForTimeout(500); await shot(page, '12-ediciones')
-  await go(s, `#/p/${reviewSlug}/review`); await page.waitForSelector('.rv-panes'); await page.waitForTimeout(1800); await shot(page, '13-revision')
+  // the second-person review screen is retired (c59d060f9): a saved /review link lands on the Publish sheet
+  await go(s, `#/p/${reviewSlug}/review`); await page.waitForSelector('.check-list', { state: 'attached' }); await page.waitForTimeout(800)
+  if (!/\/publish$/.test(await page.evaluate(() => location.hash))) throw new Error('A saved /review link must land on /publish')
+  await shot(page, '13-enlace-de-revision-a-publicar')
   await go(s, `#/p/${reviewSlug}/progress`)
   await page.waitForSelector('.timeline'); await page.waitForTimeout(300); await shot(page, '14-progreso')
   await s.browser.close()

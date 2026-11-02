@@ -1,25 +1,19 @@
-// Matías comments on the chosen paragraph at phone width, including a locale change.
+// A saved review link (the second-person review screen is retired, c59d060f9) lands on the Publish sheet; the other
+// author sees no approval or comment control, and the chosen paragraph of both languages still reads at phone width.
 import { session, go, check, finish, previewTimeout } from './studio_common.mjs'
 const slug=process.argv[3] || process.env.STUDIO_SLUG
 if(!slug)throw new Error('A seeded, multi-paragraph fixture is required')
 const s=await session(process.argv[2],{user:'matias',viewport:{width:390,height:844}}), p=s.page
-await go(s,`#/p/${slug}/review`);await p.waitForSelector('.pv-frame')
+await go(s,`#/p/${slug}/review`);await p.waitForSelector('.check-list',{state:'attached'})
+check('a saved review link lands on the publish sheet',/\/publish$/.test(await p.evaluate(()=>location.hash)))
+check('only the author can press Publicar',await p.locator('.btn-row').getByRole('button',{name:'Publicar',exact:true}).isDisabled())
+check('no second-person approval or comment control remains',await p.getByRole('button',{name:/Aprobar|Pedir cambios|Comentar|Enviar/}).count()===0)
 for(const [locale,index] of [['en',1],['es-419',3]]){
-  await p.getByRole('tab',{name:'Lectura',exact:true}).click()
-  if(locale==='es-419')await p.locator('.pv-controls button').filter({hasText:/^ES$/}).click()
+  await go(s,`#/p/${slug}/${locale}/preview`);await p.waitForSelector('.pv-frame')
   const body=p.frameLocator('.pv-frame').locator('.essay-body [id^="b-"]')
   await body.nth(index).waitFor({ timeout: previewTimeout })
-  const id=await body.nth(index).getAttribute('id')
   await body.nth(index).click()
-  await p.getByRole('tab',{name:'Comentarios',exact:true}).click()
-  const marker=`Private paragraph ${locale} ${Date.now()}`
-  await p.locator('.rv-cmt textarea').fill(marker)
-  await p.locator('.rv-cmt').getByRole('button',{name:'Enviar',exact:true}).click()
-  await p.locator('.cmt').filter({hasText:marker}).waitFor()
-  const comments=await p.evaluate(async slug=>(await(await fetch(`/api/pieces/${slug}/comments`)).json()),slug)
-  const posted=comments.find(c=>c.body===marker)
-  check(`phone comment targets selected ${locale} paragraph`,posted?.block_id===id&&posted?.locale===locale&&posted?.user==='matias',JSON.stringify({id,actual:posted?.block_id,locale:posted?.locale}))
-  await p.locator('.cmt').filter({hasText:marker}).getByRole('button',{name:'Ir al párrafo',exact:true}).click()
-  check('comment link returns to its preview',await p.locator('.rv-read').isVisible())
+  check(`paragraph ${index} of the ${locale} preview reads at phone width`,(await body.nth(index).innerText()).trim().length>0)
+  check(`the ${locale} preview does not scroll sideways on the phone`,await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth<=1))
 }
 await finish(s)
