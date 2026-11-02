@@ -1,0 +1,119 @@
+{
+  "record": {
+    "id": "FCMO-6B523884091D",
+    "title": "ACCT reports cross-model context-state transfer across three model families",
+    "desk": "Inference Systems",
+    "event_at": "2026-10-30T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "A preprint introduces ACCT, which converts KV states already computed by one model into sparse KV states that a different-size model in the same family can use without re-encoding the full context. Across six directed pairs in Qwen3, Llama and Qwen2.5, authors report 4x KV-slot compression and mixed task results. The 6.5–21.2x speed headline measures conversion against target prefill and excludes source-model prefill. Appendix K includes source prefill: at the longest tested context, only three smaller-to-larger directions are faster than target-only prefill, while reverse directions are slower. These are author-reported experiments, not independent production evidence.",
+    "topics": [
+      "KV cache",
+      "context reuse",
+      "heterogeneous inference",
+      "LLM serving"
+    ],
+    "organizations": [
+      "Tsinghua University"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-6B523884091D.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-6B523884091D.json",
+    "citation": {
+      "id": "FCMO-6B523884091D",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-6B523884091D.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "The authors posted arXiv:2610.42116v1 on 2026-10-30 describing ACCT, a method for converting source-model KV states into sparse target-model states within the same model family."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors evaluate six directed model pairs across Qwen3, Llama and Qwen2.5 and report context transfer with a 4x KV-slot budget. At about 19K tokens, transfer conversion alone is 6.5–21.2x faster than target context prefill; task performance varies by direction and benchmark, and often falls below the target-full baseline."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The conversion-only speed comparison excludes the time needed to prefill the context with the source model. Appendix K reports that when source-state prefill is included at the longest context, only three smaller-to-larger directions are faster than target-only prefill; reverse directions are slower. The paper does not establish production-scale throughput, quality parity generally or independent replication."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "architectures_scaling"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-11-02"
+    ],
+    "event_at": "2026-10-30T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No accessible implementation or independent reproduction was established during targeted review.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-11-02T11:12:40Z"
+      },
+      {
+        "description": "Production concurrency, longer contexts, model-family transfer and task-quality preservation beyond the reported settings are unestablished.",
+        "kind": "regime_unclear",
+        "state": "open",
+        "updated_at": "2026-11-02T11:12:40Z"
+      }
+    ],
+    "id": "FCMO-6B523884091D",
+    "importance_effective_score": 5,
+    "importance_rationale": "If validated in workloads that repeatedly reuse context across model sizes, cross-scale KV transfer could reduce duplicated prefill and affect heterogeneous inference design. The paper’s value is presently a bounded feasibility result with mixed quality and direction-dependent total latency.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-11-02T11:12:40Z",
+    "limitations": [
+      "All reported outcomes are from the authors; no independent reproduction was performed.",
+      "The 6.5–21.2x headline excludes source-context prefill; complete costs depend on whether those source states already exist.",
+      "With source prefill included, only three smaller-to-larger directions beat target-only prefill at the longest tested context; reverse directions are slower.",
+      "Task results are mixed, with several settings materially below the target-full baseline; evaluation is limited to six directed within-family pairs and contexts around 19K tokens."
+    ],
+    "organizations": [
+      "Tsinghua University"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-11-02T11:12:40Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2610.42116"
+    ],
+    "status": "active",
+    "summary": "A preprint introduces ACCT, which converts KV states already computed by one model into sparse KV states that a different-size model in the same family can use without re-encoding the full context. Across six directed pairs in Qwen3, Llama and Qwen2.5, authors report 4x KV-slot compression and mixed task results. The 6.5–21.2x speed headline measures conversion against target prefill and excludes source-model prefill. Appendix K includes source prefill: at the longest tested context, only three smaller-to-larger directions are faster than target-only prefill, while reverse directions are slower. These are author-reported experiments, not independent production evidence.",
+    "technical": {
+      "claimed_result": "The paper reports conversion-only speedups of 6.5–21.2x versus target context prefill and mixed performance over 11 benchmarks/six context tasks. With source prefill included at the longest context, only three smaller-to-larger directions beat target-only prefill; reverse directions are slower.",
+      "compute_or_cost": "Reported speed compares state conversion against target prefill. Appendix K separately accounts for source prefill when source states are unavailable; the advantage depends on model direction and whether source states are already cached.",
+      "demonstrated_result": "The authors published a preprint detailing the method and evaluation. Reported performance and timing outcomes are not independently reproduced.",
+      "mechanism": "A three-part interface scores context tokens for target layers and heads, allocates a shared KV budget, and converts selected source representations to target-readable sparse KV. The target can then answer using transferred states without processing the original context again.",
+      "regime": "Authors test six directed pairs within Qwen3, Llama and Qwen2.5, at contexts up to approximately 19K tokens and 4x KV-slot compression. Timing uses batch size one on 8×A800 80GB hardware with medians over two or three runs. A separately trained interface is used for each direction.",
+      "strongest_baseline": "Target Full is the task-performance reference and target-only context prefill is the timing reference. Comparisons are author-run and do not establish production throughput or costs."
+    },
+    "title": "ACCT reports cross-model context-state transfer across three model families",
+    "topics": [
+      "KV cache",
+      "context reuse",
+      "heterogeneous inference",
+      "LLM serving"
+    ],
+    "why_it_matters": "If cross-scale context reuse can preserve task quality while lowering total compute in repeated-context workloads, it could change how heterogeneous model systems route long conversations and documents. The paper provides a bounded feasibility result across three model families, but conversion-only latency overstates the advantage when source context states must first be constructed, and reported task performance is mixed."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
