@@ -1,5 +1,5 @@
 // usage: node studio_publish.mjs <studio base url> [slug]
-// The publish sheet blocks on a missing alt text with a plain sentence; "Ir a corregirlo" lands on that figure.
+// The publish sheet (author flow: no second reviewer; the button is «Publicar») blocks on a missing alt text with a plain sentence; "Ir a corregirlo" lands on that figure.
 import { session, go, check, finish } from './studio_common.mjs'
 
 const base = process.argv[2]; const slug = process.argv[3] || 'el-trabajo-silencioso'
@@ -16,7 +16,7 @@ await go(s, `#/p/${slug}/publish`)
 await page.waitForSelector('.check-list', { state: 'attached' })
 const todo = page.locator('.check-list li.todo', { hasText: 'texto alternativo' }).first()
 check('missing alt text is listed as a plain sentence', await todo.count() === 1, await todo.textContent().catch(() => ''))
-check('the request button is blocked', await page.locator('button:has-text("Pedir revisión")').isDisabled())
+check('the Publicar button is blocked while a check is open', await page.locator('.btn-row').getByRole('button', { name: 'Publicar', exact: true }).isDisabled())
 check('the sheet says how many remain', (await page.textContent('.btn-row')).includes('por resolver'))
 check('no code vocabulary on the sheet', !/\b(git|branch|sha|gate|commit)\b/i.test(await page.textContent('.sheet')))
 await todo.locator('button:has-text("Ir a corregirlo")').click()

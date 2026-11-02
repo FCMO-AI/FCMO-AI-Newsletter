@@ -290,7 +290,7 @@ class Journey:
         With only='world' (DOGFOOD_ONLY): the setup plus the measured-world items."""
         if only == 'world': return SETUP_ITEMS + len(WORLD_ITEMS)
         if only == 'browser': return None
-        return BASE_ITEMS + len(WORLD_ITEMS) + ((8 + bool(captures)) if browser else 0)
+        return BASE_ITEMS + len(WORLD_ITEMS) + ((9 + bool(captures)) if browser else 0)
     def timeline_states(self, slug):
         return [entry.get('state') for entry in self.call('GET', '/api/pieces/' + slug + '/publication').get('timeline', [])]
     def piece_state(self, slug):
@@ -420,6 +420,7 @@ class Journey:
             self.run_node('browser ' + name, name, [self.origin + '/', *args], name)
         if os.environ.get('DOGFOOD_CAPTURES'):
             self.run_node('browser studio_captures', 'studio_captures', [self.origin + '/', seeded, os.environ['DOGFOOD_CAPTURES']], 'studio_captures')
+        self.run_node('browser studio_sidenote', 'studio_sidenote', [self.origin + '/', seeded], 'studio_sidenote')
         self.run_node('browser issue/correction/withdrawal', 'studio_actions', [self.origin + '/'], 'studio_actions')
         qa = self.call('POST', '/api/pieces/' + seeded + '/assist', {'kind': 'layout_qa', 'loc': 'en'})
         self.score('deterministic visual assist without worker', qa['status'] == 'done' and len(qa['frames']) == 12 and qa['ok'])
