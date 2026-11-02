@@ -1,0 +1,124 @@
+{
+  "record": {
+    "id": "FCMO-CD2C6684B671",
+    "title": "Latent Sparse Attention reports long-context attention speedups up to 10M tokens",
+    "desk": "Inference Systems",
+    "event_at": "2026-10-30T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "A preprint introduces Latent Sparse Attention (LSA), which clusters keys in a learned latent space so queries search cluster summaries rather than score every key. In author-run tests, its distilled form stayed near the tested model baselines at contexts up to 10M tokens and reduced attention-layer prefill and decode time substantially on two specific model families and H200/B300 hardware. The paper reports smaller end-to-end serving gains than the per-layer headline; its 100M-token result is an extrapolation. The linked implementation could not be accessed during this review, and no independent reproduction was performed.",
+    "topics": [
+      "long-context inference",
+      "sparse attention",
+      "attention indexing",
+      "inference efficiency",
+      "agent systems"
+    ],
+    "organizations": [
+      "Prefrontal AI",
+      "ETH Zurich"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-CD2C6684B671.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-CD2C6684B671.json",
+    "citation": {
+      "id": "FCMO-CD2C6684B671",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-CD2C6684B671.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "The authors posted arXiv:2610.42147v1 on 2026-10-30 describing Latent Sparse Attention, with a distilled variant for pretrained models and a native-training variant."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In their tests, the authors report that D-LSA on GLM-5.3-Flash retained similar measured accuracy through 10M-token contexts and reduced one attention layer's prefill and decode time by 22.7x and 4.6x versus the model's sparse-attention baseline. On Qwen-3.8-27B they report 72.4x and 42.5x versus full attention at 10M tokens. End-to-end time-to-first-token gains were 2.2x and 9.2x, respectively. These results use author-selected hardware, benchmark settings and model configurations."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The preprint does not establish independent replication, comparable gains across other model families or serving workloads, broad economic savings, or measured accuracy and speed at 100M tokens; that scale is extrapolated. The linked code repository returned 404 when checked."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "architectures_scaling"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-10-30"
+    ],
+    "event_at": "2026-10-30T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent implementation or reproduction of the reported accuracy and performance results was inspected; the paper-linked GitHub path returned 404.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-11-02T05:11:43Z"
+      },
+      {
+        "description": "Generalization beyond the two tested model families, single-request production-serving measurements and H200/B300 setups is unestablished; the 100M-token prefill curve is extrapolated.",
+        "kind": "regime_unclear",
+        "state": "open",
+        "updated_at": "2026-11-02T05:11:43Z"
+      }
+    ],
+    "id": "FCMO-CD2C6684B671",
+    "importance_effective_score": 6,
+    "importance_rationale": "If the reported gains hold beyond the tested setups, reducing attention indexing costs at multi-million-token contexts could change inference-system design for multiple frontier-model teams. The paper tests to 10M tokens, but does not establish generality or independent reproduction.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-11-02T05:11:43Z",
+    "limitations": [
+      "All reported performance and accuracy measurements are from the authors; no independent reproduction was performed.",
+      "The linked public code path returned 404 during review despite the paper describing the code as released.",
+      "Per-layer speedups are not end-to-end speedups; reported end-to-end time-to-first-token gains are 2.2x and 9.2x.",
+      "The end-to-end serving timing uses one request at a time and the median of three requests of 256 output tokens.",
+      "The measured long-context evaluation reaches 10M tokens. The 100M-token tree-search result is extrapolated, and the paper leaves native training at larger scale and longer contexts open."
+    ],
+    "organizations": [
+      "Prefrontal AI",
+      "ETH Zurich"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-11-02T05:11:43Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2610.42147"
+    ],
+    "status": "active",
+    "summary": "A preprint introduces Latent Sparse Attention (LSA), which clusters keys in a learned latent space so queries search cluster summaries rather than score every key. In author-run tests, its distilled form stayed near the tested model baselines at contexts up to 10M tokens and reduced attention-layer prefill and decode time substantially on two specific model families and H200/B300 hardware. The paper reports smaller end-to-end serving gains than the per-layer headline; its 100M-token result is an extrapolation. The linked implementation could not be accessed during this review, and no independent reproduction was performed.",
+    "technical": {
+      "claimed_result": "At 10M tokens, the paper reports one-layer speedups of 22.7x prefill and 4.6x decode for GLM-5.3-Flash against its sparse-attention baseline, and 72.4x/42.5x for Qwen-3.8-27B against full attention. End-to-end time-to-first-token gains are 2.2x and 9.2x, respectively. Accuracy is described as similar to the corresponding model baselines in the tested benchmarks.",
+      "compute_or_cost": "The paper reports H200 and B300 measurements, one-request-at-a-time end-to-end serving with three 256-output-token requests, and 10M-token contexts. It does not establish deployment-wide cost or economic savings.",
+      "demonstrated_result": "The authors published a 43-page preprint with benchmark and timing details. These are author-reported measurements; the code repository URL cited in the paper returned 404 at review time and no reproduction was run.",
+      "mechanism": "LSA groups keys into clusters in a learned latent space. Queries score cluster summaries and select long-range keys rather than scoring each key. D-LSA distills projections into pretrained models; N-LSA trains natively using next-token prediction. Tree search is the paper's subquadratic variant.",
+      "regime": "Author-reported evaluations of D-LSA on Qwen-3.8-27B with full-attention baseline and GLM-5.3-Flash with sparse-attention baseline, contexts up to 10M tokens, H200 and B300 accelerators, and SGLang serving. N-LSA training results are at 128k context on a roughly 0.5B-parameter model.",
+      "strongest_baseline": "For GLM-5.3-Flash the comparison is its existing sparse-attention implementation; for Qwen-3.8-27B it is full attention. These are different baselines and the speedup figures should not be compared as one matched contest."
+    },
+    "title": "Latent Sparse Attention reports long-context attention speedups up to 10M tokens",
+    "topics": [
+      "long-context inference",
+      "sparse attention",
+      "attention indexing",
+      "inference efficiency",
+      "agent systems"
+    ],
+    "why_it_matters": "If the reported quality and serving gains generalize, reducing the indexing cost of sparse attention could make very long model contexts more practical for long-horizon agent and scientific workflows. The evidence is bounded to author-run evaluations on two model families, a small request setting and specified accelerators; it does not establish broad deployment economics or reliable performance beyond 10M tokens."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
