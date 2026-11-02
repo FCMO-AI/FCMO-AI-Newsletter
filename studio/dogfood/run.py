@@ -27,7 +27,7 @@ BASE_ITEMS = 17
 # The items of the setup (launcher, login, readiness): what DOGFOOD_ONLY=world still runs besides the world items.
 SETUP_ITEMS = 5
 # DOGFOOD_ONLY=world skips the base journey and runs the setup plus the «mundo movido» items (a cheap red check).
-ONLY_CHOICES = ('world',)
+ONLY_CHOICES = ('world', 'browser')
 # The «mundo movido» items: GitHub moving under Studio, slow and cancelled Pages, infra trouble, content red.
 WORLD_ITEMS = (
     'mundo movido: main moves 3 times during publication and it still publishes',
@@ -63,10 +63,12 @@ class Journey:
         self.ticks = 100; self.states = {}; self.completed = False
         self.only = os.environ.get('DOGFOOD_ONLY') or None
         assert self.only in (None, *ONLY_CHOICES), 'DOGFOOD_ONLY must be one of ' + str(ONLY_CHOICES)
-    def score(self, name, ok=True):
+    def score(self, name, ok=True, detail=None):
         # A red item is recorded and named; it never aborts the run, so the items after it still run.
-        self.scores.append({'name': name, 'ok': bool(ok)})
+        # A red item also says why (exception, exit code, tail of the checker's output): a bare FAIL is itself a defect.
+        self.scores.append({'name': name, 'ok': bool(ok), **({'detail': str(detail)} if detail and not ok else {})})
         print(('PASS ' if ok else 'FAIL ') + name, flush=True)
+        if detail and not ok: print('  cause: ' + str(detail).replace('\n', '\n  '), flush=True)
         return bool(ok)
     def request(self, method, path, body=None, user=None):
         headers = {'Origin': self.origin}
@@ -194,7 +196,8 @@ class Journey:
         named = [c['plain_es'] for user in ('javier', 'matias')
                  for c in self.call('GET', '/api/publication-readiness', user=user)['credentials']]
         self.score('missing gh accounts: Studio starts and names each login to its owner',
-                   named == ['Javier debe iniciar sesión en GitHub.', 'Matías debe iniciar sesión en GitHub.'])
+                   named == ['Javier debe iniciar sesión en GitHub.', 'Matías debe iniciar sesión en GitHub.'],
+                   'named %r' % (named,))
         piece = self.call('POST', '/api/pieces', {'kind': 'essay', 'title': 'Private before GitHub login', 'source_locale': 'en'})
         self.score('private editor remains usable without GitHub credentials',
                    self.call('GET', '/api/pieces/' + piece['slug'])['slug'] == piece['slug'])
@@ -221,7 +224,7 @@ class Journey:
             # An unexpected error in the base journey is a red item, not the end of the run.
             print('BASE JOURNEY ERROR: %s: %s' % (type(exc).__name__, exc), flush=True)
             self.score('base journey ran to its end', False)
-        self.world_items()
+        if self.only != 'browser': self.world_items()
     def base_journey(self):
         published = []
         for author, reviewer in (('javier', 'matias'), ('matias', 'javier')):
@@ -239,6 +242,7 @@ class Journey:
             assert not any(c['method'] == 'POST' and c['endpoint'].endswith('/reviews') for c in calls)
             self.score(author + ': author opens PR without another account approving')
         if self.browser: self.browser_checks(published)
+        if self.only == 'browser': return
         before = git(self.bare, 'rev-parse', 'main')
         (self.root / 'unprotected').touch()
         slug = self.create('Missing protections', 'javier')
@@ -285,6 +289,7 @@ class Journey:
         """Every item the journey must score: the base items, the browser items, and the measured-world items.
         With only='world' (DOGFOOD_ONLY): the setup plus the measured-world items."""
         if only == 'world': return SETUP_ITEMS + len(WORLD_ITEMS)
+        if only == 'browser': return None
         return BASE_ITEMS + len(WORLD_ITEMS) + ((8 + bool(captures)) if browser else 0)
     def timeline_states(self, slug):
         return [entry.get('state') for entry in self.call('GET', '/api/pieces/' + slug + '/publication').get('timeline', [])]
@@ -387,9 +392,23 @@ class Journey:
         self.call('POST', base + '/versions', {'name': 'Reviewed draft'}, author)
         self.call('POST', base + '/review/request', {}, author)
         return slug
+    def run_node(self, label, script, args, logname):
+        """Run one Node browser checker; score it with the cause of a failure (exit code, timeout, output tail)."""
+        log = self.root / (logname + '.log')
+        try:
+            with log.open('w') as f:
+                result = subprocess.run(['node', str(ROOT / 'tests/harness/browser' / (script + '.mjs')), *args], env=self.browser_env, stdout=f, stderr=f, timeout=BROWSER_TIMEOUT)
+            code = result.returncode; why = 'exit code %s' % code
+        except subprocess.TimeoutExpired:
+            code = None; why = 'timeout after %ss' % BROWSER_TIMEOUT
+        except OSError as exc:
+            code = None; why = 'cannot launch node: %s' % exc
+        tail = '\n'.join(log.read_text(errors='replace').splitlines()[-25:]) if log.is_file() else ''
+        return self.score(label, code == 0, '%s (%s.log)\n%s' % (why, logname, tail))
     def browser_checks(self, published):
         env = dict(self.env, STUDIO_USER='javier', STUDIO_PASS=PASSWORD)
         seeded = subprocess.check_output(['python3', '-m', 'tests.harness.seed_studio'], cwd=self.root / 'source', env=env, text=True).strip()
+        self.browser_env = env
         env.update(STUDIO_SLUG=seeded, STUDIO_ESSAY_SLUG=published[0], STUDIO_OTHER_SLUG=published[1], STUDIO_REVIEW_SLUG=published[0])
         for name, args in (
             ('studio_editor', []), ('studio_review', [seeded]), ('studio_translate', [seeded]), ('studio_publish', [seeded]),
@@ -398,16 +417,10 @@ class Journey:
             if name == 'studio_publish':
                 seeded = subprocess.check_output(['python3', '-m', 'tests.harness.seed_studio'], cwd=self.root / 'source', env=env, text=True).strip()
                 env['STUDIO_SLUG'] = seeded; args = [seeded]
-            with (self.root / (name + '.log')).open('w') as f:
-                result = subprocess.run(['node', str(ROOT / ('tests/harness/browser/' + name + '.mjs')), self.origin + '/', *args], env=env, stdout=f, stderr=f, timeout=BROWSER_TIMEOUT)
-            self.score('browser ' + name, result.returncode == 0)
+            self.run_node('browser ' + name, name, [self.origin + '/', *args], name)
         if os.environ.get('DOGFOOD_CAPTURES'):
-            with (self.root / 'studio_captures.log').open('w') as f:
-                result = subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_captures.mjs'), self.origin + '/', seeded, os.environ['DOGFOOD_CAPTURES']], env=env, stdout=f, stderr=f, timeout=BROWSER_TIMEOUT)
-            self.score('browser studio_captures', result.returncode == 0)
-        with (self.root / 'studio_actions.log').open('w') as f:
-            result = subprocess.run(['node', str(ROOT / 'tests/harness/browser/studio_actions.mjs'), self.origin + '/'], env=env, stdout=f, stderr=f, timeout=BROWSER_TIMEOUT)
-        self.score('browser issue/correction/withdrawal', result.returncode == 0)
+            self.run_node('browser studio_captures', 'studio_captures', [self.origin + '/', seeded, os.environ['DOGFOOD_CAPTURES']], 'studio_captures')
+        self.run_node('browser issue/correction/withdrawal', 'studio_actions', [self.origin + '/'], 'studio_actions')
         qa = self.call('POST', '/api/pieces/' + seeded + '/assist', {'kind': 'layout_qa', 'loc': 'en'})
         self.score('deterministic visual assist without worker', qa['status'] == 'done' and len(qa['frames']) == 12 and qa['ok'])
     def close(self):
@@ -429,8 +442,22 @@ class Journey:
         for failed in (s['name'] for s in self.scores if not s['ok']): print('FAIL ' + failed, flush=True)
         print(f"DOGFOOD {summary['passed']}/{summary['total']}; evidence: {self.root}", flush=True)
 
+def browser_preflight():
+    """--browser needs Node Playwright and axe-core. Without them every browser item exits 2 (BROWSER_UNAVAILABLE) only after
+    hours of journey, with no cause in the log (2026-11-01: 23/32 after 2.5 h). Check up front and say what is missing."""
+    problems = []
+    probe = subprocess.run(['node', '-e', "const m=process.env.PLAYWRIGHT_MODULE||'playwright';require(m).chromium.launch().then(b=>b.close(),e=>{console.error(String(e.message).split('\\n')[0]);process.exit(3)})"],
+                           capture_output=True, text=True, timeout=120)
+    if probe.returncode: problems.append('Playwright/Chromium unusable (set PLAYWRIGHT_MODULE=<dir>/node_modules/playwright): ' + next((l for l in probe.stderr.splitlines() if 'Error' in l or 'Cannot' in l or 'chrom' in l.lower()), 'exit %s' % probe.returncode))
+    axe = os.environ.get('AXE_CORE_PATH')
+    if not axe or not Path(axe).is_file(): problems.append('AXE_CORE_PATH does not point to axe.min.js: %r' % (axe,))
+    return problems
+
 def main():
     parser = argparse.ArgumentParser(); parser.add_argument('--keep', type=Path); parser.add_argument('--browser', action='store_true'); args = parser.parse_args()
+    if args.browser:
+        missing = browser_preflight()
+        if missing: sys.exit('BROWSER PREFLIGHT FAILED, nothing was run:\n  ' + '\n  '.join(missing))
     root = args.keep.resolve() if args.keep else Path(tempfile.mkdtemp(prefix='studio-dogfood-'))
     # A signal must unwind through the finally blocks: the temporary tree is gigabytes.
     for number in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
