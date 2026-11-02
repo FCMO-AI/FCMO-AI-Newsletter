@@ -74,7 +74,8 @@ class Journey:
         headers = {'Origin': self.origin}
         if user: headers['Cookie'], headers['X-CSRF-Token'] = self.sessions[user]
         if body is not None: body = json.dumps(body); headers['Content-Type'] = 'application/json'
-        conn = HTTPConnection('127.0.0.1', self.port, timeout=180)
+        # A loaded host (load 18 on 8 vCPU, 2026-11-01) needs more than 180 s for a synchronous gate/build request.
+        conn = HTTPConnection('127.0.0.1', self.port, timeout=float(os.environ.get('DOGFOOD_REQUEST_TIMEOUT', '900')))
         try:
             conn.request(method, path, body, headers)
             res = conn.getresponse(); raw = res.read(); hs = dict(res.getheaders())
