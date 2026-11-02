@@ -152,7 +152,8 @@ def select(args: argparse.Namespace) -> int:
 
 def editorial_signal(wire_state: str, newest_event: str | None, now: datetime, max_age_h: float) -> dict[str, Any]:
     """The health-state ``editorial`` signal."""
-    age = round(wire_status.hours_between(newest_event, now), 1) if newest_event else None
+    # A date without time is "sometime that day": age counts from the end of that day (wire_status.event_age_hours).
+    age = round(wire_status.event_age_hours(newest_event, now), 1) if newest_event else None
     metrics = {"newest_event_age_h": age}
     if age is not None and age <= max_age_h:
         return {"status": "GREEN", "code": "OK", "detail": f"Newest story event is {age}h old (limit {max_age_h:g}h).", "metrics": metrics}

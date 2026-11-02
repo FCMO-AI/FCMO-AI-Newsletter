@@ -63,9 +63,10 @@ class EditorialAdmissionTests(unittest.TestCase):
             result = check(NOW)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(json.loads(signal.read_text())["status"], "GREEN")
-            self.assertEqual(json.loads(signal.read_text())["metrics"]["newest_event_age_h"], 23)
-            # Rebuilding tomorrow cannot refresh the original scheduled event.
-            self.assertEqual(check("2026-10-06T13:00:00Z").returncode, 1)
+            self.assertEqual(json.loads(signal.read_text())["metrics"]["newest_event_age_h"], 0.0)  # date without time: age runs from the end of its day
+            # Rebuilding later cannot refresh the original event: 36 h past the END of 10-05 it is stale.
+            self.assertEqual(check("2026-10-06T13:00:00Z").returncode, 0)
+            self.assertEqual(check("2026-10-07T13:00:00Z").returncode, 1)
             self.assertEqual(json.loads(signal.read_text())["code"], "EVENT_STALE")
 
 

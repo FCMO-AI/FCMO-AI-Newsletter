@@ -129,6 +129,19 @@ def hours_between(earlier: Any, later: Any) -> float:
     return (parse_utc(later) - parse_utc(earlier)).total_seconds() / 3600.0
 
 
+def event_age_hours(event: Any, now: Any) -> float:
+    """Age in hours of a story event at ``now``.
+
+    A date without time (``YYYY-MM-DD`` or an exact UTC midnight, the repo's "day" precision, see
+    mark_pending_localizations.infer_precision) means "sometime that day", so its checkable age runs from
+    the END of that day (23:59:59Z), never from its 00:00Z start; an event with a time is measured as is.
+    """
+    stamp = parse_utc(event)
+    if len(str(event).strip()) == 10 or (stamp.hour, stamp.minute, stamp.second, stamp.microsecond) == (0, 0, 0, 0):
+        stamp = stamp.replace(hour=23, minute=59, second=59)
+    return max(0.0, hours_between(stamp, now))
+
+
 def cdmx_date(value: Any) -> str:
     """America/Mexico_City calendar date (UTC-6 all year since 2022)."""
     try:
