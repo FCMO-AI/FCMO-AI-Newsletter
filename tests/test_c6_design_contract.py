@@ -3,7 +3,8 @@
 Named ``test_c6_*`` so the integration step reports them separately. Not
 skipped: on main they are expected RED with the reasons listed in each
 failure message. Layout checks that need a browser (20-second line above the
-tabs, sources inside 844 px at 390 px, axe) live in tests/oraculos/verificar_c6.py.
+tabs, first source inside the first viewport at 390 px, axe) are checked by
+tests/oraculos/verificar_c6.py.
 """
 
 import html
