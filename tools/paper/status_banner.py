@@ -35,7 +35,7 @@ def freshness_attributes(freshness: dict) -> str:
 def freshness_line(freshness: dict, catalog: dict) -> str:
     state = label(catalog, "freshness_state", freshness["state"])
     return (f'<p class="corpus-freshness"{freshness_attributes(freshness)}><strong>{escape(state)}</strong> '
-            f'{escape(freshness_sentence(freshness, catalog))}</p>')
+            f'<span class="cf-detail">{escape(freshness_sentence(freshness, catalog))}</span></p>')
 
 
 def render(status: dict, catalog: dict, *, base: str, locale: dict, freshness: dict | None = None) -> str:

@@ -44,8 +44,10 @@ def rank(stories, ctx):
                     f'<div class="d-rank-stat">{d.stat(primary,plural(ctx.catalog,"primary_source",primary))}</div>'
                     f'<div class="d-rank-stat">{d.stat(gaps,plural(ctx.catalog,"open_gap",gaps))}</div></article></li>')
     return (f'<section class="d-rank" id="board" aria-labelledby="board-title"><div class="frame">'
-            f'<div class="d-section-head d-rank-title"><h2 class="d-section" id="board-title">{d.e(ctx.s["board"]["order_note"])}</h2>'
-            f'<span class="d-rank-count">{d.e(plural(ctx.catalog,"edition_story",len(stories)))}</span></div>'
+            f'<div class="d-section-head d-rank-title"><h2 class="d-section" id="board-title"><span class="d-title-long">{d.e(ctx.s["board"]["order_note"])}</span>'
+            f'<span class="d-title-book">{d.e(cp["board_book"])}</span></h2>'
+            f'<span class="d-rank-count">{d.e(plural(ctx.catalog,"edition_story",len(stories)))}</span>'
+            f'<time class="d-rank-date">{d.e(ctx.__dict__.get("d_edition_date", ""))}</time></div>'
             f'<div class="d-rank-head" aria-hidden="true"><span>#</span><span>{d.e(cp["col_image"])}</span><span>{d.e(cp["col_topic"])}</span><span>{d.e(cp["col_story"])}</span><span>{d.e(st["evidence"])}</span><span>{d.e(st["sources"])}</span><span>{d.e(cp["col_gaps"])}</span></div>'
             f'<ol>{"".join(rows)}</ol></div></section>')
 
@@ -64,6 +66,7 @@ def cover(feature, story, ctx):
                                    (text['matters'], field(story, ctx.code, 'why_it_matters'), BRIEF_BUDGET),
                                    (text['not_established'], ' '.join(gaps[:1]) or text['none_recorded'], BRIEF_BUDGET)]:
         cells.append(f'<div><h2>{d.e(heading)}</h2><p>{d.e(whole_sentences(value, budget))}</p></div>')
+    ctx.__dict__['d_edition_date'] = feature.get('date') or ''
     plate = d_plates.html(story, "16:9", ctx.s, ctx.base, ctx.__dict__.setdefault('d_plates', {})) if story.get("media") else ""
     plate_block = f'<div class="d-cover-plate">{plate}</div>' if plate else ""
     date = (f'<time datetime="{d.e(feature["datetime"])}">{d.e(feature["date"])}</time>'
@@ -72,9 +75,11 @@ def cover(feature, story, ctx):
             f'{plate_block}'
             f'<div class="frame"><div class="d-cover-grid"><div class="d-cover-main">'
             f'<p class="d-kicker d-kicker--lead">FCMO AI · {d.e(ctx.s["cover"]["lead_kicker"].format(beat=feature["beat"]))}</p>'
+            f'<div class="d-cover-date">{date}</div>'
             f'<h1 class="cover-title {d.e(feature["title_class"])}"><a href="{d.e(feature["href"])}">{title}</a></h1>'
             f'<p class="d-cover-dek">{d.e(feature["dek"])}</p>{d.signals_rich(story,ctx.catalog,evidence=evidence)}'
-            f'<div class="d-cover-date">{date}</div><div class="cover-actions"><a class="btn" href="{d.e(feature["href"])}">{d.e(feature["cta"])}</a></div>'
+            f'<div class="cover-actions"><a class="btn" href="{d.e(feature["href"])}"><span class="d-cta-short">{d.e(feature["cta"])}</span>'
+            f'<span class="d-cta-full">{d.e(d.copy(ctx.catalog)["cta_full"])}</span></a></div>'
             f'<div class="d-cover-disclosure">{feature["badge"]}</div></div>'
             f'<aside class="d-cover-map"><p class="d-kicker">{d.e(ctx.s["cover"]["evidence_glance"])}</p>'
             f'<div class="data-hero">{d.evidence_glance(story,ctx.catalog,evidence=evidence,title=feature["title"])}</div></aside></div>'
