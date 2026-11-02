@@ -13,11 +13,13 @@ PLATES = ('piedra-grieta', 'acero-junta', 'papel-pila', 'concreto-bloque', 'marm
           'pizarra-capas', 'metal-arista', 'piedra-escalon', 'papel-pliegue', 'hierro-fundido', 'arcilla-seca')
 # d-arcilla-seca is the warmest: it is only used as a thumbnail, never as a wide plate.
 THUMB_ONLY = {'arcilla-seca'}
-# The bank shares one lighting and framing, so same-material plates read as repeats (11-02, M4): a page takes
-# one plate per material family before it reuses a family.
+# The bank shares one lighting and framing, so plates with the same LOOK read as repeats (11-02, M4; 11-02 debt: a cracked
+# clay thumbnail next to a cracked stone lead, a folded-paper slab next to a concrete block). The families group by look,
+# not by material name: a page takes one plate per look before it reuses one.
 FAMILY = {'acero-junta': 'metal', 'metal-arista': 'metal', 'hierro-fundido': 'metal',
-          'papel-pila': 'papel', 'papel-pliegue': 'papel', 'concreto-bloque': 'concreto', 'marmol-corte': 'concreto',
-          'piedra-grieta': 'piedra', 'piedra-escalon': 'piedra', 'pizarra-capas': 'piedra', 'arcilla-seca': 'piedra',
+          'papel-pila': 'capas', 'pizarra-capas': 'capas',
+          'papel-pliegue': 'bloque', 'concreto-bloque': 'bloque', 'piedra-escalon': 'bloque', 'marmol-corte': 'bloque',
+          'piedra-grieta': 'grieta', 'arcilla-seca': 'grieta',
           'madera-veta': 'madera'}
 
 

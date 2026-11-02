@@ -8,6 +8,7 @@ from html import escape
 import hashlib
 import json
 import math
+import re
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -205,6 +206,45 @@ def claims_sources(story, evidence, catalog, prose_html=e):
             + (f'<ol class="d-cs-gaps">{gaps}</ol>' if gaps else '') + '</div></div></section>')
 
 
+# Readable names for the sources the record only knows by domain. A domain stays a domain when we have no name for it:
+# nothing is guessed. «www.» and the scheme never show.
+_DOMAIN_NAMES = {'arxiv.org': 'arXiv', 'openai.com': 'OpenAI', 'anthropic.com': 'Anthropic', 'deepmind.google': 'Google DeepMind',
+                 'deepmind.com': 'Google DeepMind', 'blog.google': 'Google', 'ai.googleblog.com': 'Google Research',
+                 'research.google': 'Google Research', 'microsoft.com': 'Microsoft', 'ai.meta.com': 'Meta AI', 'meta.com': 'Meta',
+                 'nvidia.com': 'NVIDIA', 'blogs.nvidia.com': 'NVIDIA', 'huggingface.co': 'Hugging Face', 'github.com': 'GitHub',
+                 'nature.com': 'Nature', 'science.org': 'Science', 'gov.uk': 'GOV.UK', 'europa.eu': 'European Union',
+                 'bbc.com': 'BBC', 'reuters.com': 'Reuters', 'apple.com': 'Apple', 'amazon.science': 'Amazon Science'}
+
+
+def source_name(src, organizations=()):
+    """Reader-facing name of a source: its own title/organization/name when the record has one, else a known name for
+    its domain, else the organization the story names when the domain's stem is inside that name, else the bare domain."""
+    src = src if isinstance(src, dict) else {}
+    for key in ('title', 'organization', 'name', 'publisher'):
+        value = ' '.join(str(src.get(key) or '').split())
+        if value:
+            return value
+    domain = str(src.get('domain') or '').strip().lower()
+    if not domain and src.get('url'):
+        try:
+            domain = (urlsplit(str(src['url'])).hostname or '').lower()
+        except ValueError:
+            domain = ''
+    domain = domain[4:] if domain.startswith('www.') else domain
+    parts = domain.split('.')
+    for i in range(len(parts) - 1):
+        known = _DOMAIN_NAMES.get('.'.join(parts[i:]))
+        if known:
+            return known
+    stem = next((x for x in parts if x not in ('com', 'org', 'net', 'edu', 'gov', 'cn', 'co', 'ac', 'uk', 'io', 'ai', 'mx', 'blog', 'news', 'research')), '')
+    if len(stem) >= 4:
+        for org in organizations or ():
+            org = ' '.join(str(org).split())
+            if stem in re.sub(r'[^a-z0-9]', '', org.lower()):
+                return org
+    return domain or str(src.get('url') or '')
+
+
 def evidence_map(story, catalog, *, evidence, title):
     """Sources, claims and open gaps; no undocumented claim/source edges.
 
@@ -229,7 +269,7 @@ def evidence_map(story, catalog, *, evidence, title):
     descriptions = []
     for start in range(0, len(sources), 2):
         chunk = sources[start:start+2]
-        names = [src.get('title') or src.get('domain') or src.get('url') or '' for src in chunk]
+        names = [source_name(src, story.get('organizations')) for src in chunk]
         h = max(height(name) for name in names)
         for col, (src, name) in enumerate(zip(chunk, names)):
             x = gutter//2 + col*(box+gutter)
@@ -333,7 +373,7 @@ def evidence_glance(story, catalog, *, evidence, title, max_sources=2, max_gaps=
                 f'<div xmlns="http://www.w3.org/1999/xhtml" class="d-map-node d-map-node--{kind}">{inner}</div></foreignObject>')
     n = len(shown_sources)
     sw = 340 if n == 1 else (W - G) // 2
-    names = [s.get('title') or s.get('domain') or s.get('url') or '' for s in shown_sources]
+    names = [source_name(s, story.get('organizations')) for s in shown_sources]
     extra = len(primaries) - n
     sh = 24 + 22 + max([_lines(t, sw - 70, 26) * 32 for t in names] + [38]) + (30 if extra else 0) + 8
     xs = []
@@ -345,12 +385,12 @@ def evidence_glance(story, catalog, *, evidence, title, max_sources=2, max_gaps=
         out.append(box('source', x, y, sw, sh, st['primary_source'] if src.get('primary') else st['sources'], name, foot=foot, mark=mark))
         xs.append(x + sw // 2)
     for src in primaries:
-        desc.append(src.get('title') or src.get('domain') or src.get('url') or '')
+        desc.append(source_name(src, story.get('organizations')))
     if n:
         y += sh
     claim_y = y + (34 if n else 0)
     claim_w = W - 80
-    ch = 24 + _lines(title, claim_w - 32, 26) * 32 + 12
+    ch = 24 + _lines(title, claim_w - 34, 26, .66) * 32 + 14
     if n:
         edges = ''.join(f'M{x} {y}V{y+17}' for x in xs)
         out.append(f'<path class="d-map-edge" d="{edges}M{xs[0]} {y+17}H{xs[-1]}M{W//2} {y+17}V{claim_y}"/>')
