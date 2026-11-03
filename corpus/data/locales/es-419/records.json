@@ -16339,6 +16339,63 @@
       "title": "Aolani anuncia planes para desplegar 22,000 GPU Blackwell Ultra en Malasia y Filipinas",
       "why_it_matters": "Si se entrega y queda disponible, el despliegue anunciado ampliaría de forma sustancial la capacidad de cómputo de IA prevista en el sudeste asiático. La fuente primaria acota el plan a su escala y ubicación, pero no acredita el calendario, el financiamiento ni la capacidad operativa utilizable."
     },
+    "FCMO-52624C3DF3E9": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que DepthGraft reduce cerca de un tercio el uso de caché KV y conserva la finalización temprana del prellenado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En contexto 128K, los autores reportan reducciones de TTFT de 26.8% en 9B MLA y 28.8% en 16B GQA; el TPOT queda dentro de 1% de la referencia en las longitudes evaluadas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Para un MoE 16B GQA, el artículo reporta que MMLU-Pro sube de 23.86 a 30.86, una ganancia absoluta de 7.00 puntos frente a la referencia GQA."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra reproducción independiente, despliegue en producción ni transferencia a cualquier familia de modelos y carga de trabajo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó ni realizó una reproducción independiente de los resultados reportados de calidad, caché KV o latencia; tampoco se inspeccionó el código enlazado.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-11-03T06:22:07Z"
+        },
+        {
+          "description": "El artículo no establece si los beneficios reportados se transfieren a otras arquitecturas, plataformas de servicio o distribuciones de carga.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-11-03T06:22:07Z"
+        }
+      ],
+      "importance_rationale": "Si se generalizan los resultados reportados de calidad y eficiencia, reducir la caché KV cerca de un tercio y la latencia de prellenado en contextos largos podría cambiar de manera importante la planificación de memoria de inferencia y el diseño de servicios. La puntuación se limita a resultados de los autores en modelos densos/MoE seleccionados de 0.5B–16B parámetros; no se ha establecido validación independiente ni en producción.",
+      "limitations": [
+        "Los resultados de calidad y latencia son reportados por los autores y no se reprodujeron de forma independiente en esta activación.",
+        "La comparación de latencia cubre solo las configuraciones 9B MLA y 16B GQA, contextos de 8K–128K y una generación fija de 2K.",
+        "La mejora reportada de 16B en MMLU-Pro es un resultado de referencia interna del artículo; no se inspeccionaron una evaluación independiente, barras de error ni una reproducción con varias semillas.",
+        "No se inspeccionó ni ejecutó el código enlazado ni los artefactos detallados de evaluación; no se ha establecido despliegue en producción ni economía del servicio."
+      ],
+      "relationships": [],
+      "summary": "Los autores proponen compartir representaciones de clave/valor (KV) entre capas del transformer y reconstruir las de capas profundas a partir de capas superficiales e intermedias alineadas. En modelos densos y MoE de 0.5B a 16B parámetros, reportan cerca de un tercio menos de caché KV. Para modelos 9B MLA y 16B GQA, informan menor tiempo hasta el primer token (TTFT) entre contextos de 8K y 128K, con un tiempo por token de salida (TPOT) casi igual al de la referencia. En contexto 128K, la reducción de TTFT reportada es 26.8% y 28.8%, respectivamente. Son resultados de los autores, sin reproducción independiente.",
+      "technical": {
+        "claimed_result": "Los autores reportan cerca de un tercio menos de caché KV, ganancias consistentes en benchmarks en modelos densos y MoE, y menor TTFT en contextos largos con TPOT dentro de 1% de la referencia en las configuraciones evaluadas. En la tabla del MoE 16B GQA, MMLU-Pro aumenta de 23.86 a 30.86 (+7.00 puntos).",
+        "compute_or_cost": "Los autores reportan aproximadamente un tercio menos de caché KV y, en contexto 128K, reducciones de TTFT de 26.8% en 9B MLA y 28.8% en 16B GQA. Informan que el rendimiento de entrenamiento es prácticamente igual. No se midieron de forma independiente el costo de hardware ni la economía en producción.",
+        "demonstrated_result": "El preprint y sus tablas pueden consultarse directamente. Los resultados experimentales de rendimiento y eficiencia siguen siendo afirmaciones de los autores y no se reprodujeron de forma independiente.",
+        "implementation_status": "El artículo enlaza un repositorio del proyecto; no se inspeccionó ni ejecutó en esta activación.",
+        "mechanism": "Las capas profundas reconstruyen KV a partir de pares alineados de capas superficiales e intermedias. La reutilización elimina tensores KV de caché y proyecciones KV independientes en capas profundas; los autores sostienen que las conexiones compartidas también regularizan representaciones mediante rutas de gradiente entre capas.",
+        "novelty": "La reconstrucción jerárquica de KV entre capas se presenta como un mecanismo para ahorrar caché y como regularizador estructural de entrenamiento mediante flujo de gradiente distribuido entre capas.",
+        "regime": "Modelos densos de 0.5B–1.5B y modelos MoE de 3B–16B parámetros totales; la inferencia de contexto largo se reporta en 9B MLA y 16B GQA, para contextos de 8K–128K y una generación fija de 2K.",
+        "reproducibility": "Se inspeccionó el PDF completo de arXiv v1, incluidas las Tablas 2–3. No se encontró ni intentó una reproducción independiente; no se inspeccionaron el código del proyecto ni los artefactos detallados de evaluación.",
+        "strongest_baseline": "Referencias GQA del mismo artículo y configuración, además de una referencia 9B MLA para latencia de contexto largo. El artículo también compara variantes de reutilización KV adyacente y con ancla global en ablaciones."
+      },
+      "title": "DepthGraft reporta menor uso de caché KV y menor latencia de prellenado en contextos largos",
+      "why_it_matters": "Si se reproduce, reconstruir KV entre capas podría reducir memoria de inferencia y latencia de prellenado, e influir en la arquitectura de modelos y servicios para contextos largos. La evidencia procede de los experimentos de un solo artículo y no demuestra despliegue en producción, transferencia amplia entre familias de modelos ni ganancias de calidad verificadas de forma independiente."
+    },
     "FCMO-52772AF29E99": {
       "claims": [
         {
@@ -28596,6 +28653,69 @@
       },
       "title": "NVIDIA y Meta anuncian una colaboración ampliada en Muse y un despliegue previsto de infraestructura de IA",
       "why_it_matters": "Si se lleva a cabo, la optimización conjunta y el plan de infraestructura podrían influir en el costo y la escala de los modelos de agentes de Meta. El anuncio demuestra la intención de las empresas, pero siguen sin verificarse la entrega del hardware, la conclusión de la transacción, los efectos técnicos y económicos medidos y los resultados de seguridad."
+    },
+    "FCMO-8F63169BEDA5": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo deriva políticas óptimas de forma cerrada para objetivos pass@k y max@k con regularización KL y expresa la presión de optimización mediante regularización adaptada al prompt o transformaciones de recompensa."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que las adaptaciones KAPPO reducen el sharpening medido en experimentos de razonamiento matemático y generación de código con OLMo-3-7B-Instruct-SFT y Qwen3-4B-Base."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que @k-A*PO, con una respuesta nueva por prompt, obtiene un desempeño de validación comparable a PKPO, que usa al menos k respuestas nuevas en línea por prompt."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que KAPPO reduzca el costo de entrenamiento en producción ni que se transfiera a otras familias de modelos, tareas o regímenes de recompensa."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores indican que el corte temporal de preentrenamiento de Qwen no está documentado y que no pueden descartar por completo la contaminación de LiveCodeBench."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó ni realizó una reproducción independiente de los resultados reportados sobre sharpening y costo de generaciones; en esta activación no se inspeccionaron el código suplementario ni los checkpoints.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-11-03T06:13:36Z"
+        },
+        {
+          "description": "El artículo consultado no evalúa la generalización más allá de dos familias de modelos y las tareas seleccionadas de matemáticas y código.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-11-03T06:13:36Z"
+        }
+      ],
+      "importance_rationale": "Si el efecto reportado se generaliza, adaptar optimizadores de política de una sola respuesta a pass@k/max@k podría reducir la necesidad de generaciones y conservar una mayor diversidad de soluciones en tareas difíciles. Esto podría cambiar decisiones prácticas de postentrenamiento, pero la evidencia está acotada a resultados de los autores en dos familias de modelos y ciertas tareas de matemáticas y código, con limitaciones de calibración y uso de una recompensa sustituta.",
+      "limitations": [
+        "Todos los resultados experimentales son reportados por los autores y no se reprodujeron de manera independiente en esta activación.",
+        "Los experimentos de matemáticas usan dos familias de modelos y AIME 2026; los de código usan Qwen3-4B-Base y el subconjunto difícil de LiveCodeBench v6.",
+        "La calibración de referencia utiliza un banco estático de M respuestas por prompt; el artículo señala que esto puede aumentar el ruido de las estimaciones.",
+        "En recompensas continuas, los experimentos optimizan una recompensa sustituta basada en la tasa de victoria, no directamente el objetivo max@k con la recompensa original.",
+        "Los autores indican que aplicar la solución basada en tasa de victoria a recompensas discretas con empates es una aproximación.",
+        "El artículo indica que el corte de preentrenamiento de Qwen no está documentado, por lo que no se puede descartar completamente contaminación de LiveCodeBench."
+      ],
+      "relationships": [],
+      "summary": "Los autores derivan políticas óptimas de forma cerrada para los objetivos pass@k y max@k con regularización KL e identifican una presión adaptativa por prompt que puede implementarse modificando la optimización @1 estándar. Reportan experimentos de razonamiento matemático y generación de código con OLMo-3-7B-Instruct-SFT y Qwen3-4B-Base: las variantes de KAPPO reducen el patrón de concentración que el artículo denomina sharpening, y @k-A*PO con una nueva respuesta por prompt alcanza, según los autores, un desempeño comparable al de PKPO, que requiere al menos k respuestas nuevas por prompt. Son resultados reportados por el artículo, sin reproducción independiente.",
+      "technical": {
+        "claimed_result": "Los autores reportan menor sharpening con @k-A*PO, @k-DPO y @k-GRPO en razonamiento matemático y generación de código. En las comparaciones reportadas, @k-A*PO con una respuesta nueva por prompt es comparable a PKPO, un optimizador pass@k dedicado que requiere al menos k respuestas nuevas en línea por prompt.",
+        "compute_or_cost": "La comparación de generaciones usa una nueva respuesta por prompt para la configuración @k-A*PO frente a al menos k para PKPO. En esta activación no se midieron de manera independiente el cómputo total, el costo del banco de calibración ni la economía del servicio en producción.",
+        "demonstrated_result": "Se puede inspeccionar directamente la publicación y el contenido del artículo. Los resultados experimentales son afirmaciones de los autores y aquí no se han demostrado de forma independiente.",
+        "implementation_status": "El artículo incluye pseudocódigo e indica que el código está en los materiales suplementarios; en esta activación no se inspeccionó ni ejecutó ese material.",
+        "mechanism": "Para objetivos pass@k y max@k con regularización KL, el artículo deriva políticas óptimas de forma cerrada y muestra cómo representar su presión mediante regularización o transformaciones de recompensa adaptadas al prompt. KAPPO usa una calibración de referencia única y ajusta optimizadores @1 existentes.",
+        "novelty": "Una conexión de forma cerrada entre objetivos @k con regularización KL y una presión adaptativa ofrece una vía para adaptar optimizadores @1 existentes sin señales de aprendizaje en línea de varias respuestas.",
+        "regime": "Matemáticas: RL con datos de entrenamiento MATH, validación en la partición de prueba de MATH y evaluación final en AIME 2026 con OLMo-3-7B-Instruct-SFT y Qwen3-4B-Base. Código: Qwen3-4B-Base entrenado con la partición de entrenamiento de LeetCodeDataset, validado en su partición de prueba y evaluado en el subconjunto difícil de LiveCodeBench v6.",
+        "reproducibility": "Se inspeccionó el PDF completo de arXiv v1. No se encontró ni intentó una reproducción independiente; no se inspeccionaron el código suplementario ni los checkpoints. Los autores señalan que el corte de preentrenamiento de Qwen no está documentado y no se puede descartar contaminación de LiveCodeBench.",
+        "strongest_baseline": "En matemáticas con recompensa binaria, el artículo compara A*PO ajustado con k frente a A*PO/GRPO con k=1 y PKPO en OLMo-3-7B-Instruct-SFT y Qwen3-4B-Base. En generación de código con recompensa continua, compara variantes k=1,2,4 en Qwen3-4B-Base."
+      },
+      "title": "KAPPO deriva una presión de optimización adaptativa para el postentrenamiento pass@k y max@k",
+      "why_it_matters": "Si se reproduce, la presión adaptativa permitiría orientar optimizadores habituales de una sola respuesta hacia pass@k/max@k con menos nuevas generaciones que los métodos que recogen k respuestas por prompt. El artículo también deriva una conexión general entre esos objetivos y la regularización o transformación de recompensas adaptada al prompt. La evidencia se limita a dos familias de modelos y los escenarios descritos; no demuestra ahorros de costo en producción ni transferencia a cualquier modelo o tarea."
     },
     "FCMO-8F8AE4B57EEC": {
       "claims": [
