@@ -1,0 +1,126 @@
+{
+  "record": {
+    "id": "FCMO-52624C3DF3E9",
+    "title": "DepthGraft reports hierarchical cross-layer KV reconstruction with lower cache and prefill cost",
+    "desk": "Inference Systems",
+    "event_at": "2026-11-02T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "The authors propose hierarchical sharing of key/value (KV) representations across transformer depth, reconstructing deep-layer KV from aligned shallow and middle layers. In experiments on dense and MoE models from 0.5B to 16B parameters, they report a roughly one-third KV-cache reduction. For 9B MLA and 16B GQA models, the paper reports lower time-to-first-token (TTFT) at 8K–128K context and nearly unchanged time-per-output-token (TPOT); at 128K, reported TTFT reductions are 26.8% and 28.8%, respectively. These results are author-reported and have not been independently reproduced.",
+    "topics": [
+      "KV-cache",
+      "cross-layer-sharing",
+      "transformer-architecture",
+      "prefill-latency",
+      "long-context",
+      "MoE"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-52624C3DF3E9.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-52624C3DF3E9.json",
+    "citation": {
+      "id": "FCMO-52624C3DF3E9",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-52624C3DF3E9.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that DepthGraft reduces KV-cache use by roughly one third while retaining prefill early completion."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "At 128K context, the authors report TTFT reductions of 26.8% on 9B MLA and 28.8% on 16B GQA, while TPOT remains within 1% of baseline across tested lengths."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "For a 16B GQA MoE, the paper reports MMLU-Pro increasing from 23.86 to 30.86, an absolute gain of 7.00 points versus its GQA baseline."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The paper does not establish independent reproduction, production deployment, or transfer to arbitrary model families and workloads."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "architectures_scaling",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-11-03"
+    ],
+    "event_at": "2026-11-02T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No independent reproduction of reported quality, KV-cache or latency results was located or performed; linked code was not inspected.",
+        "kind": "reproduction_missing",
+        "state": "open",
+        "updated_at": "2026-11-03T06:22:07Z"
+      },
+      {
+        "description": "The paper does not establish whether the reported benefits transfer to other architectures, production serving stacks or workload distributions.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-11-03T06:22:07Z"
+      }
+    ],
+    "id": "FCMO-52624C3DF3E9",
+    "importance_effective_score": 6,
+    "importance_rationale": "If the reported quality and efficiency results generalize, reducing KV-cache capacity by about one third while lowering long-context prefill latency could materially change inference memory planning and serving design. The score is limited to author-reported results on selected 0.5B–16B dense/MoE models; no production or independent validation is established.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-11-03T06:22:07Z",
+    "limitations": [
+      "The performance and latency results are reported by the paper authors and were not independently reproduced in this activation.",
+      "The long-context latency comparison is limited to 9B MLA and 16B GQA configurations, contexts of 8K–128K, and a fixed 2K generation length.",
+      "The reported 16B MMLU-Pro gain is a within-paper benchmark result; no independent evaluation, error bars or multi-seed reproduction was inspected.",
+      "The linked project code and detailed evaluation artifacts were not inspected or run; production deployment and serving economics are not established."
+    ],
+    "organizations": [],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-11-03T06:22:07Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2611.03142"
+    ],
+    "status": "active",
+    "summary": "The authors propose hierarchical sharing of key/value (KV) representations across transformer depth, reconstructing deep-layer KV from aligned shallow and middle layers. In experiments on dense and MoE models from 0.5B to 16B parameters, they report a roughly one-third KV-cache reduction. For 9B MLA and 16B GQA models, the paper reports lower time-to-first-token (TTFT) at 8K–128K context and nearly unchanged time-per-output-token (TPOT); at 128K, reported TTFT reductions are 26.8% and 28.8%, respectively. These results are author-reported and have not been independently reproduced.",
+    "technical": {
+      "claimed_result": "The authors report roughly one-third lower KV-cache use, consistent benchmark gains in dense and MoE models, and lower long-context TTFT with TPOT within 1% of baseline on the tested configurations. In the 16B GQA MoE table, MMLU-Pro rises from 23.86 to 30.86 (+7.00 points).",
+      "compute_or_cost": "The authors report about one-third lower KV cache and TTFT reductions at 128K of 26.8% on 9B MLA and 28.8% on 16B GQA. Training throughput is reported as essentially identical. No independent hardware-cost or production economics measurement was performed.",
+      "demonstrated_result": "The preprint and its tables are directly inspectable. Experimental performance and efficiency outcomes remain author-reported claims and were not independently reproduced.",
+      "implementation_status": "The paper links a project repository; this activation did not inspect or run it.",
+      "mechanism": "Deep layers reconstruct KV from stride-aligned shallow and middle source pairs. Reuse removes independent deep-layer KV projections and cache tensors; the authors argue shared KV edges also create cross-layer gradient paths that regularize representation geometry.",
+      "novelty": "Hierarchical cross-layer KV reconstruction is presented as both a cache-saving mechanism and a structural training regularizer through distributed cross-layer gradient flow.",
+      "regime": "Dense models at 0.5B–1.5B and MoE models at 3B–16B total parameters; long-context inference reported for 9B MLA and 16B GQA at 8K–128K context with fixed 2K generation length.",
+      "reproducibility": "Full arXiv v1 PDF inspected, including Tables 2–3. No independent reproduction was found or attempted; project code and detailed evaluation artifacts were not inspected.",
+      "strongest_baseline": "Within-paper GQA baselines on the same reported model settings, plus a 9B MLA baseline for long-context latency. The paper also compares adjacent and global-anchor KV-sharing variants in ablations."
+    },
+    "title": "DepthGraft reports hierarchical cross-layer KV reconstruction with lower cache and prefill cost",
+    "topics": [
+      "KV-cache",
+      "cross-layer-sharing",
+      "transformer-architecture",
+      "prefill-latency",
+      "long-context",
+      "MoE"
+    ],
+    "why_it_matters": "If reproduced, cross-layer KV reconstruction could reduce inference memory and prefill latency while retaining benchmark performance, affecting long-context model and serving architecture choices. The evidence is a single paper’s experiments and does not establish production deployment, broad model-family transfer or independently verified quality gains."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
