@@ -11191,6 +11191,65 @@
       "title": "Un artículo sobre incendios forestales en Canadá informa un sustituto de IA rápido para la cartografía BurnP3+",
       "why_it_matters": "Si se confirma de forma independiente en más regiones y con datos de incendios observados, un emulador de IA podría permitir a quienes investigan incendios forestales explorar más escenarios regionales con mucho menos cómputo que las simulaciones Monte Carlo repetidas. La evidencia actual solo respalda una emulación del simulador reportada en un artículo: no muestra pronósticos mejores ni planificación de emergencias más segura, y no recupera la clase de peligro más extrema."
     },
+    "FCMO-3A16714B7377": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "OpenAI publicó el 2 de noviembre de 2026 un informe técnico sobre su backend de control de versiones Pando."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI afirma que Pando ya da servicio a todo el desarrollo de su monorepositorio, conserva la compatibilidad con el protocolo y el cliente de Git, y está diseñado para permitir escrituras simultáneas en distintas ramas y lecturas de alto volumen."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que Pando redujo casi cinco veces la latencia mediana de los envíos y entrega cerca de un petabyte de datos de Git al día."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI describe Pando como un sistema con actualizaciones serializables por referencia y consistencia causal entre referencias; guarda paquetes de ramas como objetos inmutables y los reutiliza para las descargas."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La fuente consultada no aporta mediciones de producción reproducidas de forma independiente ni trazas de carga externas que confirmen la latencia, el caudal reportado o su generalización fuera del entorno de OpenAI."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se examinó una medición de producción independiente de la reducción de casi cinco veces en la latencia mediana de envío ni del volumen cercano a un petabyte diario.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-11-03T00:13:20Z"
+        },
+        {
+          "description": "En esta revisión acotada no se localizó una implementación pública de Pando ni cambios integrados al repositorio de Git que permitan inspeccionar externamente el mecanismo descrito.",
+          "kind": "missing_artifact",
+          "state": "open",
+          "updated_at": "2026-11-03T00:13:20Z"
+        }
+      ],
+      "importance_rationale": "Si los datos son correctos, Pando es un diseño e implementación de infraestructura relevante para un monorepositorio grande con intensa actividad de agentes, y aporta implicaciones para la arquitectura de repositorios y la colaboración con alta concurrencia. Su pertinencia fuera de OpenAI sigue incierta porque no se establecieron mediciones de carga independientes ni adopción más amplia.",
+      "limitations": [
+        "OpenAI reporta las métricas de producción, el alcance del despliegue y el desempeño; no se examinó una traza de carga ni una reproducción independiente.",
+        "El artículo aclara que sus simulaciones de arquitectura son modelos didácticos sintéticos; no deben confundirse con pruebas comparativas de producción.",
+        "Pando relaja la consistencia de instantánea para todo el repositorio: varias referencias pueden leerse desde puntos distintos de su historial, aunque las actualizaciones de cada referencia son serializables.",
+        "El artículo describe aportes al proyecto Git, pero no establece cuáles de los cambios propuestos se integraron o adoptaron fuera de OpenAI."
+      ],
+      "relationships": [],
+      "summary": "En un informe de ingeniería del 2 de noviembre de 2026, OpenAI describe Pando, un backend que, según la empresa, ya presta servicio a todo el desarrollo de su monorepositorio y conserva la compatibilidad con el protocolo y el cliente de Git. Su diseño almacena paquetes entrantes como objetos inmutables, sigue las versiones y dependencias de las referencias por rama, permite que ramas independientes avancen en paralelo y reutiliza paquetes al descargar. OpenAI informa una reducción cercana a cinco veces en la latencia mediana de envío y casi un petabyte diario de datos de Git entregados en producción. Estas cifras y el estado del despliegue son afirmaciones de primera parte; el artículo no incluye trazas de carga inspeccionadas por terceros ni una reproducción externa. También aclara que la comparación de arquitectura usa simulaciones didácticas sintéticas, no pruebas de producción.",
+      "technical": {
+        "claimed_result": "OpenAI afirma que Pando sirve a su monorepositorio, entrega cerca de un petabyte de datos de Git al día y redujo casi cinco veces la latencia mediana de envío.",
+        "demonstrated_result": "Es posible inspeccionar el informe y las descripciones de arquitectura y métricas atribuidas a OpenAI. En esta revisión no se midieron de forma independiente las cifras de desempeño subyacentes.",
+        "implementation_status": "OpenAI afirma que Pando entró en producción en abril de 2026 y ahora da servicio al desarrollo de su monorepositorio.",
+        "mechanism": "Los metadatos de versiones por referencia apuntan a paquetes inmutables de Git en almacenamiento de objetos; las referencias independientes pueden avanzar por separado, se reutilizan paquetes para las lecturas y la compactación agrupa paquetes para reducir el trabajo de planificación de descargas.",
+        "regime": "El propio monorepositorio y entorno de despliegue de OpenAI; no se ha establecido la transferencia a otros tamaños de repositorio, cargas de trabajo, redes o requisitos de consistencia.",
+        "reproducibility": "No se inspeccionó una implementación pública, trazas de carga independientes ni una reproducción externa. Las simulaciones de diseño son modelos didácticos, no pruebas comparativas de producción.",
+        "strongest_baseline": "OpenAI describe que sus sistemas internos anteriores sufrían lentitud en envíos y descargas y que su confiabilidad cayó por momentos debajo de 90%; no aporta un conjunto de datos de referencia independiente y equivalente."
+      },
+      "title": "OpenAI presenta Pando, un backend compatible con Git para monorepositorios y tráfico a escala de agentes",
+      "why_it_matters": "El control de versiones puede convertirse en un cuello de botella cuando muchos agentes y equipos de ingeniería crean ramas, envían cambios y activan lecturas simultáneas. Pando ofrece un caso concreto, descrito por primera parte, de rediseño de esa infraestructura manteniendo la compatibilidad con clientes Git. Su compromiso con la consistencia causal también importa: ramas independientes pueden avanzar por separado, por lo que leer varias referencias no garantiza una instantánea global de un mismo momento. Las cifras de escala y latencia merecen atención, aunque siguen sin verificarse fuera del relato de OpenAI."
+    },
     "FCMO-3AB0123A135A": {
       "claims": [
         {
@@ -37720,6 +37779,65 @@
       },
       "title": "Anthropic encuentra una amplia brecha entre las expectativas del público y su personal sobre la IA y el trabajo",
       "why_it_matters": "La encuesta muestra cuán distintas son las expectativas sobre el ritmo de avance de la IA y su transmisión económica entre el personal de un laboratorio y una muestra ponderada de adultos de Estados Unidos; esto puede aportar contexto a debates de investigación y políticas públicas. La evidencia describe creencias bajo una muestra y preguntas hipotéticas específicas. No demuestra que las capacidades ni los resultados económicos esperados vayan a ocurrir. El modelo de escenarios asociado no asigna probabilidades y omite mecanismos económicos relevantes."
+    },
+    "FCMO-C8CD8D4AF91C": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Investigadores de Galbot publicaron PhysRSI-eval, un perfil de cinco ejes para evaluar la mejora iterativa en tareas de manipulación robótica, el 19 de octubre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que evaluaron seis sistemas de modelo más configuración de ejecución en 18 tareas de manipulación RoboDojo. Los números de tareas resueltas en K17 fueron 15, 12, 7, 1, 13 y 11 para GPT-6 Astra, GPT-6.1 Sol, GPT-6 Sol, GPT-5.6 Sol, Claude Opus 5.5 y Claude Sonnet 5.5, respectivamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En los seis sistemas evaluados, los autores informan asociaciones más fuertes entre las puntuaciones espaciales y el desempeño inicial y el momento de las mejoras; las puntuaciones de percepción se asociaron más con el desempeño alcanzado y la recuperación posterior, mientras que las de programación mostraron asociaciones más débiles en esta muestra."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la ablación de Astra, con seis tareas y dos cadenas por tarea, el artículo informa 15/36 éxitos en rondas tardías con la condición completa de espacio de trabajo y retroalimentación, frente a 3/36 sin historial durante K4–K6."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece una reproducción independiente con múltiples cadenas, confiabilidad de ejecución física repetida, generalización más allá de las tareas simuladas ni validez predictiva para resultados de despliegue."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se examinó una reproducción independiente con múltiples cadenas completas de la comparación PhysRSI-eval ni de las intervenciones sobre el espacio de trabajo.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-11-03T00:17:00Z"
+        },
+        {
+          "description": "No se estableció si los ejes propuestos predicen la confiabilidad de despliegue real o sus costos de recursos.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-11-03T00:17:00Z"
+        }
+      ],
+      "importance_rationale": "Si las mediciones y los patrones informados se generalizan, separar el resultado, el momento de mejora y el costo de interacción física puede modificar decisiones de evaluación y despliegue en investigación de agentes corporizados. Su consecuencia actual es notable dentro de la robótica; el estudio reportado es acotado y no tiene reproducción independiente.",
+      "limitations": [
+        "La comparación principal usa una sola cadena de mejora por tarea; las repeticiones de K0 no estiman la variabilidad entre cadenas completas.",
+        "El análisis de asociaciones de capacidades cubre seis sistemas de modelo y configuración, usa puntuaciones públicas de referencia obtenidas en condiciones distintas y carece de validación independiente; el menor valor q ajustado informado es 0.11.",
+        "La ablación del espacio de trabajo y las pruebas con diseños congelados cubren Astra y seis tareas. La transferencia entre tareas se informa en tres casos, no en una evaluación amplia.",
+        "Los resultados provienen de episodios de simulación con evaluación nativa; el artículo no establece confiabilidad de ejecución repetida en robots reales ni transferencia al despliegue.",
+        "Los autores informan una corrida parcial separada de Gemini 4 en diez tareas; la excluyen de los análisis principales de asociaciones sobre 18 tareas porque usa un conjunto distinto."
+      ],
+      "relationships": [],
+      "summary": "Investigadores de Galbot presentan PhysRSI-eval, un perfil de cinco ejes que separa el desempeño del primer intento, el momento de las mejoras, las puntuaciones alcanzadas, el presupuesto de interacción física y la recuperación tras un fallo inicial. En la evaluación principal de simulación, el artículo informa seis sistemas de modelo más configuración de ejecución en 18 tareas de manipulación: GPT-6 Astra resolvió 15, GPT-6.1 Sol 12, GPT-6 Sol 7, GPT-5.6 Sol 1, Claude Opus 5.5 13 y Claude Sonnet 5.5 11. Los autores informan que la puntuación final, la rapidez de mejora y la eficiencia del presupuesto pueden divergir, además de asociaciones exploratorias entre capacidades públicas y los cinco ejes. También describen intervenciones de espacio de trabajo con Astra y pruebas en diseños no vistos. Todos los resultados siguen siendo afirmaciones de los autores. La comparación principal incluye una sola cadena de mejora por tarea; el análisis de capacidades cubre seis sistemas sin validación independiente; las ablaciones y pruebas congeladas de Astra abarcan seis tareas y la transferencia se basa en tres casos.",
+      "technical": {
+        "claimed_result": "Los autores informan diferencias relevantes entre seis sistemas de modelo más configuración de ejecución en 18 tareas de manipulación RoboDojo y una ablación de Astra donde las condiciones con historial y espacio de trabajo retuvieron más éxitos en rondas tardías que la condición sin historial.",
+        "demonstrated_result": "El artículo define la evaluación de cinco ejes y presenta resultados de simulación; los resultados reportados no se han reproducido de forma independiente.",
+        "mechanism": "PhysRSI-eval mide por separado el desempeño inicial, el momento de las mejoras, el éxito alcanzado, el ahorro del presupuesto de interacción y la recuperación después de fallos tempranos, dentro de un presupuesto fijo de rondas e interacciones.",
+        "regime": "Tareas de manipulación simuladas de RoboDojo, más una corrida separada de Gemini 4 con diez tareas; las pruebas de espacio de trabajo de Astra cubren seis tareas.",
+        "reproducibility": "El artículo completo especifica tareas, métricas y condiciones de ablación. No se inspeccionó una repetición independiente; siguen pendientes cadenas completas repetidas, otras plataformas y resultados de operación física.",
+        "strongest_baseline": "El estudio compara seis configuraciones de modelo y ejecución en el protocolo principal de simulación y realiza ablaciones internas de Astra; la comparación principal usa una sola cadena de mejora por tarea."
+      },
+      "title": "PhysRSI-eval informa mediciones de cinco ejes sobre la mejora iterativa en manipulación robótica",
+      "why_it_matters": "Las evaluaciones de agentes corporizados que solo informan el éxito final pueden ocultar cuándo llegan las mejoras, cuántas interacciones físicas consumen y qué fallos iniciales se recuperan. El artículo propone mediciones que separan esas dimensiones e informa resultados por tarea bajo un protocolo acotado de manipulación simulada. La evidencia respalda el diseño de evaluación y los resultados reportados por los autores; no demuestra que la mejora recursiva física sea confiable en general ni que se transfiera a robots desplegados."
     },
     "FCMO-C9092F3C5AF0": {
       "claims": [
