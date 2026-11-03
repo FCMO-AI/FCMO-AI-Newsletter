@@ -8,7 +8,7 @@
     "confidence": "credible_unconfirmed",
     "importance": 6,
     "tier": "Major",
-    "summary": "Anthropic announced FlashProve, an open-source zero-knowledge proof prototype intended to let a verifier check that inference used a committed model without seeing its weights. Its Nov 2 post reports about 110 proof tokens per second for 4-bit Llama 4 Maverick on one H100, with proofs around 19 MB per 1,024-token request and GPU time 70–95 times ordinary vLLM inference. The linked GitHub repository identifies version 0.16.0 as a research artifact that is not maintained; its README lists substantial hardware and memory needs for full-model proving. Performance and security remain first-party claims, and the report and implementation were not independently audited here.",
+    "summary": "Anthropic released FlashProve, an open-source prototype for proving that an inference response matches a commitment to a model’s weights. It reports performance for a 4-bit Llama 4 Maverick model, with substantial proving overhead and a CPU-verifiable proof. Its linked technical report says it was AI-generated and not reviewed in detail; it also says batched zero-knowledge is not proved, executable C++ equivalence to Lean is unproved, and the verified statement concerns an integer-quantized model’s greedy output. The results remain first-party prototype claims, not independent validation or production evidence.",
     "topics": [
       "provable-inference",
       "zkSNARK",
@@ -54,6 +54,18 @@
       {
         "label": "CLAIMED",
         "text": "The repository README lists full Llama 4 Maverick proof generation as requiring a single NVIDIA H100 80 GB, CUDA 13.2, 330 GB RAM, 245 GB disk and hours of execution; its stored-proof verifier route is listed separately as requiring under 2 GB RAM."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "Anthropic’s technical report says it was AI-generated and had not been reviewed in detail."
+      },
+      {
+        "label": "DEMONSTRATED",
+        "text": "The report says the Lean formalization proves zero-knowledge only when requests are processed one at a time, not in batches, and that the executable C++ code is not formally proved equivalent to the Lean specification."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The reported protocol does not establish proof coverage for ordinary floating-point or sampled production replies; it proves an integer-quantized model’s greedy choice, and post-hoc proof generation detects a mismatch after the response rather than preventing delivery of an initially tampered response."
       }
     ],
     "confidence": "credible_unconfirmed",
@@ -72,12 +84,6 @@
     "evidence_class": "A",
     "evidence_gaps": [
       {
-        "description": "The official GitHub repository and README were inspected, including its version, maintenance notice and route requirements, but the linked technical-report PDF, protocol files, prover source and Lean theorem implementation were not directly inspected or audited.",
-        "kind": "missing_artifact",
-        "state": "open",
-        "updated_at": "2026-11-03T10:13:00Z"
-      },
-      {
         "description": "Performance, proof validity and security are reported by the project authors; no independent benchmark or cryptographic audit was inspected.",
         "kind": "missing_independent",
         "state": "open",
@@ -88,6 +94,12 @@
         "kind": "other",
         "state": "open",
         "updated_at": "2026-11-03T08:13:09Z"
+      },
+      {
+        "description": "The technical report was inspected but says it was AI-generated and not reviewed in detail. The repository’s protocol source, GPU prover, C++ verifier and Lean theorem implementation have not been audited; the report explicitly says executable C++ equivalence to Lean is unproved and zero-knowledge for batched requests is not proved.",
+        "kind": "missing_artifact",
+        "state": "open",
+        "updated_at": "2026-11-03T14:16:06Z"
       }
     ],
     "id": "FCMO-ED4F36EDFBFD",
@@ -96,15 +108,18 @@
     "importance_scale_version": 2,
     "importance_score": 6,
     "importance_tier": "Major",
-    "last_verified_at": "2026-11-03T10:13:00Z",
+    "last_verified_at": "2026-11-03T14:16:06Z",
     "limitations": [
       "Performance and cryptographic-security statements are first-party claims in the inspected official post.",
       "The reported regime is specific to a single H100 and 4-bit Llama 4 Maverick; it does not establish general performance across architectures, hardware or quantization formats.",
       "The cited 70–95x comparison indicates substantial proof-generation cost relative to ordinary vLLM inference.",
-      "The linked technical report and code repositories were not fetched or run during this review.",
       "Anthropic explicitly notes that proof of serving inference does not establish that the same hardware is not also training.",
       "The official repository labels FlashProve version 0.16.0 a research artifact that is not maintained and is not accepting contributions.",
-      "The repository README lists full-size Llama 4 Maverick proving as requiring one H100 80 GB, CUDA 13.2, 330 GB RAM and 245 GB disk, with execution measured in hours; these are documented requirements, not independently tested here."
+      "The repository README lists full-size Llama 4 Maverick proving as requiring one H100 80 GB, CUDA 13.2, 330 GB RAM and 245 GB disk, with execution measured in hours; these are documented requirements, not independently tested here.",
+      "Anthropic’s technical report says it was AI-generated and not reviewed in detail; its technical analysis therefore remains first-party provisional material.",
+      "The report says formal zero-knowledge is proved for one-at-a-time requests, not batch proving, and the executable C++ code is not proved equivalent to the Lean specification.",
+      "The measured claim concerns the integer-quantized model and greedy-choice token, not exact equivalence to ordinary floating-point or sampled production responses.",
+      "Proofs are generated post-hoc: they can detect tampering after a reply is delivered, but cannot prevent the initial delivery of a tampered reply; the report treats this as defense in depth."
     ],
     "organizations": [
       "Anthropic",
@@ -114,7 +129,7 @@
       "Succinct"
     ],
     "primary_desk": "inference_systems",
-    "recorded_at": "2026-11-03T10:13:00Z",
+    "recorded_at": "2026-11-03T14:16:06Z",
     "regions": [
       "global"
     ],
@@ -124,17 +139,18 @@
     ],
     "source_urls": [
       "https://www.anthropic.com/research/provable-inference",
-      "https://github.com/anthropics/FlashProve"
+      "https://github.com/anthropics/FlashProve",
+      "https://www.anthropic.com/document/flashprove-technical-report"
     ],
     "status": "developing",
-    "summary": "Anthropic announced FlashProve, an open-source zero-knowledge proof prototype intended to let a verifier check that inference used a committed model without seeing its weights. Its Nov 2 post reports about 110 proof tokens per second for 4-bit Llama 4 Maverick on one H100, with proofs around 19 MB per 1,024-token request and GPU time 70–95 times ordinary vLLM inference. The linked GitHub repository identifies version 0.16.0 as a research artifact that is not maintained; its README lists substantial hardware and memory needs for full-model proving. Performance and security remain first-party claims, and the report and implementation were not independently audited here.",
+    "summary": "Anthropic released FlashProve, an open-source prototype for proving that an inference response matches a commitment to a model’s weights. It reports performance for a 4-bit Llama 4 Maverick model, with substantial proving overhead and a CPU-verifiable proof. Its linked technical report says it was AI-generated and not reviewed in detail; it also says batched zero-knowledge is not proved, executable C++ equivalence to Lean is unproved, and the verified statement concerns an integer-quantized model’s greedy output. The results remain first-party prototype claims, not independent validation or production evidence.",
     "technical": {
       "claimed_result": "Anthropic reports about 110 proof tokens/s on one H100 for 4-bit Llama 4 Maverick (400B parameters), approximately 19 MB per 1,024-token request, and 70–95x vLLM inference GPU time.",
       "demonstrated_result": "Anthropic publicly announced the FlashProve prototype and described associated report, protocol, prover, C++ verifier and Lean artifacts. The artifacts and benchmark were not independently executed in this review.",
       "implementation_status": "Public intermediate research prototype. The linked official GitHub repository identifies version 0.16.0 as not maintained and not accepting contributions.",
       "mechanism": "A prover commits to model weights and produces a zero-knowledge succinct proof associated with an inference response; a verifier checks the proof without receiving the weights.",
       "regime": "Anthropic reports a single H100; 4-bit quantized Llama 4 Maverick MoE; integer arithmetic in prefill; and 1,024-token request proof-size comparison. The repository README lists full-model route requirements of an H100 80 GB, CUDA 13.2, 330 GB RAM and 245 GB disk.",
-      "reproducibility": "The official repository README is accessible and lists routes and hardware requirements, but the technical-report PDF, protocol implementation and Lean theorem files were not inspected or executed in this review. Independent performance and security review remain open.",
+      "reproducibility": "The official report was retrieved and inspected, but it says it was AI-generated and not reviewed in detail. The repository is marked an unmaintained research artifact. Neither implementation nor Lean proofs were audited or run independently; C++ equivalence to the Lean specification is unproved, and formal zero-knowledge coverage does not yet extend to batched requests.",
       "strongest_baseline": "Anthropic compares proof-generation GPU time with vLLM inference GPU time for prompts of the same length; the post does not establish an independent matched performance study."
     },
     "title": "Anthropic releases FlashProve, a zero-knowledge proof prototype for model inference",
