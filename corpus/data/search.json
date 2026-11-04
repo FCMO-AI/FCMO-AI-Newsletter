@@ -1,6 +1,118 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The official v0.9.0 release entry and tag document the listed implementation and API changes.",
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "open_ecosystem"
+    ],
+    "development_type": "repository_release",
+    "event_at": "2026-11-04T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-9F9E573CAB8B",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-11-04T18:20:45Z",
+    "mechanism": "Runtime and API changes: OCP FP8 E4M3 support; flash_attn_ext_rows for multi-sequence unified KV-cache inference; batched tensor-copy operations; model architecture, audio and server API integrations.",
+    "organizations": [
+      "ggml-org"
+    ],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "developing",
+    "strongest_baseline": "No quantified prior-version baseline or comparative benchmark is provided in the inspected release notes.",
+    "summary": "The ggml-org/llama.cpp project published v0.9.0 at commit cd959ba on 4 November. The release lists OCP FP8 E4M3 support, a multi-sequence attention operation for unified KV caches, batched tensor-copy APIs, four additional model architectures and audio and server API updates. Maintainers describe the attention change as more efficient, but the inspected release notes provide no quantified benchmark or independent validation.",
+    "title": "llama.cpp v0.9.0 adds FP8 quantization and multi-sequence inference support",
+    "topics": [
+      "llama.cpp",
+      "inference runtimes",
+      "FP8 quantization",
+      "KV cache",
+      "open models"
+    ],
+    "why_it_matters": "Runtime support changes can affect which models and quantization formats people can serve locally and how they manage multi-sequence inference. The release makes the implementation options available; the source does not establish measured speedups or adoption."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "Google published a detailed first-party account including workflow stages, test/parity procedure and a runtime/memory table. The underlying run and all result metrics were not independently inspected or reproduced.",
+    "desks": [
+      "agents_memory",
+      "evaluation_science",
+      "inference_systems",
+      "labs_industry"
+    ],
+    "development_type": "technical_report",
+    "event_at": "2026-11-03T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-B8BE73E50342",
+    "importance_effective_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-11-04T17:23:09.132242Z",
+    "mechanism": "The described workflow audits cross-file dependencies, builds a compiled Fortran baseline and golden outputs, creates a migration blueprint, ports the solver into safe Rust modules, runs tests and multi-seed parity checks, then applies LLVM profile-guided optimization.",
+    "organizations": [
+      "Google Antigravity",
+      "FVCOM-GitHub"
+    ],
+    "primary_desk": "labs_industry",
+    "regions": [
+      "global"
+    ],
+    "status": "developing",
+    "strongest_baseline": "Google compares its optimized Rust result with a compiled Fortran -O3 baseline on the reported runtime/memory harness and reports parity across 100 seeds. The exact upstream revision and matching test input were not verified.",
+    "summary": "Google Antigravity reports that Gemini 4 Argon migrated the 174,774-line Fortran/C core of FVCOM to safe Rust in a 59-minute run, with 100-seed numerical parity, 42 tests, 96.8% branch coverage, six reported bug findings and 1.88× runtime after optimization. The post gives stage timings and a runtime/memory scorecard, making the account more detailed than a product demo. The run, metrics, exact input correspondence and scientific validity remain first-party and have not been independently reproduced; the linked skill’s immutable source and run artifacts were unavailable in this review.",
+    "title": "Google reports a Gemini 4 Argon workflow porting an ocean model from Fortran to Rust",
+    "topics": [
+      "agentic coding",
+      "scientific software",
+      "Fortran",
+      "Rust",
+      "numerical parity",
+      "software maintenance"
+    ],
+    "why_it_matters": "Scientific models often encode decades of validated domain logic in hard-to-maintain software. If this reported workflow can preserve numerical behavior while modernizing such code, it could change maintenance and performance options for scientific computing. Current evidence is a detailed first-party report about one migration; independent reproduction, exact input correspondence and broader validity remain unknown."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The authors published a 31-page technical report with benchmark, model, harness, compaction and serving-measurement methods plus detailed appendices. Quantitative task and systems outcomes remain paper-reported and were not independently reproduced in this activation.",
+    "desks": [
+      "agents_memory",
+      "efficiency",
+      "evaluation_science",
+      "inference_systems"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-11-03T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-4B93D87DDA19",
+    "importance_effective_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-11-04T17:17:55.628484Z",
+    "mechanism": "End-of-conversation compaction summarizes accumulated agent history when context reaches a threshold; selective reading uses tools to retrieve portions of long inputs; single-action compaction carries a short semantic state between actions. The paper argues that these mechanisms can reduce live context while retaining task-relevant state in the evaluated settings.",
+    "organizations": [
+      "NVIDIA"
+    ],
+    "primary_desk": "agents_memory",
+    "regions": [
+      "global"
+    ],
+    "status": "developing",
+    "strongest_baseline": "The main comparisons use the same model and benchmark harness under full-history/full-input baselines versus compaction or selective-reading variants. The study includes two closed-weight model families for its primary agent-task evaluations, but is not an exhaustive comparison across models or task classes.",
+    "summary": "In arXiv:2611.05306v1, the authors evaluate context compaction and selective input reading on six long-horizon and seven long-input benchmark families. For end-of-conversation compaction, they report broadly near-baseline accuracy across tested thresholds for Claude Opus 4.5 and GPT 5.6 Sol, alongside estimated optimized retail-cost reductions; the estimates are not observed invoice savings. In a single-action-compaction condition, median live context is 7–9K tokens and maximum context 15–37K, while GPT 5.6 Sol falls 2.0 and 3.3 percentage points below its baselines on two coding benchmarks. These are author-reported results from the tested benchmarks and models; independent reproduction and universal transfer are not established.",
+    "title": "Authors report frequent context compaction preserves performance across tested long-horizon and long-input tasks",
+    "topics": [
+      "context compaction",
+      "long-horizon agents",
+      "agent memory",
+      "inference efficiency",
+      "long-context evaluation"
+    ],
+    "why_it_matters": "Long contexts can increase decode cost and make agent state expensive to serve. If the paper’s results generalize, explicit state compaction and selective retrieval could alter agent-harness and inference-system choices. The evidence is bounded to named tasks, models and settings; some tasks lose accuracy, cost reductions are estimated, and independent reproduction is not established."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The inspected sources establish that OpenAI publicly announced a proposed acquisition and that Pierre's corporate site describes its products and open-source projects. They do not establish closing or product integration.",
     "desks": [
       "labs_industry",

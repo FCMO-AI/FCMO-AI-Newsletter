@@ -15029,6 +15029,74 @@
       "title": "PolyGraph informa una captura de CUDA Graphs con búfer de planificación para decodificación especulativa adaptativa",
       "why_it_matters": "La decodificación especulativa adaptativa cambia la forma de trabajo durante la generación, mientras que la repetición de CUDA Graphs supone configuraciones de lanzamiento fijas. Si se replica más allá del montaje sintético de una sola GPU, el búfer de planificación podría reducir el costo de captura sin rellenar cada paso hasta la forma máxima. El resumen muestra poco beneficio de P99 cuando no se desperdicia trabajo por relleno, de modo que la ganancia depende de la carga."
     },
+    "FCMO-4B93D87DDA19": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "arXiv publicó el 3 de noviembre de 2026 la versión 1 de “You don’t need long context”, que evalúa compactación de contexto y lectura selectiva en tareas de largo horizonte y entradas extensas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que la compactación al final de la conversación conserva ampliamente el rendimiento en seis pruebas de largo horizonte para Claude Opus 4.5 y GPT 5.6 Sol: como máximo 5 de 22 configuraciones por modelo pierden más de 2 puntos porcentuales frente a su referencia con historial completo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En las configuraciones probadas, los autores estiman reducciones del costo minorista optimizado de 2.2×–8.8× para Claude Opus 4.5 y 2.4×–5.0× para GPT 5.6 Sol; son cálculos basados en supuestos de rendimiento y precios, no ahorros observados en facturas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En siete familias de pruebas de entradas extensas, los autores informan que la lectura selectiva con compactación de respaldo suele igualar o mejorar la precisión de referencia con entrada completa y acorta el contexto en vivo; los costos estimados varían ampliamente por tarea y modelo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En pruebas de compactación tras cada acción en SWE-bench Verified y Terminal-Bench 2.1, el contexto máximo mediano es 7–9K tokens y el máximo llega a 15–37K, frente a máximos de referencia de 130–200K; GPT 5.6 Sol obtiene 82.4% y 84.3%, 2.0 y 3.3 puntos por debajo de sus referencias mini-agent."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no prueba que el contexto breve baste para toda tarea, que la compactación nunca descarte información pertinente ni que los ahorros estimados se transfieran a otros modelos, cargas, sistemas o costos reales; aquí no se inspeccionó una reproducción independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se reprodujeron independientemente los resultados de pruebas ni las mediciones de servicio; falta auditar los artefactos y arneses del artículo.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Los costos minoristas se estiman con supuestos de rendimiento y precios, no con facturas medidas; se desconoce la transferencia a otro hardware, utilización, tarifas de modelo/API y mezcla de cargas.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "La evaluación cubre pruebas nombradas y dos modelos cerrados en el estudio principal; no demuestra que el contexto breve baste para toda clase de tareas.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se generalizan las compensaciones informadas entre precisión y costo de servicio, la gestión del estado con contextos breves podría cambiar decisiones de diseño sobre ventanas de contexto, arneses de agentes y sistemas de inferencia. La puntuación refleja esa posible consecuencia en el régimen estudiado, no la veracidad ni la transferencia universal de este estudio informado por sus autores.",
+      "limitations": [
+        "Todos los resultados de tareas y rendimiento son informes de los autores; no se realizó reproducción independiente.",
+        "El estudio principal usa Claude Opus 4.5 y GPT 5.6 Sol en seis familias de pruebas. La conservación cercana a la referencia en los umbrales evaluados no demuestra que toda tarea tolere compactación con pérdida.",
+        "El artículo señala que algunas tareas requieren detalles que pueden perderse; con un estado compactado de tamaño fijo, el historial de lanzamientos de moneda termina perdiendo datos.",
+        "Los beneficios de costo son estimaciones basadas en supuestos de rendimiento y precios, no ahorros medidos en facturas ni multiplicadores universales.",
+        "Los resultados de compactación tras cada acción varían por modelo: GPT 5.6 Sol baja 2.0 y 3.3 puntos porcentuales en SWE-bench Verified y Terminal-Bench 2.1."
+      ],
+      "relationships": [],
+      "summary": "En arXiv:2611.05306v1, los autores evalúan compactación del contexto y lectura selectiva en seis familias de pruebas de largo horizonte y siete de entradas extensas. La compactación al final de la conversación conserva ampliamente el rendimiento de referencia en los umbrales probados con Claude Opus 4.5 y GPT 5.6 Sol, según los autores, junto con reducciones estimadas del costo minorista optimizado; no son ahorros observados en facturas. Al compactar tras cada acción, el contexto en vivo mediano es 7–9K tokens y el máximo 15–37K; GPT 5.6 Sol queda 2.0 y 3.3 puntos porcentuales por debajo de sus referencias en dos pruebas de programación. Son resultados informados por los autores para los modelos y pruebas evaluados; no se ha establecido reproducción independiente ni validez universal.",
+      "technical": {
+        "claimed_result": "Los autores informan que la compactación frecuente al final de la conversación conserva ampliamente la precisión en seis pruebas de largo horizonte; para cada modelo, como máximo 5 de 22 umbrales pierden más de 2 puntos porcentuales frente a la referencia con historial completo. En siete familias de entradas extensas, la lectura selectiva con compactación de respaldo suele igualar o superar la referencia. La compactación tras cada acción mantiene el contexto mediano en 7–9K y el máximo en 15–37K; GPT 5.6 Sol obtiene 82.4% en SWE-bench Verified y 84.3% en Terminal-Bench 2.1, 2.0 y 3.3 puntos por debajo de su referencia mini-agent.",
+        "compute_or_cost": "El artículo estima costos minoristas optimizados a partir del rendimiento medido y los supuestos de precios declarados. Informa reducciones estimadas de 2.2×–8.8× para Claude Opus 4.5 y 2.4×–5.0× para GPT 5.6 Sol en tareas de largo horizonte; las estimaciones para entradas extensas varían por prueba y configuración. No son costos reales de facturación.",
+        "demonstrated_result": "Los autores publicaron un informe técnico de 31 páginas con métodos y apéndices detallados. Los resultados cuantitativos de tareas y sistemas siguen siendo informes de los autores y no se reprodujeron independientemente en esta activación.",
+        "implementation_status": "Los experimentos usan compactación al final de la conversación, lectura selectiva de archivos para entradas extensas y una variante con una acción por contexto. Los Modelos de Espacio de Estados Semánticos (SSSMs) son una propuesta futura, no una arquitectura entrenada y validada en este artículo.",
+        "mechanism": "La compactación al final de la conversación resume el historial acumulado al alcanzar un umbral; la lectura selectiva recupera partes de entradas extensas mediante herramientas; la compactación tras cada acción conserva un estado semántico breve. El artículo sostiene que estos mecanismos reducen el contexto en vivo y retienen información pertinente en los entornos evaluados.",
+        "regime": "Las pruebas principales usan Claude Opus 4.5 y GPT 5.6 Sol en seis familias de largo horizonte y siete de entradas extensas, con distintos umbrales de contexto y compactación. Las mediciones con pesos abiertos usan GLM 5.2, Kimi K2.6 y Qwen 3 Coder Next en servicio H100; las locales usan NVIDIA DGX Spark. Los costos dependen de los supuestos de tareas, precios y rendimiento del artículo.",
+        "reproducibility": "El HTML de arXiv describe pruebas, modelos, arneses, umbrales y resultados en apéndices. En esta activación no se ejecutaron los experimentos ni hubo reproducción independiente; la disponibilidad de artefactos y la réplica exacta siguen pendientes.",
+        "strongest_baseline": "Las comparaciones principales mantienen modelo y arnés, contrastando historial o entrada completos con variantes de compactación o lectura selectiva. El estudio incluye dos familias de modelos cerrados en su evaluación principal, no una comparación exhaustiva de modelos o tareas."
+      },
+      "title": "Autores informan que la compactación frecuente del contexto conserva el rendimiento en las tareas evaluadas de largo horizonte y entrada extensa",
+      "why_it_matters": "Los contextos largos pueden elevar el costo de decodificación y encarecer el estado de los agentes. Si los resultados se generalizan, la compactación explícita y la recuperación selectiva podrían cambiar las decisiones sobre arneses de agentes y sistemas de inferencia. La evidencia se limita a tareas, modelos y configuraciones nombrados; algunas tareas pierden precisión, los ahorros son estimaciones y no hay reproducción independiente confirmada."
+    },
     "FCMO-4C74A8BB4DFD": {
       "claims": [
         {
@@ -32030,6 +32098,49 @@
       "title": "Memento 3 aprende modelos ejecutables del entorno y los comprueba mediante reproducción",
       "why_it_matters": "Un modelo persistente del mundo que puede revisarse a partir de la interacción y contrastarse con transiciones observadas ofrece un diseño concreto para agentes en entornos desconocidos. El artículo informa mejoras en finalización y eficiencia de acciones frente a sistemas públicos existentes, pero el sistema más cercano ya está casi en el techo del benchmark. El resultado sirve como pista sobre arquitectura y evaluación de agentes; no demuestra aprendizaje autónomo general más allá de estos entornos."
     },
+    "FCMO-9F9E573CAB8B": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El proyecto ggml-org/llama.cpp publicó la versión v0.9.0 el 4 de noviembre de 2026, en el commit cd959ba. La entrada de publicación enumera compatibilidad con OCP FP8 E4M3, una operación de atención para varias secuencias, una API de copia por lotes, cuatro arquitecturas de modelos adicionales y cambios en las API de audio y servidor."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Las notas de la versión describen la nueva operación de atención como una forma más eficiente de usar la caché KV unificada con varias secuencias y de recuperar el rendimiento de prellenado de la caché no unificada; no incluyen una prueba comparativa cuantificada."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los materiales de la versión inspeccionados no acreditan pruebas independientes de corrección, mejoras de rendimiento en hardware específico, adopción en producción ni efectos posteriores de los cambios enumerados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación no se compiló ni probó de forma independiente la implementación de la versión ni sus afirmaciones de eficiencia.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-11-04T18:20:45Z"
+        }
+      ],
+      "importance_rationale": "Si las notas corresponden a cambios utilizables, admitir cuatro arquitecturas adicionales, FP8 y cambios en la caché KV para varias secuencias puede ampliar las opciones de inferencia local e influir en la elección del runtime. Este evento no demuestra mejoras de velocidad ni impacto en producción.",
+      "limitations": [
+        "Este resumen se basa en las notas oficiales de la versión; no se auditó el código ni se compiló localmente.",
+        "Las notas no presentan comparaciones de hardware, modelos, cargas de trabajo, latencia, rendimiento, memoria o energía que cuantifiquen la mejora de eficiencia.",
+        "Que una función aparezca en las notas de una versión no establece su corrección ni su idoneidad para producción en todos los backends."
+      ],
+      "relationships": [],
+      "summary": "El proyecto ggml-org/llama.cpp publicó v0.9.0 en el commit cd959ba el 4 de noviembre. La versión enumera compatibilidad con OCP FP8 E4M3, una operación de atención para cachés KV unificadas con varias secuencias, APIs de copia por lotes, cuatro arquitecturas adicionales y cambios en las API de audio y servidor. Los mantenedores describen la operación de atención como más eficiente, pero las notas inspeccionadas no incluyen métricas ni validación independiente.",
+      "technical": {
+        "claimed_result": "Los mantenedores describen flash_attn_ext_rows como una mejora para inferencia con varias secuencias y caché KV unificada, y como una forma de recuperar el rendimiento de prellenado con caché no unificada; las notas no dan cifras.",
+        "demonstrated_result": "La entrada oficial de v0.9.0 y su etiqueta documentan los cambios de implementación y API enumerados.",
+        "implementation_status": "Publicado en upstream como v0.9.0, commit cd959ba; en esta activación no se compiló ni se probaron los backends afectados.",
+        "mechanism": "Cambios de runtime y API: compatibilidad con OCP FP8 E4M3; flash_attn_ext_rows para atención con varias secuencias y caché KV unificada; copia de tensores por lotes; integración de arquitecturas, audio y API de servidor.",
+        "regime": "Versión v0.9.0 del proyecto en el commit cd959ba; no se inspeccionó una evaluación de modelo, hardware o carga de trabajo específicos.",
+        "strongest_baseline": "Las notas inspeccionadas no ofrecen una comparación cuantificada con una versión anterior ni otra referencia de rendimiento."
+      },
+      "title": "llama.cpp v0.9.0 incorpora cuantización FP8 e inferencia con varias secuencias",
+      "why_it_matters": "Los cambios del runtime pueden influir en qué modelos y formatos de cuantización se pueden servir localmente y en el manejo de inferencias con varias secuencias. La versión ofrece esas opciones de implementación, pero la fuente no demuestra aumentos de velocidad ni adopción."
+    },
     "FCMO-9FBEC3B75775": {
       "claims": [
         {
@@ -36308,6 +36419,61 @@
       },
       "title": "NgramRL aprovecha ejecuciones previas para acelerar la generación en el posentrenamiento con RL",
       "why_it_matters": "La generación de ejecuciones para el posentrenamiento con RL puede consumir una gran parte del tiempo de entrenamiento. Si el mecanismo reportado se generaliza, reutilizar el historial condicionado por indicación y ocultar la coordinación del host podría aliviar un cuello de botella importante sin añadir un modelo borrador separado. Las mejoras observadas dependen de la tarea y son mayores en Spider; su utilidad también depende de que se repitan las indicaciones, la caché esté caliente y el hardware permita solapar ambos trabajos."
+    },
+    "FCMO-B8BE73E50342": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Google Antigravity publicó el 3 de noviembre de 2026 un informe sobre la migración del núcleo Fortran/C de FVCOM a Rust con ayuda de Gemini 4 Argon."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Google informa que su flujo de 59 minutos migró 174,774 líneas en 264 archivos, prohibió código unsafe en Rust, pasó 42 pruebas con 96.8% de cobertura de ramas y reprodujo las salidas de Fortran en 100 semillas aleatorias con 12 decimales de precisión."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Google informa seis errores heredados y una reducción del tiempo de ejecución de 883 ms para la base Fortran a 469 ms tras cambios de asignación Struct-of-Arrays y optimización LLVM guiada por perfiles; la memoria máxima reportada baja de 11.84 MB a 5.48 MB."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra de forma independiente las métricas de migración, la validez numérica en uso científico real, la correspondencia exacta entre la revisión pública de FVCOM y la entrada ejecutada ni la generalización a otros códigos científicos heredados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La publicación no incluye el espacio de trabajo de la corrida, la telemetría completa ni la revisión inmutable de la habilidad reutilizable; la corrida y sus métricas siguen siendo informes de primera parte.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "No se verificó la correspondencia entre la entrada declarada de 174,774 líneas y una revisión/configuración inmutable de FVCOM; tampoco se ejecutó una migración independiente completa.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si un flujo puede modernizar simulaciones científicas grandes y preservar sus resultados numéricos mientras mejora el tiempo de ejecución, podría afectar de forma importante el mantenimiento de software científico heredado. La puntuación refleja esa consecuencia potencial, no la veracidad ni la transferencia de las métricas de primera parte de Google.",
+      "limitations": [
+        "Google informa todas las métricas de migración, paridad, cobertura, búsqueda de errores, seguridad y velocidad; no se inspeccionó una reproducción independiente.",
+        "El índice web de la habilidad enlazada expone instrucciones, pero la página de GitHub y el archivo sin procesar devolvieron un error de caché; no se obtuvo la revisión inmutable ni los artefactos de la corrida.",
+        "Google identifica FVCOM 5.0.1 como versión de origen, pero esta revisión no estableció que la entrada de 174,774 líneas coincida exactamente con esa revisión o configuración.",
+        "La paridad informada en 100 semillas y 42 pruebas generadas no demuestra validez científica en todas las configuraciones, condiciones de frontera o usos de investigación.",
+        "La velocidad de 1.88× combina conversión a Rust, cambios de asignación y LLVM PGO; no aísla el aporte del modelo ni demuestra una aceleración general de migraciones."
+      ],
+      "relationships": [],
+      "summary": "Google Antigravity afirma que Gemini 4 Argon migró a Rust seguro el núcleo Fortran/C de FVCOM, de 174,774 líneas, en una corrida de 59 minutos, con paridad numérica en 100 semillas, 42 pruebas, cobertura de ramas de 96.8%, seis errores detectados y velocidad de 1.88× tras optimizar. El artículo detalla las etapas, el tiempo de ejecución y la memoria, por lo que aporta más que una demostración de producto. La corrida, las métricas, la correspondencia exacta de la entrada y la validez científica siguen siendo informes de primera parte y no se reprodujeron de forma independiente; en esta revisión no se obtuvo la versión inmutable de la habilidad ni los artefactos.",
+      "technical": {
+        "claimed_result": "Google informa una migración de 59 minutos de 174,774 líneas en 264 archivos Fortran/C de FVCOM, 42 pruebas con cobertura de ramas de 96.8%, paridad numérica a 12 decimales en 100 semillas y seis errores heredados detectados. Su tabla indica 883 ms para la base Fortran y 469 ms después de Rust, asignación Struct-of-Arrays y LLVM PGO; la memoria máxima baja de 11.84 MB a 5.48 MB.",
+        "compute_or_cost": "El flujo de agente informado duró 59 minutos: 11 para la base, 3 para la auditoría y 45 para la migración y optimización. Google no informa tokens del modelo, costo computacional, horas humanas ni medición independiente del tiempo.",
+        "demonstrated_result": "Google publicó un informe detallado de primera parte con etapas del flujo, procedimiento de prueba/paridad y una tabla de tiempo/memoria. La corrida subyacente y sus métricas no se inspeccionaron ni reprodujeron independientemente.",
+        "implementation_status": "El artículo dice que Google liberó una habilidad reutilizable migrate-to-rust. Un índice de habilidades muestra sus instrucciones, pero la página y el archivo sin procesar de GitHub no se pudieron recuperar en esta revisión; no se inspeccionaron el commit exacto ni el espacio de trabajo.",
+        "mechanism": "El flujo descrito audita dependencias entre archivos, compila una base Fortran y salidas de referencia, genera un plano de migración, convierte el solucionador a módulos Rust seguros, ejecuta pruebas y comparaciones en varias semillas y luego aplica optimización LLVM guiada por perfiles.",
+        "regime": "Una migración informada del modelo costero FVCOM; Google identifica 174,774 líneas Fortran 90/C en 264 archivos. Los resultados usan 100 semillas aleatorias, 42 pruebas y una base Fortran -O3 con una configuración Rust/PGO específica. No se demuestra generalidad entre proyectos.",
+        "reproducibility": "El artículo describe los pasos y la tabla principal, pero no incluye la revisión de código inmutable, el espacio de trabajo generado, la telemetría completa ni una reproducción independiente. Sigue pendiente validar la exactitud científica y numérica.",
+        "strongest_baseline": "Google compara el resultado Rust optimizado con una base Fortran -O3 compilada en el mismo arnés de tiempo/memoria e informa paridad en 100 semillas. No se verificó la revisión de origen exacta ni la identidad de la entrada de prueba."
+      },
+      "title": "Google informa que Gemini 4 Argon convirtió un modelo oceánico de Fortran a Rust",
+      "why_it_matters": "Los modelos científicos suelen guardar décadas de lógica de dominio validada en software difícil de mantener. Si el flujo informado puede modernizar ese código conservando su comportamiento numérico, podría cambiar las opciones de mantenimiento y rendimiento en computación científica. La evidencia actual es un informe detallado de primera parte sobre una migración; siguen sin conocerse la reproducción independiente, la correspondencia exacta de la entrada y la validez más amplia."
     },
     "FCMO-B8D8E1BE26C0": {
       "claims": [
