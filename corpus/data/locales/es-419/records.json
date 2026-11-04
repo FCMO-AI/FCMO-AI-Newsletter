@@ -31744,6 +31744,67 @@
       "title": "Brasil vincula los incentivos fiscales para centros de datos a energía limpia, capacidad local e I+D",
       "why_it_matters": "El régimen intercambia alivio fiscal condicionado para equipos por disponibilidad de cómputo nacional, energía limpia, eficiencia hídrica e inversión local en innovación. Estos términos pueden incidir en la ubicación y economía de los centros de datos, pero aún no se midieron el gasto tributario efectivo, las autorizaciones, la construcción ni el cumplimiento. LC 237/2026 define el tratamiento de Redata bajo determinadas reglas de beneficios tributarios de 2026 y establece una obligación legal de seguimiento y evaluación, sujeta a las condiciones presupuestarias y de resultado primario; ninguna de esas disposiciones demuestra el gasto tributario ni el impacto reales."
     },
+    "FCMO-9E291275BFC0": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Un artículo de siete autores sobre decodificación especulativa adversaria se envió a arXiv el 3 de noviembre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que las desviaciones numéricas en dos implementaciones de verificación especulativa aumentan con la posición dentro del bloque y que, en su estudio con GLM-5.3, el contexto escrito mediante verificación produce desviaciones más extremas en la distribución de salida que el contexto escrito mediante decodificación tras horizontes prolongados."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con modelos borrador entrenados adversariamente y verificación residual exacta, los autores informan que el éxito de GLM-5.3-NVFP4 en DeepSWE subió de 60.6% a 67.6% (IC de 95% para la ganancia: 2.6–11.4 puntos); el de DeepSeek-V4.1-Flash en DeepSWE subió de 67.8% a 71.8% (el IC de 95% incluye cero); y la tasa de aprobación de DeepSeek-V4.1-Flash en NL2Repo-Bench subió de 65.0% a 66.4% (p=0.011, según los autores). Informan cinco ejecuciones independientes de extremo a extremo por configuración."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores entrenan el modelo borrador para favorecer continuaciones de razonamiento que el objetivo debería rechazar en puntos de decisión seleccionados; buscan que los tokens remuestreados por el objetivo queden en la primera posición de un nuevo bloque de verificación. Informan que se conserva la distribución objetivo exacta y que el costo de velocidad de decodificación llega a aproximadamente 2%."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece una reproducción independiente, mejoras fuera de las dos configuraciones de modelo y servicio evaluadas ni transferencia a tareas de larga duración distintas de la programación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una ejecución independiente de la canalización de entrenamiento y evaluación; tampoco se identificó una implementación pública ni artefactos por tarea.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "La evaluación abarca dos modelos de pesos abiertos y pruebas de programación de larga duración; se desconoce si los resultados se transfieren a otros modelos, sistemas de servicio o tareas no relacionadas con programación.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La vía de precisión del contexto propuesta por los autores no se ha aislado de forma independiente frente a otros efectos de cambiar las posiciones de rechazo del modelo borrador.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, reasignar la precisión de inferencia hacia decisiones clave podría cambiar las estrategias de servicio para agentes de larga duración en tareas de hardware y programación. La puntuación refleja esa posible consecuencia; la evidencia actual consta de experimentos acotados de un preprint y carece de reproducción independiente.",
+      "limitations": [
+        "Este registro resume resultados informados por los autores del preprint; no se afirma haberlos reproducido.",
+        "El intervalo de confianza incluye cero para DeepSeek-V4.1-Flash en DeepSWE.",
+        "No se inspeccionó ninguna reproducción independiente, artefacto público por ejecución ni evidencia de transferencia a tareas de larga duración no relacionadas con programación."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 3 de noviembre propone una decodificación especulativa adversaria: entrenar el modelo borrador para que sea más probable que el modelo objetivo rechace ciertos tokens de decisiones de razonamiento, de modo que el muestreo residual exacto del objetivo los escriba al inicio de un nuevo bloque de verificación. El artículo informa mayor precisión numérica en las primeras posiciones, mejoras en tareas de programación de larga duración con GLM-5.3-NVFP4 y DeepSeek-V4.1-Flash, y un costo de velocidad de decodificación de hasta aproximadamente 2%. Son experimentos informados por sus autores en dos configuraciones de servicio; no han sido reproducidos de forma independiente y no se ha establecido su transferencia a otros ámbitos.",
+      "technical": {
+        "claimed_result": "Los autores informan que entrenar las preferencias del modelo borrador para aumentar intencionalmente el rechazo del objetivo en puntos de decisión seleccionados eleva el éxito de agentes de programación en dos modelos de pesos abiertos, a la vez que conserva la verificación por rechazo exacta.",
+        "compute_or_cost": "Los autores informan que entrenaron entre 0.06% y 0.28% de los parámetros combinados del objetivo y el modelo borrador, con un costo de velocidad de decodificación de hasta aproximadamente 2%. No se informan los costos absolutos de entrenamiento ni de servicio en las secciones inspeccionadas.",
+        "demonstrated_result": "El artículo documenta el procedimiento de entrenamiento, el método de medición, los modelos y configuraciones de servicio, la separación de tareas de evaluación y resultados de cinco ejecuciones informados por los autores. El artículo fue inspeccionado, pero sus experimentos no se reprodujeron de forma independiente.",
+        "mechanism": "El modelo borrador se entrena para proponer una interpretación de decisión no deseada o para omitir una prueba pertinente en ciertos puntos de razonamiento. Si el objetivo rechaza esa propuesta, vuelve a muestrear desde la distribución residual y el siguiente bloque de verificación comienza en la posición cero. Los autores plantean como hipótesis que así la decisión crítica del objetivo se codifica con menos ruido en la caché de valores y claves. No se cambia el modelo objetivo ni la regla de rechazo.",
+        "regime": "Agentes de programación de larga duración con decodificación especulativa: GLM-5.3-NVFP4 con DFlash2 y DeepSeek-V4.1-Flash con DSPARK; las evaluaciones usan DeepSWE y NL2Repo-Bench bajo los entornos y parámetros de muestreo descritos en el artículo.",
+        "reproducibility": "El preprint detalla los métodos y sus ejecuciones, pero en esta activación no se verificaron una implementación pública, datos experimentales ni reproducción independiente.",
+        "strongest_baseline": "Servidores emparejados con el mismo objetivo, pila de servicio, verificación exacta, parámetros de muestreo y arnés de agente; solo cambia el modelo borrador adversario entrenado frente al modelo borrador estándar preentrenado. Se informan cinco ejecuciones independientes por configuración."
+      },
+      "title": "La decodificación especulativa adversaria mejora agentes de larga duración",
+      "why_it_matters": "Si se reproducen, las mejoras podrían convertir la decodificación especulativa en un control para decidir dónde se codifican en el contexto persistente del modelo las decisiones de razonamiento importantes, sin cambiar el modelo objetivo. Esto podría influir en el diseño y la evaluación de agentes de larga duración. La evidencia actual procede de un solo preprint y el intervalo de confianza de una de las tres mejoras principales incluye cero."
+    },
     "FCMO-9EAC166A2708": {
       "claims": [
         {
