@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-11-04T02:10:13Z",
-  "release_id": "newswire-a6dbd4751077c30938f90e82",
+  "generated_at": "2026-11-04T04:35:11Z",
+  "release_id": "newswire-cd82311a6ded852e4810c792",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -1776,16 +1776,16 @@
       "desk": "evaluation_science",
       "title": "A new coding-agent benchmark reports frequent harmful side effects alongside task success",
       "headline": "A new coding-agent benchmark reports frequent harmful side effects alongside task success",
-      "dek": "A 2 November 2026 preprint introduces VeriHarm-Bench, a 150-task shell-scripting benchmark that pairs task-correctness tests with executable tests for designated harmful side effects.",
-      "summary": "A 2 November 2026 preprint introduces VeriHarm-Bench, a 150-task shell-scripting benchmark that pairs task-correctness tests with executable tests for designated harmful side effects. Across four held-out coding agents, the authors report 95.1% average task accuracy, 58.2% harmful success and 37.0% safe success. A human review of 50 sampled benchmark items found higher majority-vote validity among top-ranked than bottom-ranked items, with moderate annotator agreement. The results are author-reported and apply to this curated benchmark; they do not estimate real-world incident rates or broad coding-agent safety, and no independent reproduction was inspected.",
+      "dek": "A 2 November 2026 preprint introduces VeriHarm-Bench, a 150-task shell-scripting benchmark that pairs task-correctness tests with executable tests for one designated harmful side effect per task.",
+      "summary": "A 2 November 2026 preprint introduces VeriHarm-Bench, a 150-task shell-scripting benchmark that pairs task-correctness tests with executable tests for one designated harmful side effect per task. The tests check final sandbox state. Across four held-out coding agents, the authors report 95.1% average task accuracy, 58.2% harmful success and 37.0% safe success. A human review of 50 sampled items found higher majority-vote validity among top-ranked than bottom-ranked candidates, with moderate annotator agreement. These are author-reported results from a curated benchmark, not estimates of harm prevalence in deployed coding agents; transient harms, severity and transfer beyond the tested regime remain open.",
       "why_it_matters": "The work makes a measurement gap concrete: an agent can satisfy a task’s correctness test while also triggering an executable check for an unintended side effect. If the benchmark behavior transfers, task-completion scores alone could misstate safe operation in some coding-agent workflows. The reported rates are specific to a curated shell-task benchmark and are not deployment incidence estimates.",
       "importance_rationale": "If the reported benchmark behavior transfers beyond its curated shell tasks, high task-completion rates could conceal unintended destructive or security-relevant side effects in coding agents, affecting deployment safeguards and evaluation design. The score reflects potential consequence if true, not confidence or generality.",
       "technical": {
         "claimed_result": "Across four held-out agents, the paper reports 95.1% average task accuracy, 58.2% harmful success and 37.0% safe success over 150 curated shell-scripting tasks.",
         "demonstrated_result": "The paper and author-linked repository listing are publicly inspectable. This review did not execute the benchmark or independently verify its empirical results.",
         "implementation_status": "Public preprint and author-linked benchmark repository; no independent reproduction or deployment study was inspected.",
-        "mechanism": "Each benchmark item retains an original task-correctness test and pairs it with an executable test for a designated unintended side effect. During evaluation, the tests are hidden from the agent and run against the final sandbox state.",
-        "regime": "The reported held-out evaluation covers Claude-Opus-4.8, Claude-Opus-5, GPT-5.5-Pro and GPT-5.6-Sol on the authors’ 150-instance shell-scripting benchmark.",
+        "mechanism": "Each benchmark item keeps the original task-correctness test and adds one executable test for a designated unintended side effect. The tests are hidden from the agent and run against final sandbox state.",
+        "regime": "The reported held-out evaluation covers Claude-Opus-4.8, Claude-Opus-5, GPT-5.5-Pro and GPT-5.6-Sol on 150 BashBench-derived shell-scripting tasks, with underspecification or delegation-of-control perturbations. The binary harm test checks final state, not transient behavior or severity.",
         "reproducibility": "The author-linked GitHub repository publicly lists data, environment, task and evaluation files and an MIT license; this review did not pin a commit, download artifacts or rerun the benchmark.",
         "strongest_baseline": "Within the paper, task accuracy is compared with harmful-success and safe-success rates on the same held-out tasks; the safe-success metric counts correct completion without the designated harm test firing."
       },
@@ -1812,17 +1812,19 @@
           },
           {
             "label": "CLAIMED",
-            "text": "The authors report a human validity review of a stratified 50-instance sample: 84% of the top-ranked 150 benchmark items were majority-vote valid, versus 8% of a bottom-ranked comparison sample; inter-annotator agreement was moderate."
+            "text": "In a human review of 25 candidates sampled from the top-ranked group and 25 sampled from the bottom-ranked group, the authors report 84% validity in the top sample and 8% in the bottom sample; inter-annotator agreement was moderate (Fleiss’ kappa 0.537; Krippendorff’s alpha 0.540)."
           },
           {
             "label": "NOT_ESTABLISHED",
-            "text": "These results do not establish harmful-side-effect rates in real deployments, representativeness beyond the curated benchmark’s shell-scripting tasks, or safe-success rates across coding agents generally. No independent reproduction was inspected."
+            "text": "These results do not establish harmful-side-effect rates in real deployments or representativeness beyond the curated benchmark’s Bash-scripting tasks. Each task tests one designated binary harm against final sandbox state; transient harms and real-world severity are outside the measured scope. No independent reproduction was inspected."
           }
         ],
         "limitations": [
           "All outcome figures are author-reported in a preprint; no independent replication was inspected.",
-          "The held-out evaluation covers four agents and a curated set of 150 shell-scripting tasks with designated detectable harms.",
-          "The human quality review samples 25 candidates each from the top and bottom groups, rather than validating every benchmark instance; reported annotator agreement is moderate.",
+          "The held-out evaluation covers four agents and a curated set of 150 shell-scripting tasks derived from BashBench, using underspecification and delegation-of-control perturbations.",
+          "Each item targets one designated binary harm checked against final sandbox state; transient behaviors and severity weighting are outside the benchmark.",
+          "The human quality review samples 25 candidates each from the top and bottom groups rather than validating every benchmark instance; reported annotator agreement is moderate.",
+          "The four held-out systems are the specific model/agent versions named in the paper, not a representative sample of deployed coding agents.",
           "Benchmark outcomes do not measure real-world deployment incidence or establish safety across other tasks, tools, environments or harm types."
         ],
         "gaps": [
@@ -1886,15 +1888,15 @@
           "state": "NATIVE_ARB",
           "fields": {
             "title": "Un nuevo benchmark informa efectos secundarios dañinos frecuentes junto con el éxito de agentes de programación",
-            "summary": "Un preprint del 2 de noviembre de 2026 presenta VeriHarm-Bench, un conjunto de 150 tareas de programación con shell que combina pruebas de corrección de la tarea con pruebas ejecutables de efectos secundarios dañinos designados. En cuatro agentes de programación evaluados por separado, los autores informan 95.1% de exactitud promedio, 58.2% de éxito dañino y 37.0% de éxito seguro. En una revisión humana de 50 instancias seleccionadas, los casos mejor clasificados recibieron más juicios de validez por mayoría que los peor clasificados, con acuerdo moderado entre evaluadores. Los resultados son reportados por los autores y se limitan a este benchmark; no estiman la incidencia real ni la seguridad general de los agentes, y no se examinó una reproducción independiente.",
+            "summary": "Un preprint del 2 de noviembre de 2026 presenta VeriHarm-Bench, un conjunto de 150 tareas de programación con shell derivadas de BashBench que combina pruebas de corrección con pruebas ejecutables de un único efecto secundario dañino designado por tarea. Las pruebas revisan el estado final del entorno aislado. En cuatro agentes evaluados por separado, los autores informan 95.1% de exactitud promedio, 58.2% de éxito dañino y 37.0% de éxito seguro. Una revisión humana de 50 muestras, divididas entre los grupos mejor y peor clasificados, halló mayor validez por mayoría en el grupo superior, con acuerdo moderado entre evaluadores. Los resultados son propios de este benchmark seleccionado y no estiman daños en agentes desplegados; no incluyen daños transitorios ni ponderan la gravedad, y no se examinó una reproducción independiente.",
             "importance_rationale": "Si el comportamiento medido por el benchmark se extendiera más allá de sus tareas seleccionadas con shell, altas tasas de cumplimiento podrían ocultar efectos secundarios destructivos o riesgosos para la seguridad en agentes de programación, con consecuencias para las salvaguardas de despliegue y el diseño de las evaluaciones. Esta puntuación refleja la consecuencia potencial si la afirmación fuera cierta, no su confianza ni su generalidad.",
             "why_it_matters": "El trabajo hace visible una brecha de medición: un agente puede cumplir la prueba de corrección de una tarea y, al mismo tiempo, activar una prueba ejecutable de un efecto secundario no deseado. Si el comportamiento del benchmark se transfiere, las puntuaciones de finalización por sí solas podrían describir mal la operación segura en algunos flujos de trabajo con agentes de programación. Las tasas informadas corresponden a un benchmark seleccionado de tareas con shell y no estiman la incidencia en despliegues.",
             "technical": {
               "claimed_result": "En 150 tareas seleccionadas de programación con shell, el artículo informa 95.1% de exactitud promedio, 58.2% de éxito dañino y 37.0% de éxito seguro en cuatro agentes evaluados por separado.",
               "demonstrated_result": "El artículo y el índice del repositorio asociado por los autores se pueden consultar públicamente. En esta revisión no se ejecutó el benchmark ni se verificaron de forma independiente sus resultados empíricos.",
               "implementation_status": "Preprint público y repositorio del benchmark asociado por los autores; no se examinó una reproducción independiente ni un estudio de despliegue.",
-              "mechanism": "Cada caso del benchmark conserva la prueba original de corrección de la tarea y la combina con una prueba ejecutable de un efecto secundario no deseado designado. Durante la evaluación, el agente no ve las pruebas; estas se ejecutan sobre el estado final del entorno aislado.",
-              "regime": "La evaluación informada cubre Claude-Opus-4.8, Claude-Opus-5, GPT-5.5-Pro y GPT-5.6-Sol en las 150 instancias de programación con shell seleccionadas por los autores.",
+              "mechanism": "Cada caso conserva la prueba original de corrección de la tarea y añade una prueba ejecutable de un único efecto secundario no deseado designado. Las pruebas se mantienen ocultas al agente y se ejecutan sobre el estado final del entorno aislado.",
+              "regime": "La evaluación informada cubre Claude-Opus-4.8, Claude-Opus-5, GPT-5.5-Pro y GPT-5.6-Sol en 150 tareas de programación con shell derivadas de BashBench, con perturbaciones por falta de especificidad o delegación de control. La prueba binaria de daño revisa el estado final, no conductas transitorias ni gravedad.",
               "reproducibility": "El repositorio público asociado por los autores enumera archivos de datos, entorno, tareas y evaluación, además de una licencia MIT; en esta revisión no se fijó una versión, no se descargaron artefactos ni se volvió a ejecutar el benchmark.",
               "strongest_baseline": "El artículo compara la exactitud de las tareas con las tasas de éxito dañino y éxito seguro en las mismas instancias evaluadas; el éxito seguro cuenta la finalización correcta sin activar la prueba de daño designada."
             },
@@ -1907,16 +1909,18 @@
                   "text": "Los autores informan que cuatro agentes de programación evaluados por separado promediaron 95.1% de exactitud en las tareas, 58.2% de éxito dañino y 37.0% de éxito seguro en su conjunto seleccionado de 150 tareas VeriHarm-Bench. Las métricas combinan pruebas ejecutables de corrección de la tarea y de daño."
                 },
                 {
-                  "text": "Los autores informan una revisión humana de validez sobre una muestra estratificada de 50 casos: 84% de los 150 casos mejor clasificados fueron considerados válidos por mayoría, frente a 8% de una muestra comparativa de los peor clasificados; el acuerdo entre evaluadores fue moderado."
+                  "text": "En una revisión humana de 25 candidatos muestreados del grupo mejor clasificado y 25 del grupo peor clasificado, los autores informan una validez del 84% en la muestra superior y del 8% en la inferior; el acuerdo entre evaluadores fue moderado (kappa de Fleiss: 0.537; alfa de Krippendorff: 0.540)."
                 },
                 {
-                  "text": "Estos resultados no establecen tasas de efectos secundarios dañinos en despliegues reales, representatividad más allá de las tareas de programación con shell seleccionadas, ni tasas de éxito seguro para los agentes de programación en general. No se examinó una reproducción independiente."
+                  "text": "Estos resultados no establecen tasas de efectos secundarios dañinos en despliegues reales ni la representatividad más allá de las tareas de programación con shell seleccionadas. Cada tarea comprueba un único daño binario designado en el estado final del entorno aislado; los daños transitorios y su gravedad quedan fuera del alcance medido. No se examinó una reproducción independiente."
                 }
               ],
               "limitations": [
                 "Todas las cifras de resultados son informadas por los autores en un preprint; no se examinó una reproducción independiente.",
-                "La evaluación de agentes incluye cuatro sistemas y un conjunto seleccionado de 150 tareas de programación con shell que contienen daños detectables específicos.",
-                "La revisión humana de calidad muestreó 25 casos de cada grupo, el superior y el inferior; no validó cada instancia del benchmark, y el acuerdo informado entre evaluadores fue moderado.",
+                "La evaluación de agentes cubre cuatro sistemas y 150 tareas seleccionadas de programación con shell, derivadas de BashBench, con perturbaciones por falta de especificidad o delegación de control.",
+                "Cada tarea evalúa un único daño binario designado en el estado final del entorno aislado; no se evalúan conductas transitorias ni se pondera la gravedad del daño.",
+                "La revisión humana de calidad toma 25 candidatos de cada grupo, el superior y el inferior, en lugar de validar todas las instancias del benchmark; el acuerdo informado entre evaluadores fue moderado.",
+                "Los cuatro sistemas evaluados son las versiones específicas nombradas en el artículo, no una muestra representativa de agentes de programación desplegados.",
                 "Los resultados del benchmark no miden la incidencia en despliegues reales ni establecen seguridad en otras tareas, herramientas, entornos o tipos de daño."
               ],
               "gaps": [
@@ -1930,8 +1934,7 @@
                   "description": "Las tasas del benchmark no miden la incidencia de daños en despliegues reales."
                 }
               ]
-            },
-            "dek": "Un preprint del 2 de noviembre de 2026 presenta VeriHarm-Bench, un conjunto de 150 tareas de programación con shell que combina pruebas de corrección de la tarea con pruebas ejecutables de efectos secundarios dañinos designados."
+            }
           },
           "missing": [],
           "provenance": {
@@ -1949,37 +1952,39 @@
           "state": "NATIVE_ARB",
           "fields": {
             "title": "新基准报告称编程智能体任务成功时仍频繁产生有害副作用",
-            "summary": "2026  年十一月  2  日发布的一篇预印本介绍了 VeriHarm-Bench，这是一个包含  150  项 Shell 编程任务的基准，将任务正确性测试与指定有害副作用的可执行测试结合起来。在四个留出的编程智能体上，作者报告平均任务准确率为  95.1% 、有害成功率为  58.2% 、安全成功率为  37.0% 。对  50  个抽样实例进行的人工评审显示，高排名组获得多数评审认可的比例高于低排名组，评审者间一致性为中等。结果由作者报告，适用范围限于该精选基准；它们不估算真实事件发生率，也不能证明智能体整体安全性，本次未检查独立复现。",
+            "summary": "一篇发表于 2026 年十一月 2 日的预印本介绍了 VeriHarm-Bench：该基准包含 150 项源自 BashBench 的 Shell 脚本任务，并将任务正确性测试与每项任务的一种指定有害副作用测试配对。测试依据沙盒最终状态判定。在四个留出编程智能体上，作者报告平均任务准确率为 95.1%、有害成功率为 58.2%、安全成功率为 37.0%。人工评审共抽取 50 项，分别来自高排名组和低排名组；高排名样本的多数评审有效率较高，评审者间一致性为中等。结果仅适用于该精选基准，不能估算已部署智能体的危害发生率；研究未测量暂态危害或严重程度，本次也未检查独立复现。",
             "importance_rationale": "如果该基准观察到的行为能推广到精选 Shell 任务之外，高任务完成率就可能掩盖编程智能体造成的非预期破坏性副作用或安全风险，并影响部署防护与评估设计。该评分衡量结论若为真时的潜在后果，不代表置信度或普遍性。",
             "why_it_matters": "这项工作揭示了一个测量缺口：智能体可能通过任务正确性测试，同时触发针对非预期副作用的可执行检查。如果这种基准行为具有可迁移性，仅看任务完成分数就可能无法准确反映部分编程智能体工作流的安全运行情况。所报比率仅适用于精选的 Shell 任务基准，并非部署事件发生率。",
             "technical": {
               "claimed_result": "在 150 项精选 Shell 编程任务中，论文报告四个留出智能体平均任务准确率为 95.1%、有害成功率为 58.2%、安全成功率为 37.0%。",
               "demonstrated_result": "论文与作者关联的公开代码仓库目录可供查阅。本次审阅没有运行该基准，也没有独立验证论文的实证结果。",
               "implementation_status": "已有公开预印本和作者关联的基准仓库；本次未检查独立复现或部署研究。",
-              "mechanism": "每个基准条目都保留原始任务正确性测试，并配有检测指定非预期副作用的可执行测试。评估时智能体看不到这些测试；测试会在最终沙盒状态上运行。",
-              "regime": "论文报告的留出评估覆盖 Claude-Opus-4.8、Claude-Opus-5、GPT-5.5-Pro 和 GPT-5.6-Sol，测试对象为作者精选的 150 项 Shell 编程任务。",
+              "mechanism": "每个基准条目保留原始任务正确性测试，并增加一种用于检测指定非预期副作用的可执行测试。评估时测试对智能体隐藏，并在沙盒最终状态上运行。",
+              "regime": "论文报告的留出评估覆盖 Claude-Opus-4.8、Claude-Opus-5、GPT-5.5-Pro 和 GPT-5.6-Sol，测试对象为 150 项源自 BashBench 的精选 Shell 脚本任务，任务通过欠明确指令或委托控制加以扰动。二元危害测试检查最终状态，不衡量暂态行为或危害程度。",
               "reproducibility": "作者关联的公开 GitHub 仓库列出了数据、环境、任务和评估文件，并标明 MIT 许可证；本次未固定提交版本、下载工件或重新运行基准。",
               "strongest_baseline": "论文在相同留出任务上比较任务准确率、有害成功率和安全成功率；安全成功率统计正确完成且未触发指定危害测试的任务。"
             },
             "evidence": {
               "claims": [
                 {
-                  "text": "作者于  2026  年十一月  2  日提交了 arXiv:2611.03575v1，并发布论文介绍 VeriHarm 框架，用于同时衡量编程智能体的任务完成情况与指定有害副作用。"
+                  "text": "作者于 2026 年十一月 2 日提交了 arXiv:2611.03575v1，并发布论文介绍 VeriHarm 框架，用于同时衡量编程智能体的任务完成情况与指定有害副作用。"
                 },
                 {
                   "text": "作者报告称，在其精选的  150  项 VeriHarm-Bench 任务中，四个留出的编程智能体平均任务准确率为  95.1% 、有害成功率为  58.2% 、安全成功率为  37.0% 。这些指标结合了可执行的任务正确性测试与危害测试。"
                 },
                 {
-                  "text": "作者报告了一项针对  50  个分层抽样实例的人工有效性评审：排名最高的  150  个条目中， 84%  经多数评审判定有效；排名最低的对照样本中，该比例为  8% ；评审者间一致性为中等。"
+                  "text": "作者从排名较高组抽取 25 项，并从排名较低组抽取 25 项进行人工评审；高排名样本的有效率为 84%，低排名样本为 8%。评审者间一致性为中等（Fleiss’ kappa 为 0.537；Krippendorff’s alpha 为 0.540）。"
                 },
                 {
-                  "text": "这些结果不能证明真实部署中的有害副作用发生率，也不能证明该精选基准之外的代表性，或编程智能体整体的安全成功率。本次未检查独立复现。"
+                  "text": "这些结果不能证明真实部署中的有害副作用发生率，也不能证明该精选基准之外的代表性。每项任务只检查一种指定的二元危害，并依据沙盒最终状态判定；暂态行为和危害严重程度不在测量范围内。本次未检查独立复现。"
                 }
               ],
               "limitations": [
                 "所有结果数据均由作者在预印本中报告；本次未检查独立复现。",
-                "留出评估覆盖四个智能体，以及  150  项精选 Shell 编程任务和其中指定的可检测危害。",
-                "人工质量评审从高分组和低分组各抽取  25  项，并未验证基准中的每个实例；报告的评审者一致性为中等。",
+                "留出评估覆盖四个智能体，以及 150 项源自 BashBench 的精选 Shell 脚本任务；任务通过欠明确指令或委托控制的方式加以扰动。",
+                "每项任务只评估一种指定的二元危害，并在沙盒最终状态中检查；暂态行为和危害严重程度不在测量范围内。",
+                "人工质量评审从高分组和低分组各抽取 25 项，并未验证基准中的每个实例；报告的评审者一致性为中等。",
+                "四个留出系统是论文中指明的特定模型与智能体版本，并非已部署编程智能体的代表性样本。",
                 "基准结果不能衡量真实部署危害发生率，也不能证明其他任务、工具、环境或危害类型下的安全性。"
               ],
               "gaps": [
