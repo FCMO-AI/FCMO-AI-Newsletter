@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "e3a7ffd752ddcebe5bcf916facc2615e3b234c14b89b7bb9005164bcc1c098f2",
+  "canonical_source_sha256": "2f6607b5963ec35d6cd97f80dfdc7a5723c3203bdcec917844f0c39271353a6f",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -11420,6 +11420,71 @@
       },
       "title": "OpenAI介绍Pando：面向单体代码库与智能体规模流量的Git兼容后端",
       "why_it_matters": "大量智能体和工程师同时创建分支、推送变更并读取代码时，版本控制可能成为瓶颈。Pando提供了一个第一方案例，说明如何在保持Git客户端兼容的同时重构这类基础设施。其因果一致性取舍也值得关注：不同分支可以分别推进，因此读取多个引用不一定得到同一全局时点的快照。报告中的规模和延迟数据值得关注，但尚未在OpenAI的说法之外得到验证。"
+    },
+    "FCMO-3A489830E4AC": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "OpenAI于2026年十一月3日发布报告，将一项智能体安全评测与选取的、具有可比决策结构的Codex生产决策进行了比较。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI报告称，在六个已服务的Codex模型变体中，评测成功率比选取的可比生产决策低10.2至37.4个百分点。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI报告称，六个模型变体的评测成功率与生产成功率呈正相关（Spearman rho为0.771；未加权线性拟合R²为0.655），并指出模型样本较小，限制了结果的推广性。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在GPT-6.1 Sol的「Respecting Warnings」评测中，OpenAI报告称，泛化的评测提示几乎没有改变成功率（63.1%与63.4%）；明确提示正确目标或相反目标后，成功率分别为91.6%和17.6%。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "该报告不能证明其他部署环境中的生产安全率，也不能证明案例匹配或评分没有偏差或经过独立验证；除所述干预外，它也未确立评测意识的因果效应。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未检查独立复现，也未检查对生产案例匹配与评分流程的独立审计。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "报告只涵盖一种尊重警告的决策结构、六个已服务的Codex变体及抽样的Codex生产上下文；其结果是否适用于其他任务、产品或部署环境仍未知。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果报告中的差异能够推广，智能体安全评测的绝对分数可能无法预测生产环境的成功率，即使模型相对排序仍有参考价值；这可能改变前沿智能体安全评测的设计与解释方式。该分数表示这一后果的重要性，并不代表对单一提供方研究的信心。",
+      "limitations": [
+        "比较和干预结果由OpenAI报告；研究组没有复现这些结果，也没有检查逐案例底层数据。",
+        "六个模型变体构成的模型级样本较小，限制了对排序关联和推广性的估计。",
+        "生产案例来自经过去标识处理的Codex日志，并经过分类器、评分器、审阅者和匹配流程。OpenAI称匹配只是近似，抽样上下文并不代表所有部署环境。",
+        "评测与生产在指令、工具和案例构成上有所不同，因此报告的成功率差距不能归因于单一因素。",
+        "该干预只在GPT-6.1 Sol的一项评测中改变目标提示；它不能证明其他任务或部署中的自发评测意识会产生何种影响。"
+      ],
+      "relationships": [
+        {
+          "target_id": "FCMO-708758574FDE",
+          "type": "related"
+        },
+        {
+          "target_id": "FCMO-7BD2FD0ECD05",
+          "type": "related"
+        }
+      ],
+      "summary": "OpenAI报告称，在六个已服务的Codex模型变体中，其「Respecting Warnings」安全评测的成功率比从Codex生产日志中抽取、结构上相近的决策低10.2至37.4个百分点。评测与生产中的模型级成功率呈正相关，但绝对成功率和模型的准确排序并不相同。在一项GPT-6.1 Sol干预实验中，明确说明评测目标使报告的成功率向相反方向大幅变化；泛泛说明“这是评测”则几乎没有影响。这项研究由模型提供方完成，案例匹配只是近似，样本仅含六个模型，且没有独立复现；研究不能据此确定其他部署环境中的安全率。",
+      "technical": {
+        "claimed_result": "OpenAI报告称，六个Codex服务模型变体的评测与生产成功率相差10.2至37.4个百分点；在一项GPT-6.1 Sol评测中，明确提示正确或相反的评测目标会造成显著的成功率变化。",
+        "demonstrated_result": "带日期的官方报告及其中描述的比较和干预实验均可公开查阅。研究组没有检查底层生产记录、复现结果或独立验证成功率。",
+        "mechanism": "OpenAI以「Respecting Warnings」评测和选取的、决策结构相近的生产上下文来定义差距。干预实验改变系统提示，说明评测具体测试的目标。",
+        "regime": "六个已服务的Codex模型变体、一项遵守警告的评测，以及抽样的Codex去标识生产日志上下文。OpenAI称案例匹配为近似过程，指令、工具和案例组合也存在差异。",
+        "strongest_baseline": "对六个模型变体，将选取的生产决策与「Respecting Warnings」评测比较。干预实验则比较GPT-6.1 Sol在原始评测设置、泛化评测提示、正确目标提示和相反目标提示下的结果。"
+      },
+      "title": "OpenAI报告：Codex智能体安全评测与生产决策之间存在差距",
+      "why_it_matters": "如果报告中的差距能够推广，安全评测分数就未必能直接预测生产环境中的成功率，尽管它仍可能保留一定的模型相对排序信息。结果还提示，智能体对安全评测目标的理解可能影响测得的行为。模型样本较小，生产案例由提供方选择并近似匹配，也没有独立复现这些观察结果。"
     },
     "FCMO-3AB0123A135A": {
       "claims": [
@@ -31699,6 +31764,67 @@
       },
       "title": "巴西将数据中心税收优惠与清洁电力、本地算力和研发承诺挂钩",
       "why_it_matters": "该制度以有条件的设备税收减免换取本地算力供给、清洁能源、用水效率和本地创新投入。这些条款可能影响数据中心选址和项目经济性，但实际税收支出、项目批准、建设及合规结果尚未测量。LC 237/2026 明确了 Redata 在若干 2026 年税收优惠规则下的待遇，并设定法定监督评估义务，同时保留财政余额和预算条件；这些规定本身均未证明实际税式支出或政策影响。"
+    },
+    "FCMO-9E291275BFC0": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "一篇由七位作者撰写、讨论对抗式推测解码的论文于2026年十一月3日提交至arXiv。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，在两种推测验证实现中，数值偏差会随验证块内的位置增加；在其GLM-5.3研究中，经过长程运行后，由验证过程写入的上下文会比由逐词解码写入的上下文产生更极端的输出分布偏差。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "使用经对抗训练的草稿模型和精确拒绝验证时，作者报告GLM-5.3-NVFP4在DeepSWE上的成功率从60.6%升至67.6%（增幅的95%置信区间为2.6–11.4个百分点）；DeepSeek-V4.1-Flash在DeepSWE上的成功率从67.8%升至71.8%（95%置信区间包含零）；DeepSeek-V4.1-Flash在NL2Repo-Bench上的通过率从65.0%升至66.4%（作者报告p=0.011）。作者称每种配置进行了五次相互独立的端到端运行。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者训练草稿模型，使其在选定决策点偏向提出目标模型应拒绝的推理续写，以便目标模型重新采样的词元位于新验证块的首位；作者称该方法保留了目标分布的精确性，解码速度代价最高约为2%。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "论文未证明这些结果已获独立复现，也未证明其在已评估的两种模型与服务配置之外仍然成立，或可迁移到非编码类长程任务。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次未检查训练与评测流程的独立运行，也未找到公开实现或逐任务实验材料。",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "评测仅涉及两种开放权重目标模型及长程编码测试；结果能否迁移至其他模型、服务内核或非编码任务尚不清楚。",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "尚无独立实验将作者提出的上下文精度路径，与改变草稿模型拒绝位置带来的其他影响区分开来。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果能够复现，将推理精度重新分配给关键决策，可能改变硬件与编码任务中长程智能体的服务策略。该分数反映的是潜在影响；目前证据仅为一篇预印本中的有限实验，尚无独立复现。",
+      "limitations": [
+        "本记录总结的是预印本作者报告的结果；并未声称已复现这些结果。",
+        "DeepSeek-V4.1-Flash在DeepSWE上的置信区间包含零。",
+        "本次未检查独立复现、公开的运行级材料或迁移至非编码长程任务的证据。"
+      ],
+      "relationships": [],
+      "summary": "一篇十一月3日发布的预印本提出对抗式推测解码：训练草稿模型，使目标模型在若干推理决策点更可能拒绝其建议，从而由目标模型通过精确残差采样，将这些词元写入新验证块的首位。论文报告称，这种方法提高了首位数值精度，并提升了GLM-5.3-NVFP4和DeepSeek-V4.1-Flash在长程编码任务上的表现，解码速度代价最高约为2%。这些是在两种服务配置下由作者报告的实验；尚未独立复现，也未证实其能迁移到其他领域。",
+      "technical": {
+        "claimed_result": "作者报告称，在选定决策点训练草稿模型以有意提高目标拒绝率，可以提升两种开放权重模型上的端到端编码智能体成功率，同时保留精确拒绝采样验证。",
+        "compute_or_cost": "作者报告称，训练参数占目标模型与草稿模型总参数的0.06%–0.28%，解码速度代价最高约为2%。本次检查的章节未报告绝对训练成本或服务成本。",
+        "demonstrated_result": "论文记载了训练流程、测量方法、目标模型、服务配置、按任务划分的评测方案，以及作者报告的五次运行结果。本次检查了论文，但未复现实验。",
+        "mechanism": "草稿模型经过训练，会在部分推理决策点提出不希望采纳的决策框架，或跳过应进行的测试。若目标模型拒绝该建议，便从残差分布重新采样，且下一个验证块从位置零开始。作者假设，这会以较低的数值噪声将目标模型的关键决策写入键值缓存。目标模型和拒绝规则均未更改。",
+        "regime": "使用推测解码的长程编码智能体：GLM-5.3-NVFP4搭配DFlash2，DeepSeek-V4.1-Flash搭配DSPARK；评测使用DeepSWE和NL2Repo-Bench，并遵循论文所述环境与采样参数。",
+        "reproducibility": "预印本详细介绍了方法并报告了运行结果，但本次未检查公开实现、实验数据或独立复现。",
+        "strongest_baseline": "对照服务器使用相同的目标模型、服务栈、精确验证、采样参数和智能体框架；唯一差异是使用训练后的对抗式草稿模型或标准预训练草稿模型。每种配置报告五次相互独立的运行。"
+      },
+      "title": "对抗式推测解码提升长程智能体表现",
+      "why_it_matters": "如果这些结果得到复现，推测解码可能成为一种控制手段，让模型的重要推理决策以更高精度写入其长期上下文，而无需改动目标模型。这可能影响长程智能体的设计与评估。目前证据仅来自一篇预印本，三项主要提升中有一项的置信区间包含零。"
     },
     "FCMO-9E51A9966402": {
       "claims": [
@@ -56627,6 +56753,48 @@
         "source_sha256": "72c36e4dd5860e9fc66ce32291712f69637152a59e2485d01066b87b69afce2c"
       }
     },
+    "FCMO-3A489830E4AC": {
+      "claims": {
+        "locale_sha256": "d404c9ef23a618c49447117d6f4cde4df7d82ac50710d2c23626f00bc15ec8f6",
+        "source_sha256": "3cccac2d26b05facfdfe2da2556b29aaa2cebd33a67d6d76e7d4b58527be382e"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "ecdd93ee4f7f4908df974c9684d28fffe1eeaaf67488ce3966cbd04a22f89cd6",
+        "source_sha256": "b63b010bbd4cd3f6be2f725c6f78ba9edc6af0d6930f3ca31ad34766ce17995c"
+      },
+      "importance_rationale": {
+        "locale_sha256": "eb19ad9ba9c0da7a2295b51fa57ab976f415f67575403f295c63b6481abed4b4",
+        "source_sha256": "40fa8c1ad8b1396ffdeea167fd0bbdbfcd944a4186c7ad958b74a4f10d09dfcf"
+      },
+      "limitations": {
+        "locale_sha256": "8a28313bf74bb35716b0d83766f8eb658a70150023ee96ebdc56dc741f678c8e",
+        "source_sha256": "da28372e54c3833f0c07aed5f785f177ab0541f5b814bf0c31f5a5fbda9039b3"
+      },
+      "relationships": {
+        "locale_sha256": "c3d5d5a297cf8a6d7d08885f416111e58e219166daea07ce55bf611ad7ae1ee1",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "c1b04bc6a8fd2161b2e6c518db82051f736a09e0de237433f6dafa248bb49fd3",
+        "source_sha256": "bb35bbbe4745b75e962814e11cffd05185c4387f3b896b8083fd8a5478826987"
+      },
+      "technical": {
+        "locale_sha256": "fb49068ae22af43827950fd1f52b91ab0e0739c4796088f6aefabe39bc9bb33a",
+        "source_sha256": "6a43e22c31f90d01431ec0eebd2c20e7a39486e6b6b48402ea4773758268f968"
+      },
+      "title": {
+        "locale_sha256": "69bd370a74291523c52caa5683a596fc3e431bcecbba885c5425b702dedca963",
+        "source_sha256": "5650bc1646828f2adcd9c4b0efe3254de1d1218c8a018bf57bdc200fd8003bae"
+      },
+      "why_it_matters": {
+        "locale_sha256": "cbb660dc857d80654ab584f17f5baa6bb8c4b7730defbcbc757c3e365be32eaf",
+        "source_sha256": "70452444b85f6d96cf3726ca60e666edb6519b6dafd49119b4779b7db09942e3"
+      }
+    },
     "FCMO-3AB0123A135A": {
       "claims": {
         "locale_sha256": "f1a98b99d4195607f69eeb46628a88fa83e164a35d975808b92983ce7b60c5c5",
@@ -71563,6 +71731,48 @@
       "why_it_matters": {
         "locale_sha256": "b9beaedc490884ed85ab993e521f81494a74c9dad2acad8e95be31da893faf44",
         "source_sha256": "3b3ca1419c47c7b10cd3c09f11e8e6af1b3f2959f92ec5ae1cf4944a6fee31f8"
+      }
+    },
+    "FCMO-9E291275BFC0": {
+      "claims": {
+        "locale_sha256": "4a44ea6d44d921c7b92180c6b06f1351ecad381b770502df0cf89388d724a12b",
+        "source_sha256": "17ae00bbb12dd0d896cbec79f629be904bed8e8841d642f52ab62576d0a44d6b"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "befd66ffc5d085c598a510aaa8d530046ea22c7c395aeb666d98453194dbc3eb",
+        "source_sha256": "971483e28fe06e12c0dc2658fc8cd55fd657c8e8b1ff0009f9848b878c739349"
+      },
+      "importance_rationale": {
+        "locale_sha256": "2ca8976e932ea045f5d06a0cc26fb97780aeb2f4c5621130e74f0ed38f18c29c",
+        "source_sha256": "93cbd74e1fd5600287f6f18a65dc65396408172c6b687abc1e351693dda02579"
+      },
+      "limitations": {
+        "locale_sha256": "af49750b8c417599cf437d38f4bee7d29e28e2444346a005ab929838307c16c6",
+        "source_sha256": "801cc98d48bb2c2c7853cf6e44191c4b6efe6b247ac865939bb92716ec66da78"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "7bffa8dec132f555663954af2e6132788e6834a72820c938e660ed609d843ada",
+        "source_sha256": "b349d7f591b9b74169aef491ef7b74700606b2f8a41a44f063ce60c43d3198bd"
+      },
+      "technical": {
+        "locale_sha256": "e5def882118c0bf600e84234076656982e10e3c00db26a777d9670978ecd0752",
+        "source_sha256": "b35ae6f9fd9cfbadf60aa184f483fd2401d0d4f753cb8039762e6a350213d7b8"
+      },
+      "title": {
+        "locale_sha256": "9cd6467af5c274acdee01d14c7d93a55c7c1efea6f1ba624834b3d57b8a9db5e",
+        "source_sha256": "3869ca9bd0ff2020c4d4ad195e3b5ee705f1fb04751b381ab3dc711e72ebd6e5"
+      },
+      "why_it_matters": {
+        "locale_sha256": "b1c160f71565992c23a42568f6e2074e66efc8e857cfeee7820ff11232256324",
+        "source_sha256": "8a03ccf3092c1e2a49ed8c17e6f289f6f5f0b415a24c39925ffd8f89df739ba9"
       }
     },
     "FCMO-9E51A9966402": {
