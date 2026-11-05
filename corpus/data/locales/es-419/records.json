@@ -9913,6 +9913,68 @@
       "title": "Un manuscrito de OpenAI afirma que el exponente de irracionalidad de π es exactamente 2",
       "why_it_matters": "Una verificación independiente de que el exponente de π es 2 resolvería una pregunta de larga data en aproximación diofántica y afectaría resultados relacionados de teoría de números. La consecuencia potencial es excepcionalmente grande, pero la evidencia actual sigue siendo un manuscrito de primera parte sin revisión y una afirmación de formalización."
     },
+    "FCMO-303DC579C475": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo define la auditabilidad del desaprendizaje como una estadística que separa los ejemplos solicitados para olvidar de los que deben conservarse, y propone la etapa de entrenamiento GapWiden junto con el muestreador GapVeil durante la inferencia."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En once métodos de desaprendizaje evaluados en TOFU y MUSE, los autores reportan que su procedimiento de dos etapas mejora las métricas de auditabilidad y filtración; los resultados varían según el conjunto de datos y el método."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En MUSE News, el artículo reporta que el desempeño de retención baja de 0.569 a 0.380 con el procedimiento propuesto, lo cual los autores atribuyen a la superposición entre el contenido que debe olvidarse y el que debe conservarse."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los resultados de referencia no demuestran la eliminación de datos en sistemas desplegados, el cumplimiento de una solicitud individual de eliminación ni un certificado de eliminación confiable para usuarios."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente de la evaluación reportada en TOFU/MUSE; los métodos de referencia y las métricas de auditoría y filtración siguen siendo reportes de los autores.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo formaliza una estadística de referencia, no un procedimiento de eliminación en producción ni un certificado para una solicitud individual; tampoco demuestra la eliminación de información aprendida en distintas consultas o vías de despliegue.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La utilidad de retención disminuye de forma sustancial en MUSE News, y aquí no se caracterizan los costos de reentrenamiento de GapWiden ni el costo computacional y la latencia del muestreo repetido de GapVeil en producción.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los autores indican que aún no hay criterios consensuados para demostrar el desaprendizaje; la estadística propuesta es una definición operativa.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si un proveedor pudiera demostrar por separado la eliminación y limitar la divulgación durante la inferencia, las auditorías de desaprendizaje podrían ser más útiles para rendir cuentas sobre solicitudes de eliminación. El artículo reporta resultados de referencia en TOFU y MUSE, pero su propio resultado en MUSE News muestra una pérdida sustancial de retención; no se establece un proceso de eliminación desplegado ni una reproducción independiente.",
+      "limitations": [
+        "Todos los resultados empíricos son reportados por los autores; no se realizó una reproducción independiente.",
+        "Los resultados de referencia en TOFU y MUSE no demuestran el borrado de información de un modelo desplegado, cumplimiento regulatorio ni un certificado de eliminación individual.",
+        "En el resultado de MUSE News, la retención baja de 0.569 a 0.380; las compensaciones varían entre conjuntos de datos.",
+        "Los autores describen la auditabilidad como una definición operativa inicial y señalan que aún no hay criterios consensuados.",
+        "Las métricas de filtración por inferencia de pertenencia y el costo de producción de GapVeil no se validaron de manera independiente en esta revisión."
+      ],
+      "relationships": [],
+      "summary": "El preprint de arXiv del 4 de noviembre, “Widen the Gap, Hide the Gap”, trata la auditabilidad —si un proveedor puede distinguir los ejemplos solicitados para olvidar de los que debe conservar mediante una estadística elegida— como un cuarto criterio del desaprendizaje automático. Propone GapWiden, que entrena una diferencia estadística de auditoría en el modelo desaprendido, y GapVeil, un muestreador por rechazo durante la inferencia que busca reducir la divulgación de esa diferencia. Los autores reportan evaluaciones de once métodos de desaprendizaje en TOFU y MUSE. Los resultados son reportados por los autores: la auditabilidad se acerca a 0.99 en MUSE, pero el desempeño de retención en MUSE News baja de 0.569 a 0.380. Estos resultados de referencia no demuestran la eliminación de datos de un modelo desplegado ni una prueba de eliminación para una solicitud individual.",
+      "technical": {
+        "claimed_result": "Los autores reportan auditabilidad cercana a 0.99 en MUSE y mejoras en varias otras métricas, con compensaciones de retención y olvido que dependen del conjunto y del método. La puntuación de retención en MUSE News baja de 0.569 a 0.380.",
+        "demonstrated_result": "El artículo v1 de arXiv y su apéndice contienen el método, los conjuntos de evaluación y los resultados reportados. En esta revisión se verificó la publicación y se examinó el artículo, pero no reprodujo los resultados ni validó la eliminación en el mundo real.",
+        "mechanism": "GapWiden añade una etapa de optimización que aumenta la diferencia entre las probabilidades logarítmicas del modelo base y el modelo desaprendido para los ejemplos que se deben olvidar, mientras mantiene esa diferencia cerca de cero en los ejemplos que se deben conservar. Después, GapVeil muestrea a partir del modelo base con criterios de rechazo basados en esas estadísticas de auditoría y suprime los tokens de contenido rechazados en las propuestas posteriores.",
+        "regime": "Experimentos reportados por el artículo sobre once métodos de desaprendizaje; TOFU usa variantes Llama 3.2 de 1B/3B y Llama 3.1 de 8B; MUSE usa Llama 2 de 7B en News y Books.",
+        "strongest_baseline": "El artículo compara cada método con y sin las etapas propuestas e incluye una referencia de reentrenamiento tipo oráculo. Son evaluaciones de los autores, no una reproducción independiente con condiciones igualadas."
+      },
+      "title": "Un artículo propone la auditabilidad como cuarto criterio del desaprendizaje automático y reporta un método de dos etapas con diferencias entre conjuntos de datos",
+      "why_it_matters": "Un proceso de eliminación necesita evidencia de que se retiró el material solicitado, pero una señal de auditoría observable también puede revelar si ese material estuvo presente. El artículo convierte esa tensión en un objetivo explícito de evaluación y prueba un enfoque que combina entrenamiento y decodificación. Las diferencias de retención entre conjuntos y los supuestos operativos aún no verificados importan antes de tratar la auditabilidad como una garantía práctica."
+    },
     "FCMO-305991884B5D": {
       "claims": [
         {
@@ -23967,6 +24029,49 @@
       },
       "title": "PACMAN integra varias aplicaciones de control con IA en experimentos de DIII-D",
       "why_it_matters": "Una canalización integrada en tiempo real, desde los diagnósticos hasta los comandos a actuadores, podría reducir el trabajo de ingeniería necesario para desplegar distintos enfoques de aprendizaje automático y control en experimentos de fusión. La evidencia actual respalda un despliegue basado en CPU y un conjunto de aplicaciones reportados por los autores en un tokamak; no demuestra mejor desempeño del plasma frente a alternativas equiparadas ni transferencia a un reactor que produzca energía."
+    },
+    "FCMO-745918193FB7": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La Oficina General del Comité Central del Partido Comunista de China y la Oficina General del Consejo de Estado emitieron la opinión el 21 de octubre de 2026. El sitio oficial del Ministerio reproduce el texto."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La opinión propone investigación aplicada liderada por empresas, financiamiento por etapas y evaluación por hitos, transferencia tecnológica, escenarios demostrativos, mayor acceso de empresas privadas a recursos de investigación y la implementación plena de AI+ en todos los sectores."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La fuente consultada no demuestra que la política se haya implementado, que existan presupuestos específicos para AI, que haya sido adoptada ni que haya producido efectos medidos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "政策文本未说明哪些AI相关措施已经获得经费、实施或采用，也未说明其效果。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-11-05T01:24:41Z"
+        }
+      ],
+      "importance_rationale": "若得到实施，这些中央指引可能改变中国的科研经费安排、企业参与、技术转移和产业AI应用。其潜在影响较大，但范围有限：所查文件没有给出量化的AI预算、时间表、实施记录或可测量结果。",
+      "limitations": [
+        "该来源是政策文本，并非措施已获实施的证据。",
+        "所查段落未发现量化的AI专项预算、时间安排、采用情况或经济/科研成效。"
+      ],
+      "relationships": [],
+      "summary": "El 21 de octubre de 2026, la Oficina General del Comité Central del Partido Comunista de China y la Oficina General del Consejo de Estado emitieron una opinión para profundizar la integración de la innovación científica y la innovación industrial. El texto pide proyectos de investigación aplicada liderados por empresas, financiamiento por etapas y evaluación por hitos, mecanismos de transferencia tecnológica, escenarios demostrativos, mayor acceso de empresas privadas a instalaciones y datos de investigación, y la implementación plena de AI+ en todos los sectores. Este registro cubre la política publicada y sus mecanismos declarados; no demuestra su implementación, presupuestos específicos, adopción ni efectos medidos.",
+      "technical": {
+        "claimed_result": "政策文本将这些机制作为深化科技与产业融合、加快AI+应用的措施。",
+        "compute_or_cost": "未在所查文本中发现AI专项预算或算力拨款。",
+        "demonstrated_result": "官方文件已发布并明确列出这些机制。其实施或实际效果未得到证明。",
+        "implementation_status": "政策已发布；本次审阅未能确认其实施状况或资源配置。",
+        "mechanism": "政策要求企业牵头应用研究、分阶段拨款和里程碑评价、技术转移、示范场景、民营企业获取科研设施和数据，以及广泛开展AI+应用。",
+        "regime": "中国国家层面的科技与产业政策；事件日期为2026-10-21。",
+        "strongest_baseline": "政策文件没有提供结果基线或反事实。"
+      },
+      "title": "La opinión central de China sobre ciencia e industria impulsa la investigación empresarial y el despliegue de AI+",
+      "why_it_matters": "La política central vincula explícitamente la investigación liderada por empresas y los mecanismos de comercialización con el despliegue de AI+ en todos los sectores. Si se implementa, esta combinación podría influir en la organización de la investigación, la infraestructura y la adopción industrial en China; las fuentes actuales establecen directrices, no su ejecución ni sus efectos."
     },
     "FCMO-7464B9E4FD57": {
       "claims": [
