@@ -540,7 +540,8 @@ class IdentityPollingTests(unittest.TestCase):
         now = [0.0]
         with contextlib.redirect_stderr(io.StringIO()):
             attempts, live = verify_live_newsroom.poll_identity(
-                "https://example.test/base", "abc123", self.EXPECTED, self.STORIES, None, 900, 30,
+                "https://example.test/base", "abc123", self.EXPECTED, self.STORIES, None,
+                timeout_s=900, interval_s=30,
                 get=get, clock=lambda: now[0], sleep=lambda s: now.__setitem__(0, now[0] + s))
         self.assertEqual(attempts, 3)
         self.assertEqual(live["release_id"], self.EXPECTED["release_id"])
@@ -553,7 +554,8 @@ class IdentityPollingTests(unittest.TestCase):
         now = [0.0]
         with self.assertRaises(verify_live_newsroom.ServingFailure) as ctx, contextlib.redirect_stderr(io.StringIO()):
             verify_live_newsroom.poll_identity(
-                "https://example.test/base", "abc", self.EXPECTED, self.STORIES, None, 900, 30,
+                "https://example.test/base", "abc", self.EXPECTED, self.STORIES, None,
+                timeout_s=900, interval_s=30,
                 get=get, clock=lambda: now[0], sleep=lambda s: now.__setitem__(0, now[0] + s))
         self.assertEqual(ctx.exception.code, "IDENTITY_MISMATCH")
         self.assertIn("after 31 polls", str(ctx.exception))
