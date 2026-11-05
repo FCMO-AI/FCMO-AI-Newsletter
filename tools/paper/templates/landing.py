@@ -296,6 +296,12 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
     order = front["order"]
     slots = plan_mod.landing_slots(order)
     from . import d_front
+    from .. import d_plates
+    # Rows take their plates first; the empty Letters card then picks the look and tone the rows left over (11-05).
+    cover_html = d_front.cover(feature, slots["cover"], ctx)
+    rank_html = d_front.rank(([slots["cover"]] if slots["cover"] else []) + slots["board"], ctx)
+    letters_plate = d_plates.choose({"id": "letters-empty", "topics": ["letters"]},
+                                    ctx.__dict__.setdefault("d_plates", {}), wide=False)
     if cartas:
         letters = f'<section class="frame d-front-letters">{cartas}</section>'
     else:
@@ -307,14 +313,14 @@ def render(*, locale: dict, home: str, technical: str, about: str, subscribe: st
         head, none = l[0], l[8]
         letters = (f'<section class="frame d-front-letters d-front-letters--empty"><div class="d-letters-head"><h2>{_e(head)}</h2>'
                    f'<a href="{_e(home)}letters/">{_e(_EC[ctx.code]["back"])} →</a></div><div class="d-letters-cards d-letters-cards--one">'
-                   f'<a class="d-letters-card" href="{_e(home)}letters/"><span class="d-letters-card-art d-letters-card-art--a" aria-hidden="true"></span>'
+                   f'<a class="d-letters-card" href="{_e(home)}letters/"><span class="d-letters-card-art" data-plate="@@LETTERS_PLATE@@" aria-hidden="true"></span>'
                    f'<span class="d-letters-card-body"><span class="d-letters-card-kicker">FCMO AI · {_e(head)}</span>'
                    f'<strong data-letters-empty>{_e(none)}</strong></span></a>'
                    f'</div></section>')
     return '<div class="landing d-front">' + "".join([
-        d_front.cover(feature, slots["cover"], ctx),
-        d_front.rank(([slots["cover"]] if slots["cover"] else []) + slots["board"], ctx),
-        letters,
+        cover_html,
+        rank_html,
+        letters.replace("@@LETTERS_PLATE@@", letters_plate),
         d_front.follow(home, base, ctx, order),
         _topics(order, ctx),
     ]) + "</div>"

@@ -351,7 +351,7 @@ def evidence_glance(story, catalog, *, evidence, title, max_sources=2, max_gaps=
     """Front-page map in the approved R4 form: a few boxes joined by lines, nothing else.
 
     primary source(s) -> the headline claim (never a fabricated claim) -> open gaps (dashed).
-    Boxes grow to their text (no clamping, no ellipsis): a gap shows its whole first sentence. When there are more
+    Source and claim boxes grow to their text; an open-gap box shows at most 3 lines (CSS line-clamp, clean cut) and the whole first sentence stays in the SVG description and on the story page. When there are more
     sources or gaps than boxes, the last box says so inside itself («+ 2»); the full record is on the story page
     and in the SVG description. Nothing is invented: no source, gap or date appears unless it is in the data.
     """
@@ -403,7 +403,7 @@ def evidence_glance(story, catalog, *, evidence, title, max_sources=2, max_gaps=
         gxs = []
         gextra = len(gaps) - len(shown_gaps)
         gfoot = lambda i: catalog['strings']['proof']['not_established'] + (f' · + {gextra}' if (gextra > 0 and i == len(shown_gaps) - 1) else '')
-        gh = 24 + 24 + max(_lines(t, gw - 32, 22, .56) * 27 for t in shown_gaps) + 8 + 24 + 4
+        gh = 24 + 24 + max(min(_lines(t, gw - 32, 22, .56), 3) * 27 for t in shown_gaps) + 8 + 24 + 4  # CSS clamps the text to 3 lines
         for i, text in enumerate(shown_gaps):
             x = (W - gw) // 2 if len(shown_gaps) == 1 else i * (gw + G)
             out.append(box('gap', x, gy, gw, gh, plural(catalog, 'open_gap_noun', 1), text, foot=gfoot(i)))

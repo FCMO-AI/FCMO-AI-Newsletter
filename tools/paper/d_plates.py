@@ -21,6 +21,10 @@ FAMILY = {'acero-junta': 'metal', 'metal-arista': 'metal', 'hierro-fundido': 'me
           'papel-pliegue': 'bloque', 'concreto-bloque': 'bloque', 'piedra-escalon': 'bloque', 'marmol-corte': 'bloque',
           'piedra-grieta': 'grieta', 'arcilla-seca': 'grieta',
           'madera-veta': 'madera'}
+# The whole bank is warm-lit, so material alone does not separate neighbours: two dark brown slabs in a row read as one
+# image (11-05 judgement vs R4). TONE splits the bank by value; consecutive plates on a page alternate it when they can.
+LIGHT = {'arcilla-seca', 'metal-arista', 'papel-pila', 'papel-pliegue', 'piedra-grieta'}
+TONE = {n: ('claro' if n in LIGHT else 'oscuro') for n in PLATES}
 
 
 def _index(story):
@@ -37,10 +41,14 @@ def choose(story, seen=None, wide=False):
     start = _index(story)
     taken = set(seen.values())
     families = {FAMILY[n] for n in taken}
-    for fresh_family in (True, False):
+    last = TONE[list(seen.values())[-1]] if seen else None
+    # Preference order: a new look AND the opposite tone to the previous plate, then a new look, then the opposite tone.
+    for fresh_family, alternate in ((True, True), (True, False), (False, True), (False, False)):
         for step in range(len(PLATES)):
             name = PLATES[(start + step) % len(PLATES)]
             if name in taken or (wide and name in THUMB_ONLY) or (fresh_family and FAMILY[name] in families):
+                continue
+            if alternate and last and TONE[name] == last:
                 continue
             seen[sid] = name
             return name

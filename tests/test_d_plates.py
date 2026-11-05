@@ -38,6 +38,16 @@ class DPlates(unittest.TestCase):
         self.assertEqual(F["papel-pliegue"], F["concreto-bloque"])
         self.assertNotEqual(F["papel-pila"], F["papel-pliegue"])
 
+    def test_neighbours_alternate_tone_when_possible(self):
+        # 11-05: the whole bank is warm-lit; two dark slabs in a row read as one image.
+        self.assertEqual(set(d_plates.TONE), set(d_plates.PLATES))
+        for offset in range(0, 60, 6):
+            seen = {}
+            names = [d_plates.choose(self._story(offset + i), seen, wide=i == 0) for i in range(6)]
+            tones = [d_plates.TONE[n] for n in names]
+            same = sum(a == b for a, b in zip(tones, tones[1:]))
+            self.assertLessEqual(same, 1, (names, tones))  # a new look still outranks tone when only one is left
+
     def test_warm_plate_is_thumb_only(self):
         self.assertIn("arcilla-seca", d_plates.THUMB_ONLY)
 
