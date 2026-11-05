@@ -95,3 +95,41 @@ class PaperServingHealthTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BrowserHangRetryTests(unittest.TestCase):
+    """A headless hang gets exactly one retry; it never hides a real browser failure."""
+
+    def test_one_hang_is_retried_with_a_fresh_render(self):
+        import subprocess
+        calls = []
+
+        def once(browser, url):
+            calls.append(url)
+            if len(calls) == 1:
+                raise subprocess.TimeoutExpired("chrome", 45)
+            return "<html>ok</html>"
+
+        with mock.patch.object(verificar_live_surfaces, "render_once", once), \
+                contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(verificar_live_surfaces.render("chrome", "https://example/"), "<html>ok</html>")
+        self.assertEqual(len(calls), 2)
+
+    def test_two_hangs_and_other_failures_still_fail(self):
+        import subprocess
+
+        def hang(browser, url):
+            raise subprocess.TimeoutExpired("chrome", 45)
+
+        def broken(browser, url):
+            raise AssertionError("browser failed")
+
+        with mock.patch.object(verificar_live_surfaces, "render_once", hang), \
+                contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(subprocess.TimeoutExpired):
+                verificar_live_surfaces.render("chrome", "https://example/")
+        calls = []
+        with mock.patch.object(verificar_live_surfaces, "render_once", lambda b, u: calls.append(u) or broken(b, u)):
+            with self.assertRaises(AssertionError):
+                verificar_live_surfaces.render("chrome", "https://example/")
+        self.assertEqual(len(calls), 1)

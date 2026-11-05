@@ -17,6 +17,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 import urllib.request
@@ -45,7 +46,21 @@ def browser_path() -> str:
     raise RuntimeError("no supported Chrome/Chromium/Edge browser found")
 
 
-def render(browser: str, url: str) -> str:
+def render(browser: str, url: str, attempts: int = 2) -> str:
+    """Headless --dump-dom sometimes hangs on a healthy page (2 of 14 runs, 2026-11-05).
+    A hang gets one retry with a fresh profile; a page that hangs twice, or any other
+    browser failure, still fails the oracle."""
+    for attempt in range(1, attempts + 1):
+        try:
+            return render_once(browser, url)
+        except subprocess.TimeoutExpired:
+            if attempt == attempts:
+                raise
+            print(f"browser hung on {url}; retrying with a fresh profile", file=sys.stderr)
+    raise AssertionError("unreachable")
+
+
+def render_once(browser: str, url: str) -> str:
     profile = Path(tempfile.mkdtemp(prefix="fcmo-live-surfaces-"))
     try:
         completed = subprocess.run(
