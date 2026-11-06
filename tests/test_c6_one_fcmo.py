@@ -45,6 +45,7 @@ RETIRED_BRAND_RE = re.compile(r"\bfCMO\b")
 # exact phrases; every other occurrence of a product string is still a hit.
 ALLOWED_PROSE = (
     "membership inference",  # ML privacy attack, a research term
+    "membership-inference",  # the same research term in topic slugs and links
     "post-training",         # model training stage, a research term
     "long-context",          # model capability, a research term
 )
@@ -208,6 +209,16 @@ class TestC6OneFcmo(OneFcmoBuild):
         self.assertEqual(product_hits("membership plan", "x"), ["x: 'membership'"])
         self.assertEqual(product_hits("fCMO · Newsletter", "x"), ["x: 'fCMO ·'", "x: retired brand token 'fCMO'"])
         self.assertEqual(product_hits("fcmo-ai.github.io", "x"), [])
+
+    def test_c6_membership_inference_topic_is_research_not_a_product(self):
+        """The new unlearning story carries a research slug on archive and edition cards."""
+        card = ('<article data-story-id="FCMO-303DC579C475" '
+                'data-d-topics="[&quot;membership-inference&quot;]">'
+                '<a href="/topic/membership-inference/">Membership inference</a></article>')
+        self.assertEqual(product_hits(card, "archive/index.html"), [])
+        for split in ("membership plan", "fCMO /", "Letters from Javier"):
+            with self.subTest(split=split):
+                self.assertTrue(product_hits(card + f"<nav>{split}</nav>", "archive/index.html"))
 
     def test_c6_no_split_product_strings(self):
         """RED on main: DIRECCION §4 split labels such as 'fCMO /' and 'FCMO AI /', and 'membership'."""

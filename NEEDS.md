@@ -910,3 +910,24 @@ Clasificación final de las incidencias (son resultados de pruebas/subpruebas, n
 - `tools/paper/build.py`, page-route generation in `PaperBuilder.build` (the loop that currently writes the `cartas/` redirect): replace the redirect with a data-backed letters index in EN, ES and ZH from published Ghost cartas plus published editorial pieces. Use `community.render_letters_shelf` for the home-page section; generate the reference-matched index markup from the same letter records. The current redirect prevents `/cartas/` from meeting this lane's first-class index requirement, and this file is outside the lane's ownership.
 - `tools/paper/build.py`, stylesheet assembly for front-page output: include `assets/css/d/d-letters.css` on the home page so the exported `community.render_letters_shelf` markup receives its owned styles.
 - `design/d-libro/BRIEF-nl-d-cartas.md` and `design/d-libro/BRIEF-nl-d-core.md` (outside this lane's ownership): replace private absolute filesystem references with repository-relative paths. The full suite's `NO_MACHINE_PATHS` gate flags both briefs; the same finding cascades into Studio preview tests returning 409. Keep the gate enabled.
+
+
+# nl-refresh-c6
+
+## Resumen de Actions con más de 50 avisos (deuda preexistente)
+
+El log y las anotaciones ya conservan nombre, aserción y traceback saneado. Hay otro límite en `tools/refresh_guard.py:render`: el resumen Markdown toma los primeros 50 hallazgos en orden de llegada. Con 51 avisos de etiquetas y un error posterior, el error aparece en el log/anotación pero queda fuera del resumen.
+
+Reproducción sintética observada: `render(51 warnings + 1 error)` devuelve un error; la anotación contiene la aserción y el resumen no. Para una continuación del carril, priorizar los errores antes de limitar el resumen a 50 elementos y añadir una regresión con esa batería. Conservar todos los avisos en las anotaciones, su escape y los filtros de privacidad. No cambia la compuerta ni bloquea el diagnóstico por log solicitado en este brief.
+
+## Avisos SQLite de la suite completa (fuera del arreglo del refresh)
+
+Ambas corridas, base y carril, emiten `ResourceWarning: unclosed database` durante las pruebas de Studio/traducción. El punto de emisión de la recolección no identifica dónde se abrió la conexión; no se atribuye una causa sin esa evidencia. Continuación: reproducir esas pruebas con trazado de asignaciones, identificar al propietario de cada conexión y cerrarla en su salida/cleanup correspondiente, sin silenciar el aviso. Los avisos no se contaron como fallos ni se eliminaron del resultado.
+
+El cierre de ambas suites también avisa de un socket de fixture sin cerrar; aplica la misma investigación de propietario/cleanup, sin suponer que el punto de recolección es la apertura.
+
+## Navegador y base de comparación
+
+La suite completa termina con los mismos dos fallos de navegador que la base: `test_d_band_collapse.BandCollapseTests.test_bone_bands_never_collapse_to_hairline_columns` y `test_d_word_space.DisplayWordSpace.test_rendered_space_never_collapses`, ambos `BROWSER_UNAVAILABLE`. Ejecutarlos en el host con Playwright disponible; no debilitar las aserciones ni instalar dependencias desde este carril.
+
+La comparación se fijó a `origin/main@85fd777d9` al entrar. Durante su ejecución el host avanzó esa referencia a `809be25a9` (corpus y estado de producción; ningún archivo del arreglo). Ese corpus posterior no forma parte del candidato ni de la comparación ejecutada.
