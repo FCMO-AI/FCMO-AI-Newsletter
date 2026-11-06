@@ -211,6 +211,26 @@ class RefreshWorkflowOrder(unittest.TestCase):
 
 
 class RefreshFailureDiagnostics(unittest.TestCase):
+    def test_documented_unittest_failure_keeps_identity_assertion_and_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "tests").mkdir()
+            (root / "tests/__init__.py").write_text("")
+            (root / guard.MODULE_LIST).write_text("test_failure\n")
+            (root / "tests/test_failure.py").write_text(
+                "import unittest\nclass T(unittest.TestCase):\n"
+                " def test_documented(self):\n"
+                '  """C6 prints this description before the traceback separator."""\n'
+                "  self.fail('product split: membership plan')\n")
+            annotations, count, summary = guard.render(guard.run_modules(root, workers=1))
+            self.assertEqual(count, 1)
+            for output in (annotations, summary):
+                self.assertIn("test_documented", output)
+                self.assertIn("AssertionError: product split: membership plan", output)
+                self.assertIn("Traceback (most recent call last):", output)
+                self.assertIn("line 5, in test_documented", output)
+                self.assertNotIn(str(root), output)
+
     def test_first_assertion_keeps_the_nested_cause_after_successful_steps(self):
         output = "FAIL: test_refresh (fixture.Refresh.test_refresh)\n" + "-" * 70 + "\n"
         output += "AssertionError: verificar_refresco.py salio 1\n"

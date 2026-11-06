@@ -131,10 +131,13 @@ def run_checks(root: Path, names=None) -> list[Finding]:
 def first_failure(output: str, returncode: int) -> str:
     """Keep the first unittest diagnostic, not the tail of the last diff.
 
-    Only test identity and exception detail cross into Actions. Traceback
-    frames, arbitrary process logging and private input never become a summary.
+    Test identity, bounded traceback frames and exception detail cross into
+    Actions. Frame paths/source lines and private input never become a summary.
     """
-    block = re.search(r"^(?:FAIL|ERROR): ([^\n]+)\n-{20,}\n(.*?)(?=\n={20,}\n|\n-{20,}\nRan |\Z)",
+    # unittest inserts the test's short docstring between its identity and the
+    # dashed separator. C6 has docstrings, so requiring adjacent lines hid its
+    # real assertion behind the generic process-exit fallback.
+    block = re.search(r"^(?:FAIL|ERROR): ([^\n]+)\n(?:[^\n]*\n)?-{20,}\n(.*?)(?=\n={20,}\n|\n-{20,}\nRan |\Z)",
                       output, re.M | re.S)
     if not block:
         return f"El proceso terminó con código {returncode}; no produjo una aserción de unittest."
@@ -142,11 +145,17 @@ def first_failure(output: str, returncode: int) -> str:
     exceptions = list(re.finditer(r"^[\w.]+(?:Error|Exception|Exit|Interrupt|Failure)(?::[^\n]*)?$",
                                   traceback, re.M))
     detail = traceback[exceptions[-1].start():].strip() if exceptions else "Excepción sin detalle."
+    frames = re.findall(r'^  File "[^"\n]+", line \d+, in [^\n]+', traceback, re.M)[:2]
+    # Keep the line/function that locates the failure, without disclosing the
+    # runner's filesystem or echoing source lines containing fixture input.
+    frames = [re.sub(r'File "[^"\n]+"', 'File "[ruta omitida]"', frame) for frame in frames]
+    trace = "Traceback (most recent call last):\n" + "\n".join(frames) + "\n" if frames else ""
     bridge = _import("tools.newswire_bridge")
-    public_text = test + "\n" + detail
+    public_text = test + "\n" + trace + detail
     if bridge.private_marker(public_text) or bridge.EMAIL.search(public_text) or any(p.search(public_text) for p in bridge.SECRET_PATTERNS):
         # Subtest parameters can themselves contain the private input.
         test = test.split(" ", 1)[0]
+        trace = ""
         detail = "Detalle omitido por privacidad."
     test = re.sub(r"/(?:srv|home|tmp|var|etc|mnt|github|Users)/[^\s'\"<>]+", "[ruta omitida]", test)
     detail = re.sub(r"/(?:srv|home|tmp|var|etc|mnt|github|Users)/[^\s'\"<>]+", "[ruta omitida]", detail)
@@ -156,7 +165,7 @@ def first_failure(output: str, returncode: int) -> str:
     detail = "\n".join(lines)
     if len(detail) > 1800:
         detail = detail[:850] + "\n… detalle intermedio omitido …\n" + detail[-850:]
-    return f"{test}\n{detail}"
+    return f"{test}\n{trace}{detail}"
 
 
 def run_modules(root: Path, workers: int = 4) -> list[Finding]:
