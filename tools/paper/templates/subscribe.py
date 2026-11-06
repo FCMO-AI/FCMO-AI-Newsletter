@@ -109,7 +109,7 @@ _PROOF = {
 
 
 def diario_form(locale, base, form, page=False):
-    from .subscription_states import COPY, PREFIX, LANGUAGE
+    from .subscription_states import COPY, PREFIX, LANGUAGE, state_page
     copy = COPY[locale]; prefix = PREFIX[locale]; extra = _PROOF[locale]
     root = base.rstrip('/')+'/'+prefix
     options = ''.join('<option value="'+v+'"'+(' selected' if v==locale else '')+'>'+label+'</option>' for v,label in (('en','English'),('es-419','Español'),('zh-Hans','简体中文')))
@@ -132,6 +132,8 @@ def diario_form(locale, base, form, page=False):
                     re.fullmatch(r'https://app\.kit\.com/forms/[1-9][0-9]*/subscriptions', form.action) else '')
     proof = ''.join(f'<li class="sub-proof-{k}"><span class="sub-mark sub-mark-{k}" aria-hidden="true"></span>'
                     f'<strong>{escape(extra[k][0])}</strong><span>{escape(extra[k][1])}</span></li>' for k in ('shown', 'claimed', 'gap'))
+    notice = (f'<aside class="sub-notice" data-sub-notice><span class="sub-label">{escape(copy["notice_h"])}</span><ul>'
+              + ''.join(f'<li>{escape(t)}</li>' for t in copy['notice']) + '</ul></aside>')
     return (f'<section class="subscribe-v2 {wrapper} sub-experience" data-subscribe-state="active" data-state="idle">'
             f'<div data-sub-idle class="sub-grid"><div class="sub-story"><div class="sub-copy">'
             f'<p class="section-kicker sub-kicker">{copy["kicker"]}</p><{tag} class="page-title">{copy["title"]}</{tag}><p class="sub-lede">{copy["lede"]}</p>'
@@ -146,9 +148,7 @@ def diario_form(locale, base, form, page=False):
             '<input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" hidden>'
             f'<button class="button sub-submit" type="submit">{copy["button"]}</button>'
             f'<p class="sub-error" role="alert" hidden></p>{error_link}</form>'
-            f'<p class="sub-fine">{copy["fine"]}</p>{fallback}'
+            f'<p class="sub-fine">{copy["fine"]}</p>{notice}{fallback}'
             f'<p class="sub-fine"><a href="{escape(form.privacy_url,quote=True)}">{copy["complete"]}</a></p></div></div>'
-            f'<div data-sub-pending hidden aria-live="polite"><section class="sub-state sub-state--pending" data-state="pending">'
-            f'<p class="section-kicker">{escape(copy["pending_kicker"])}</p><{tag} tabindex="-1">{escape(copy["pending"])}</{tag}>'
-            f'<p>{escape(copy["pending_body"])}</p></section>'
+            f'<div data-sub-pending hidden aria-live="polite">{state_page(locale, "pending", base, tag=tag)}'
             f'<p class="sub-retry"><button type="button" data-sub-retry>{escape(copy["help"])}</button></p></div></section>')
