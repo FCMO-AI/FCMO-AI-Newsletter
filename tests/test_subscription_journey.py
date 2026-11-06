@@ -138,7 +138,7 @@ class SubscriptionJourneyTests(unittest.TestCase):
         for k in ('en', 'es', 'zh'):
             html = (base / f'{k}.html').read_text(); txt = (base / f'{k}.txt').read_text()
             for body in (html, txt):
-                self.assertIn('{{CONFIRM_URL}}', body); self.assertIn('{{POSTAL_ADDRESS}}', body)
+                self.assertIn('{{CONFIRM_URL}}', body); self.assertIn('{{ address }}', body)
                 self.assertIn('newsletter@fcmo.group', body); self.assertIn('javo@fcmo.group', body)
                 self.assertNotIn('FCMO Group', body)
             self.assertIn('width="600"', html); self.assertIn('prefers-color-scheme: dark', html)
@@ -151,7 +151,8 @@ class SubscriptionJourneyTests(unittest.TestCase):
             self.assertEqual((r.OUT / f'{k}.html').read_text(), r.html(r.COPY[loc]))
             self.assertEqual((r.OUT / f'{k}.txt').read_text(), r.text(r.COPY[loc]))
 
-    PLACEHOLDERS = {'{{CONFIRM_URL}}', '{{POSTAL_ADDRESS}}'}
+    PLACEHOLDERS = {'{{CONFIRM_URL}}'}
+    KIT_TAGS = {'{{ address }}'}  # Kit Liquid tag (help.kit.com, troubleshooting HTML email templates)
 
     def test_unresolved_confirmation_markers_are_exactly_the_documented_ones(self):
         import re
@@ -159,7 +160,7 @@ class SubscriptionJourneyTests(unittest.TestCase):
         for k in ('en', 'es', 'zh'):
             for ext in ('html', 'txt'):
                 found = set(re.findall(r'\{\{[^}]*\}\}', (ROOT / f'email/kit/confirmacion/{k}.{ext}').read_text()))
-                self.assertLessEqual(found, self.PLACEHOLDERS, f'{k}.{ext}: unknown marker')
+                self.assertLessEqual(found, self.PLACEHOLDERS | self.KIT_TAGS, f'{k}.{ext}: unknown marker')
         for marker in self.PLACEHOLDERS: self.assertIn(marker, docs)
 
     @unittest.expectedFailure
@@ -168,6 +169,8 @@ class SubscriptionJourneyTests(unittest.TestCase):
         # failure; once it passes, unittest reports an unexpected success and this decorator must be removed.
         for k in ('en', 'es', 'zh'):
             for ext in ('html', 'txt'):
-                self.assertNotIn('{{', (ROOT / f'email/kit/confirmacion/{k}.{ext}').read_text())
+                body = (ROOT / f'email/kit/confirmacion/{k}.{ext}').read_text()
+                for tag in self.KIT_TAGS: body = body.replace(tag, '')
+                self.assertNotIn('{{', body)
 
 if __name__ == '__main__': unittest.main()

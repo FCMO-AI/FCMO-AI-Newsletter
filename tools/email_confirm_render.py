@@ -2,8 +2,8 @@
 """Render the Kit double opt-in confirmation email (EN, es-419, zh-Hans) into email/kit/confirmacion/.
 
 Pasted into Kit's confirmation-email editor by hand. Placeholders are Kit-side values that this repo does not
-resolve: {{CONFIRM_URL}} (Kit's confirmation link; rename to Kit's own tag when pasting) and {{POSTAL_ADDRESS}}
-(Kit's sender address block). Nothing here sends mail or states a delivery time.
+resolve: {{CONFIRM_URL}} (Kit's confirmation link; rename to Kit's own tag when pasting) and {{ address }}
+(Kit's own Liquid tag for the account's postal address, documented in Kit's template help). Nothing here sends mail or states a delivery time.
 """
 from html import escape
 from pathlib import Path
@@ -86,7 +86,7 @@ def html(c):
  <tr><td class="ink-soft" style="padding:10px 0 0 0;font:14px/1.5 {SANS};color:#3a3a38;">{e(c['ign'])}</td></tr>
  </table>
 </td></tr>
-<tr><td style="padding:20px 4px 0 4px;font:12px/1.6 {SANS};color:#4a4741;" class="mute">{e(c['why'])}<br><br>{e(c['sender'])}<br>{{{{POSTAL_ADDRESS}}}}</td></tr>
+<tr><td style="padding:20px 4px 0 4px;font:12px/1.6 {SANS};color:#4a4741;" class="mute">{e(c['why'])}<br><br>{e(c['sender'])}<br>{{{{ address }}}}</td></tr>
 </table></td></tr></table></body></html>
 '''
 
@@ -111,7 +111,7 @@ def text(c):
 --
 {c['why']}
 {c['sender']}
-{{{{POSTAL_ADDRESS}}}}
+{{{{ address }}}}
 """
 
 def main():
