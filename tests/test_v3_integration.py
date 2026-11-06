@@ -122,7 +122,7 @@ class V3IntegrationTests(unittest.TestCase):
         story = next(page for page in (
             (self.out / row["path"].strip("/") / "index.html").read_text(encoding="utf-8")
             for row in self.routes if row["kind"] == "story" and row["locale"] == "en")
-            if 'href="/FCMO-AI-Newsletter/topic/' in page)
+            if re.search(r'href="/FCMO-AI-Newsletter/topic/[^"/]+/"', page))
         status = self.page("status")
         parsed_front = StructureParser()
         parsed_front.feed(front)
