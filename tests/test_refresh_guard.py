@@ -167,7 +167,10 @@ class RefreshWorkflowOrder(unittest.TestCase):
     @staticmethod
     def guard_precedes_push(text: str) -> bool:
         guard_at = text.find("tools/refresh_guard.py")
-        push_at = text.find("git push origin HEAD:main")
+        # The production helper performs the push after the same guarded commit.
+        push_at = text.find('python3 tools/refresh_promote.py --build-base "$BUILD_BASE"')
+        if push_at == -1:
+            push_at = text.find("git push origin HEAD:main")
         commit_at = text.find("git commit -m")
         return -1 < guard_at < commit_at < push_at
 

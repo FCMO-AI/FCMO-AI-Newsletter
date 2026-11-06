@@ -53,16 +53,22 @@ class WorkflowConcurrencyContractTests(unittest.TestCase):
             "newsroom-health.yml","newsroom-production-health-v2-"
         )
 
-    def test_refresh_promotion_retries_without_force_and_invalidates_on_product_inputs(self) -> None:
+    def test_refresh_promotion_retries_without_force_and_invalidates_on_constructor_inputs(self) -> None:
+        from tools import refresh_promote
         text=self.text("daily-refresh.yml")
-        self.assertIn("for attempt in 1 2 3 4 5",text)
         self.assertIn("BUILD_BASE=",text)
-        self.assertIn("corpus scaffold tools .github/workflows/daily-refresh.yml",text)
-        self.assertIn("newer product inputs",text)
-        self.assertIn("retrying from newest main",text)
-        self.assertIn("did not converge after 5 optimistic retries",text)
-        self.assertNotIn("git push --force",text)
-        self.assertNotIn("git push -f",text)
+        self.assertIn('python3 tools/refresh_promote.py --build-base "$BUILD_BASE"',text)
+        self.assertEqual(refresh_promote.CONSTRUCTOR,
+                         ("scaffold", "tools", ".github/workflows/daily-refresh.yml"))
+        helper=(ROOT/"tools/refresh_promote.py").read_text(encoding="utf-8")
+        self.assertIn("for attempt in range(1, 6)",helper)
+        self.assertIn("descartado por constructor",helper)
+        self.assertIn("reintentando desde el main más nuevo",helper)
+        self.assertIn("no convergió tras 5 reintentos",helper)
+        self.assertIn('["git", "push", "origin", f"{head}:refs/heads/main"]',helper)
+        for code in (text,helper):
+            self.assertNotIn("git push --force",code)
+            self.assertNotIn("git push -f",code)
 
 
 
