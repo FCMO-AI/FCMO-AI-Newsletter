@@ -451,7 +451,7 @@ class PaperBuilder:
             if value == excluded or slug == excluded:
                 continue
             selected.append((count, value, slug, route))
-        links = "".join(f'<li><a href="{esc(href(self.base, locale["path_prefix"] + route + "/" + slug + "/"))}" translate="no">{esc(value)}</a><span>{count}</span></li>'
+        links = "".join(f'<li><a href="{esc(href(self.base, locale["path_prefix"] + route + "/" + slug + "/"))}" translate="no">{esc(label(self.catalogs[locale["code"]], "topic", slug, fallback=value) if route == "topic" else value)}</a><span>{count}</span></li>'
                         for count, value, slug, route in selected[:limit])
         return f'<nav class="taxonomy-neighbors"><h2>{esc(self.catalogs[locale["code"]]["strings"]["front"]["see_all"])}</h2><ul>{links}</ul></nav>' if links else ""
 
@@ -875,9 +875,36 @@ class PaperBuilder:
                                            plate_html=self._plate_html(stories[0],catalog,"16:9",self.base) if stories else "")
                 body = body.replace('</header>', '</header>' + calendar, 1) + self._archive_band(locale) + d_pages.FILTER_SCRIPT
             else:
-                body = archive_page(title, strings["site"]["description"], items or f'<p>{esc(strings["archive"]["empty"])}</p>', kicker=strings["kicker"]["archive"], title_html=title_html, context=context + usual_note, navigation=navigation + jump) + paging
+                header_html = None
+                if kind == "topic":
+                    from tools.paper.templates import d_topics
+                    slug = suffix.strip("/").split("/")[-1]
+                    rec = next((r for r in self._topic_records(locale) if r["slug"] == slug), None)
+                    if rec:
+                        header_html = d_topics.header(rec, catalog=catalog, locale=locale, base=self.base,
+                                                      index_href=href(self.base, locale["path_prefix"] + "topic/"), orgs_total=len(orgs))
+                body = archive_page(title, strings["site"]["description"], items or f'<p>{esc(strings["archive"]["empty"])}</p>', kicker=strings["kicker"]["archive"], title_html=title_html, context=context + usual_note, navigation=navigation + jump, header_html=header_html) + paging
             page_title = title if number == 1 else f"{title} · {number}/{pages}"
             self._write_page(locale=locale, suffix=page_path(number), title=f"{page_title} — FCMO AI", description=title, body=body, kind=kind, machine_alternates=resources)
+
+    def _topic_records(self, locale: dict) -> list[dict]:
+        """Listed topics of one locale (page + catalogue name), each with its newest live story."""
+        from tools.paper.templates import d_topics
+        cache = self.__dict__.setdefault("_topic_cache", {})
+        if locale["code"] not in cache:
+            cache[locale["code"]] = d_topics.collect(self.live, self.catalogs[locale["code"]])
+        return cache[locale["code"]]
+
+    def _topics_index(self, locale: dict) -> None:
+        """/topic/: every topic that has a page, grouped by family, each with its newest story."""
+        from tools.paper.templates import d_topics
+        catalog = self.catalogs[locale["code"]]
+        strings = catalog["strings"]
+        body = d_topics.index(self._topic_records(locale), self.live, catalog=catalog, locale=locale, base=self.base,
+                              story_href=lambda story: self._story_href(locale, story),
+                              method_href=href(self.base, locale["path_prefix"] + "method/"))
+        self._write_page(locale=locale, suffix="topic/", title=f'{strings["topics"]["title"]} — FCMO AI',
+                         description=strings["topics"]["dek"], body=body, kind="topics")
 
     def _status(self, locale: dict) -> None:
         catalog = self.catalogs[locale["code"]]
@@ -1117,9 +1144,10 @@ class PaperBuilder:
                 self._listing(locale=locale, suffix=f"edition/{date}/", title=title, stories=values, kind="edition")
             for beat in BEATS:
                 self._listing(locale=locale, suffix=f"beat/{beat}/", title=label(catalog,"beat",beat), stories=[s for s in ranked if s.get("beat")==beat], kind="beat")
+            self._topics_index(locale)
             for topic, count in sorted(topic_counts.items()):
                 if count >= 3:
-                    self._listing(locale=locale, suffix=f"topic/{slugify(topic)}/", title=catalog["strings"]["archive"]["topic_title"].format(topic=topic), stories=[s for s in ranked if topic in s.get("topics",[])], kind="topic")
+                    self._listing(locale=locale, suffix=f"topic/{slugify(topic)}/", title=catalog["strings"]["archive"]["topic_title"].format(topic=label(catalog, "topic", slugify(topic), fallback="") or topic), stories=[s for s in ranked if topic in s.get("topics",[])], kind="topic")
             for organization in sorted(org_counts):
                 template = catalog["strings"]["archive"]["org_title"]
                 before, marker, after = template.partition("{organization}")

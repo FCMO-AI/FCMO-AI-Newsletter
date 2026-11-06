@@ -228,22 +228,11 @@ def _band(stories: list[dict], ctx: _Ctx, method_href: str) -> str:
 # R4 retired the EARLIER wire block from the front (its builder and filter script were removed with it).
 
 
-TOPIC_INDEX_MAX = 12
-TOPIC_PAGE_MIN = 3  # build.py writes topic/<slug>/ only for topics with at least this many stories
-
-
 def _topics(stories: list[dict], ctx: _Ctx) -> str:
-    ranked = sorted(((t, c) for t, c in plan_mod.topic_counts(stories, ctx.topic_labels) if c >= TOPIC_PAGE_MIN),  # a link only for a topic that has a page
-                    key=lambda tc: -tc[1])[:TOPIC_INDEX_MAX]
-    tiles = "".join(f'<li><a href="{_e(ctx.topic_href(topic))}">{_e(ctx.topic_labels[topic])}</a></li>' for topic, count in ranked)
-    if not tiles:
-        return ""
-    # R4 has no TOPICS block after the Bone band; the nav's «Topics» link still needs a real, visible target, so the
-    # tiles live in one closed disclosure row above the Letters strip. It opens when the nav (or a link) targets #topics.
-    # R4 has no Topics block between the board and Letters. The nav's «Topics» link still needs a real, visible target:
-    # a quiet index of the busiest topics closes the page above the footer, like a table of contents.
-    return (f'<section class="d-front-topics" id="topics" aria-labelledby="topics-title"><div class="frame">'
-            f'<h2 id="topics-title">{_e(ctx.s["topics"]["title"])}</h2><ul>{tiles}</ul></div></section>')
+    """The front no longer carries a list of topics: Topics has its own page (topic/). One quiet way in remains."""
+    url = route_href(ctx.base, ctx.locale["path_prefix"] + "topic/")
+    return (f'<section class="d-front-topics" id="topics" aria-label="{_e(ctx.s["topics"]["title"])}"><div class="frame">'
+            f'<a href="{_e(url)}">{_e(ctx.s["topics"]["all"])} \u2192</a></div></section>')
 
 
 def _trio(home: str, ctx: _Ctx) -> str:

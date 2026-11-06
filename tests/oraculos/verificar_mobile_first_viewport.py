@@ -38,7 +38,7 @@ H1_TOP_TARGET = 420
 NAV_HEIGHT_MAX = 48
 # D R4 reserves 68px plus its 1px rule for the mobile header and native menu control.
 BAR_HEIGHT_MAX = 69
-NAV_PATHS = ("", "letters/", "#topics", "archive/", "method/", "search/?focus=1")
+NAV_PATHS = ("", "letters/", "topic/", "archive/", "method/", "search/?focus=1")
 MENU_PATHS = NAV_PATHS
 FOOTER_PATHS = ("corrections/", "subscribe/")
 ROW_TOLERANCE = 2

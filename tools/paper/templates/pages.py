@@ -122,8 +122,10 @@ def story_page(*, header: str, body: str, aside: str, hero: str = "", navigation
 
 
 def archive_page(title: str, intro: str, items: str, *, kicker: str, title_html: str | None = None,
-                 context: str = "", navigation: str = "") -> str:
+                 context: str = "", navigation: str = "", header_html: str | None = None) -> str:
     rendered_title = title_html if title_html is not None else e(title)
+    if header_html is not None:  # a page with its own heading (a topic page), same list underneath
+        return f'{header_html}{navigation}<div class="archive-list">{items}</div>'
     return f'<header class="d-page-header"><p class="section-kicker">FCMO AI · {e(kicker)}</p><h1 class="page-title d-page-title">{rendered_title}</h1><p>{e(intro)}</p>{context}</header>{navigation}<div class="archive-list">{items}</div>'
 
 

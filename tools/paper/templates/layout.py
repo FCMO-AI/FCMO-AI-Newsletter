@@ -52,7 +52,7 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
     method = _url(base, locale_prefix + "method/")
     corrections = _url(base, locale_prefix + "corrections/")
     subscribe = _url(base, locale_prefix + "subscribe/")
-    topics = home + "#topics"
+    topics = _url(base, locale_prefix + "topic/")
     brand_sym = _url(base, "assets/pwa/favicon.svg")
     alternates_html = "\n".join(
         f'<link rel="alternate" hreflang="{_e(code)}" href="{_e(url)}">'
@@ -100,7 +100,7 @@ def document(*, locale: dict, catalog: dict, config: dict, base: str, path: str,
         # The one publication keeps a first-class route to its human letters.
         (home, nav["today"], here("")),
         (_url(base, locale_prefix + "letters/"), nav["letters"], here("letters/", "essays/")),
-        (topics, nav["topics"], ""),
+        (topics, nav["topics"], here("topic/")),
         (archive, nav["archive"], here("archive/")),
         (method, nav["method_short"], here("method/")),
         (search_focus, nav["search"], here("search/")),

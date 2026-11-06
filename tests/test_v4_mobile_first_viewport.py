@@ -180,7 +180,7 @@ class BuiltFrontChromeTests(unittest.TestCase):
     def test_front_has_one_header_native_menu_and_footer_corrections_in_every_locale(self):
         for code, prefix in LOCALES:
             top_nav = {f"{BASE}{prefix}{path}" for path in
-                       ("", "letters/", "#topics", "archive/", "method/", "search/?focus=1")}
+                       ("", "letters/", "topic/", "archive/", "method/", "search/?focus=1")}
             with self.subTest(locale=code):
                 page = (self.out / prefix / "index.html").read_text(encoding="utf-8")
                 self.assertEqual(page.count("<header "), 1)
@@ -217,7 +217,7 @@ class EvaluateRulesTests(unittest.TestCase):
         r = self.rect
 
         def mobile_for(prefix: str) -> dict:
-            nav = [f"{BASE}{prefix}{path}" for path in ("", "letters/", "#topics", "archive/", "method/", "search/?focus=1")]
+            nav = [f"{BASE}{prefix}{path}" for path in ("", "letters/", "topic/", "archive/", "method/", "search/?focus=1")]
             menu_links = [{"href": href, **r(68 + 44*i, 112 + 44*i, 16, 200)} for i, href in enumerate(nav)]
             languages = [{"href": f"{BASE}{p}", "lang": code, **r(340, 384, 16+100*i, 100+100*i)}
                          for i, (code, p) in enumerate(LOCALES)]
@@ -238,7 +238,7 @@ class EvaluateRulesTests(unittest.TestCase):
             }
 
         def desktop_for(prefix: str) -> dict:
-            nav = [f"{BASE}{prefix}{path}" for path in ("", "letters/", "#topics", "archive/", "method/", "search/?focus=1")]
+            nav = [f"{BASE}{prefix}{path}" for path in ("", "letters/", "topic/", "archive/", "method/", "search/?focus=1")]
             return {"zoneSwitch": 0, "brandmark": True, "freshnessLine": True, "tabbarVisible": False,
                     "topnav": {**r(0, 56, 160, 800), "links": [{"href": href, **r(6, 50, 160 + 100 * i, 250 + 100 * i)} for i, href in enumerate(nav)]},
                     "scrollWidth": 1440, "clientWidth": 1440, "consoleErrors": [], "failedRequests": []}
