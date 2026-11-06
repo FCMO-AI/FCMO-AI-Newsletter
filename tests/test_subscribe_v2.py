@@ -123,7 +123,7 @@ class SubscribeFormTests(unittest.TestCase):
         kicker = re.search(r'\.subscribe-v2 \.section-kicker\{([^}]+)', css).group(1)
         self.assertNotRegex(kicker.lower(), r'a9340e|f05a28')
         grid = re.search(r'\.sub-grid\{([^}]+)', css).group(1)
-        self.assertIn('row-gap:1rem', grid)
+        self.assertIn('row-gap:2rem', grid)
         self.assertIn('column-gap:clamp(', grid)
 
     def test_intro_and_proof_share_a_column_independent_of_the_form(self):
