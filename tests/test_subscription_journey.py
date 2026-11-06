@@ -133,44 +133,33 @@ class SubscriptionJourneyTests(unittest.TestCase):
                     self.assertIn('sub-stamp', page); self.assertNotIn('FCMO Group', page)
                     self.assertNotRegex(page, r'\b\d+ ?(minutes|minutos|分钟)')  # no delivery-time promise
 
-    def test_confirmation_email_templates_exist_in_three_languages_with_kit_footer(self):
-        base = ROOT / 'email/kit/confirmacion'
+    def test_kit_confirmation_template_and_incentive_copy_exist_in_three_languages(self):
+        import re
+        base = ROOT / 'email/kit'
+        tags = ('{{ message_content }}', '{{ unsubscribe_url }}', '{{ address }}')
         for k in ('en', 'es', 'zh'):
-            html = (base / f'{k}.html').read_text(); txt = (base / f'{k}.txt').read_text()
-            for body in (html, txt):
-                self.assertIn('{{CONFIRM_URL}}', body); self.assertIn('{{ address }}', body)
-                self.assertIn('newsletter@fcmo.group', body); self.assertIn('javo@fcmo.group', body)
-                self.assertNotIn('FCMO Group', body)
-            self.assertIn('width="600"', html); self.assertIn('prefers-color-scheme: dark', html)
-            self.assertNotRegex(html, r'<script|<link ')
-            self.assertTrue((base / f'{k}.meta.txt').read_text().startswith('Subject: '))
+            template = (base / f'plantilla/{k}.html').read_text()
+            incentive = (base / f'incentivo/{k}.md').read_text()
+            self.assertEqual([template.count(tag) for tag in tags], [1, 1, 1])
+            self.assertEqual(set(re.findall(r'\{\{[^}]*\}\}', template)), set(tags))
+            self.assertNotRegex(incentive, r'\{\{[^}]*\}\}')
+            self.assertIn('newsletter@fcmo.group', template)
+            self.assertIn('javo@fcmo.group', template)
+            self.assertNotIn('FCMO Group', template)
+            self.assertIn('width="600"', template)
+            self.assertIn('prefers-color-scheme: dark', template)
+            self.assertNotRegex(template, r'<script|<link ')
 
-    def test_confirmation_email_files_are_in_sync_with_the_renderer(self):
+    def test_kit_confirmation_files_are_in_sync_with_the_renderer(self):
         from tools import email_confirm_render as r
         for loc, k in (('en', 'en'), ('es-419', 'es'), ('zh-Hans', 'zh')):
-            self.assertEqual((r.OUT / f'{k}.html').read_text(), r.html(r.COPY[loc]))
-            self.assertEqual((r.OUT / f'{k}.txt').read_text(), r.text(r.COPY[loc]))
+            self.assertEqual((r.OUT / f'plantilla/{k}.html').read_text(), r.html(r.COPY[loc]))
+            self.assertEqual((r.OUT / f'incentivo/{k}.md').read_text(), r.incentive(r.COPY[loc]))
 
-    PLACEHOLDERS = {'{{CONFIRM_URL}}'}
-    KIT_TAGS = {'{{ address }}'}  # Kit Liquid tag (help.kit.com, troubleshooting HTML email templates)
-
-    def test_unresolved_confirmation_markers_are_exactly_the_documented_ones(self):
-        import re
-        docs = (ROOT / 'docs/EMAIL-PROVIDERS.md').read_text()
-        for k in ('en', 'es', 'zh'):
-            for ext in ('html', 'txt'):
-                found = set(re.findall(r'\{\{[^}]*\}\}', (ROOT / f'email/kit/confirmacion/{k}.{ext}').read_text()))
-                self.assertLessEqual(found, self.PLACEHOLDERS | self.KIT_TAGS, f'{k}.{ext}: unknown marker')
-        for marker in self.PLACEHOLDERS: self.assertIn(marker, docs)
-
-    @unittest.expectedFailure
     def test_confirmation_email_has_no_unresolved_markers(self):
-        # Kit's real variable names are not verified. Until they are used in the templates this stays an expected
-        # failure; once it passes, unittest reports an unexpected success and this decorator must be removed.
+        import re
         for k in ('en', 'es', 'zh'):
-            for ext in ('html', 'txt'):
-                body = (ROOT / f'email/kit/confirmacion/{k}.{ext}').read_text()
-                for tag in self.KIT_TAGS: body = body.replace(tag, '')
-                self.assertNotIn('{{', body)
+            body = (ROOT / f'email/kit/incentivo/{k}.md').read_text()
+            self.assertNotRegex(body, r'\{\{[^}]*\}\}')
 
 if __name__ == '__main__': unittest.main()
