@@ -295,7 +295,12 @@ class NewswireBridgeWorkflowContractTests(unittest.TestCase):
         text = REFRESH.read_text(encoding="utf-8")
         self.assertNotIn("steps.airlock.outputs", text)
         self.assertIn("finalize --wire-status corpus/wire-status.json", text)
-        self.assertIn("':!corpus/wire-status.json'", text)
+        # The extracted promotion helper now tolerates all corpus advances,
+        # including the wire heartbeat; constructor changes still invalidate.
+        from tools.refresh_promote import CONSTRUCTOR
+        self.assertNotIn("corpus", CONSTRUCTOR)
+        self.assertNotIn("corpus/wire-status.json", CONSTRUCTOR)
+        self.assertIn('tools/refresh_promote.py --build-base "$BUILD_BASE"', text)
         preview = doc["jobs"]["preview"]
         self.assertEqual(preview["permissions"], {"contents": "read"})
         self.assertIn("drill_now_offset_h", doc[True]["workflow_dispatch"]["inputs"])

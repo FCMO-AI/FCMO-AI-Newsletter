@@ -55,8 +55,9 @@ concurrency:
   # flight (the same lesson as pages.yml). Triggers often arrive on an unchanged
   # head every 25-35 min while a rebuild with its pre-push guard takes ~37 min,
   # so cancelling starved every refresh. GitHub keeps only the newest pending
-  # run, and the commit step already discards a build that newer product inputs
-  # superseded. Only a manual dispatch pre-empts.
+  # run, and the commit step discards a build only when the constructor or
+  # a newer remote release supersedes it; corpus advances do not starve it.
+  # Only a manual dispatch pre-empts.
   cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
 
 jobs:
@@ -249,12 +250,12 @@ jobs:
           # still owns rendering and deployment of the current newspaper.
           git add -A -- release-src release-overlay site READY_TO_PUBLISH.md
           if git diff --cached --quiet; then
-            echo 'Healthy heartbeat with no material release-tree delta.'
+            echo 'Latido sano sin cambios materiales en las rutas generadas.'
             exit 0
           fi
           outside=":!release-src :!release-overlay :!site :!READY_TO_PUBLISH.md"
           if ! git diff --cached --quiet -- $outside; then
-            echo 'autonomous newsroom touched a path outside its scope' >&2
+            echo 'El newsroom modificó una ruta fuera de su alcance' >&2
             git diff --cached --name-only -- $outside >&2
             exit 1
           fi
@@ -265,38 +266,12 @@ jobs:
           fi
           BUILD_BASE="$(git rev-parse HEAD^)"
 
-          # Optimistic publication transaction. The generated release is valid
-          # only for the exact product inputs it was built from. If any corpus,
-          # scaffold, tool or refresh-workflow input advances, discard this build:
-          # that newer push owns the rebuild. Orthogonal changes may be rebased,
-          # and a final push race retries from newest main. Never force-push.
-          pushed=0
-          for attempt in 1 2 3 4 5; do
-            echo "Newsroom promotion attempt $attempt/5"
-            git fetch --quiet origin main
-            REMOTE_SHA="$(git rev-parse origin/main)"
-            if test "$REMOTE_SHA" != "$(git rev-parse HEAD^)"; then
-              # The wire heartbeat alone never invalidates a build.
-              if ! git diff --quiet "$BUILD_BASE..$REMOTE_SHA" -- corpus scaffold tools .github/workflows/daily-refresh.yml ':!corpus/wire-status.json'; then
-                echo 'Refresh was superseded by newer product inputs; discard this generated release and let the newer trigger rebuild.'
-                exit 0
-              fi
-              if ! git rebase origin/main; then
-                git rebase --abort || true
-                echo 'Refresh collided with newer generated/shared state; leaving reconciliation to the newer trigger.'
-                exit 0
-              fi
-            fi
-            if git push origin HEAD:main; then
-              pushed=1
-              break
-            fi
-            echo 'Public main advanced during newsroom promotion; retrying from newest main.' >&2
-          done
-          if test "$pushed" -ne 1; then
-            echo 'Newsroom promotion did not converge after 5 optimistic retries; refusing force-push.' >&2
-            exit 1
-          fi
+          # Promote the guarded snapshot over newer corpus commits without
+          # starving the release. Constructor advances still invalidate it;
+          # every retry refuses to overwrite a newer remote release. The helper
+          # reapplies complete generated paths through a temporary Git index,
+          # preserving all other remote paths without touching the worktree.
+          python3 tools/refresh_promote.py --build-base "$BUILD_BASE"
 
   # Safefail drill S2: shows what readers would get after N more hours without a
   # bridge run. Works on a copy of site/, never commits and never deploys.
