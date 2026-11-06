@@ -23,7 +23,7 @@ En juego: datos de suscriptores y reputación de FCMO → evidencia exigida: avi
 ÉTICA: material §1 y §2.1 → los lectores tienen derecho a una explicación veraz del rastreo; se declara y se preservan las paradas antes de recoger datos reales.
 
 ## CANON
-Rutas relativas a `/srv/fcmo/agents/repos/FCMO-Agent-Hub/`, leídas con herramientas:
+Rutas relativas a la raíz del Agent Hub, leídas con herramientas:
 
 | Ruta | Principio que cambió la decisión |
 | --- | --- |

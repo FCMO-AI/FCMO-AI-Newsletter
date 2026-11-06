@@ -1,6 +1,6 @@
 # Carril nl-kit-plantilla: el correo de confirmación como plantilla de Kit, sin marcadores propios
 
-Lee el Hub: `runtime/FCMO_RUNTIME_V1.txt` y `disciplines/SOFTWARE_ENGINEERING.md` (montado en /srv/fcmo/agents/repos/FCMO-Agent-Hub). Lee el `AGENTS.md` del repo.
+Lee el Hub: `runtime/FCMO_RUNTIME_V1.txt` y `disciplines/SOFTWARE_ENGINEERING.md` (en el checkout local del Agent Hub). Lee el `AGENTS.md` del repo.
 
 **Problema.** `tools/email_confirm_render.py` genera `email/kit/confirmacion/{en,es,zh}.html` como correo completo con un marcador propio `{{CONFIRM_URL}}` (botón y enlace de respaldo). Kit no expone una variable para el enlace de confirmación: el botón lo pone Kit en el editor del correo de incentivo («The Incentive Email uses your default template»). Por eso `test_confirmation_email_has_no_unresolved_markers` es `expectedFailure` y el paso manual de `docs/EMAIL-PROVIDERS.md` §plantillas es frágil.
 
