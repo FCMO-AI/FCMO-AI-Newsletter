@@ -108,4 +108,47 @@ class SubscriptionJourneyTests(unittest.TestCase):
             self.assertTrue(all(call[0] == 'GET' for call in server.calls))
             self.assertEqual(server.broadcasts, [])
 
+    def test_designed_experience_has_honest_notice_consent_and_no_group_brand(self):
+        import re
+        from tools.paper.build import PaperBuilder
+        env = {'FCMO_EMAIL_ENABLED': 'true', 'FCMO_EMAIL_COMPLIANCE_READY': 'true', 'FCMO_EMAIL_PROVIDER': 'kit',
+               'FCMO_EMAIL_PRIVACY_URL': 'https://example.org/privacy/'}
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, env, clear=True):
+            out = Path(tmp) / 'site'
+            PaperBuilder(stories_path=ROOT / 'contracts/fixtures/stories.v2.json',
+                         status_path=ROOT / 'contracts/fixtures/newsroom-status.fresh.json', out=out, base='/').build()
+            tracking = {'en': 'you open our emails', 'es-419': 'abres', 'zh-Hans': '是否打开邮件'}
+            for prefix, lang in (('', 'en'), ('es/', 'es-419'), ('zh/', 'zh-Hans')):
+                html = (out / prefix / 'subscribe/index.html').read_text()
+                self.assertRegex(html, r'<input type="checkbox" name="consent" value="yes" required>')
+                self.assertNotRegex(html, r'name="consent"[^>]*checked')
+                self.assertIn('data-sub-notice', html)
+                self.assertIn(tracking[lang], html)
+                self.assertIn('javo@fcmo.group', html)
+                self.assertIn('Kit', html)
+                self.assertNotIn('FCMO Group', html)
+                self.assertIn('sub-mark-gap', html)  # pending state carries its NOT ESTABLISHED stamp
+                for route in ('subscribe/check-inbox/', 'subscribed/', 'unsubscribed/'):
+                    page = (out / prefix / route / 'index.html').read_text()
+                    self.assertIn('sub-stamp', page); self.assertNotIn('FCMO Group', page)
+                    self.assertNotRegex(page, r'\b\d+ ?(minutes|minutos|分钟)')  # no delivery-time promise
+
+    def test_confirmation_email_templates_exist_in_three_languages_with_kit_footer(self):
+        base = ROOT / 'email/kit/confirmacion'
+        for k in ('en', 'es', 'zh'):
+            html = (base / f'{k}.html').read_text(); txt = (base / f'{k}.txt').read_text()
+            for body in (html, txt):
+                self.assertIn('{{CONFIRM_URL}}', body); self.assertIn('{{POSTAL_ADDRESS}}', body)
+                self.assertIn('newsletter@fcmo.group', body); self.assertIn('javo@fcmo.group', body)
+                self.assertNotIn('FCMO Group', body)
+            self.assertIn('width="600"', html); self.assertIn('prefers-color-scheme: dark', html)
+            self.assertNotRegex(html, r'<script|<link ')
+            self.assertTrue((base / f'{k}.meta.txt').read_text().startswith('Subject: '))
+
+    def test_confirmation_email_files_are_in_sync_with_the_renderer(self):
+        from tools import email_confirm_render as r
+        for loc, k in (('en', 'en'), ('es-419', 'es'), ('zh-Hans', 'zh')):
+            self.assertEqual((r.OUT / f'{k}.html').read_text(), r.html(r.COPY[loc]))
+            self.assertEqual((r.OUT / f'{k}.txt').read_text(), r.text(r.COPY[loc]))
+
 if __name__ == '__main__': unittest.main()
