@@ -39,6 +39,15 @@ COPY = {
    stamps=(('已展示','有直接证据。'),('仅声称','合理，但尚未核实。'),('尚未确立','未核实或未解决。'))),
 }
 MONO = "'Courier New',Courier,monospace"; SANS = "'Helvetica Neue',Helvetica,Arial,sans-serif"
+# The site's stepped mark, drawn with table cells so it needs no hosted image and survives image blocking.
+def _bm(w, h): return f'<td class="bm" width="{w}" height="{h}" bgcolor="#0a0a0a" style="background:#0a0a0a;font-size:0;line-height:0;width:{w}px;height:{h}px;">&nbsp;</td>'
+def _sp(w, h): return f'<td width="{w}" height="{h}" style="font-size:0;line-height:0;width:{w}px;height:{h}px;">&nbsp;</td>'
+BRAND = ('<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>'
+         '<td valign="middle" style="padding:0 10px 0 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="28">'
+         f'<tr>{_sp(16, 11)}{_bm(12, 11)}</tr><tr>{_sp(28, 3)}</tr>'
+         f'<tr><td colspan="2" style="padding:0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>{_sp(6, 8)}{_bm(8, 8)}</tr></table></td></tr>'
+         f'<tr><td colspan="2" style="padding:0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>{_sp(1, 6)}{_bm(5, 6)}</tr></table></td></tr></table></td>'
+         f'<td valign="middle" class="brand" style="font:800 24px/1 {SANS};letter-spacing:-1px;color:#0a0a0a;">FCMO AI</td></tr></table>')
 MARKS = ('background:#0a0a0a;', 'background:#f2efe8;border:1px solid #0a0a0a;background-image:linear-gradient(135deg,#0a0a0a 25%,#f2efe8 25%,#f2efe8 50%,#0a0a0a 50%,#0a0a0a 75%,#f2efe8 75%);background-size:6px 6px;', 'border:1px dashed #0a0a0a;')
 
 def html(c):
@@ -47,23 +56,24 @@ def html(c):
         f'<tr><td width="28" valign="top" style="padding:0 12px 10px 0;"><div class="mk{i}" style="width:20px;height:20px;border:1px solid #0a0a0a;{m}"></div></td>'
         f'<td valign="top" class="ink-soft" style="padding:0 0 10px 0;font:13px/1.4 {SANS};color:#3a3a38;"><strong style="font:700 11px/1.4 {MONO};letter-spacing:1px;text-transform:uppercase;color:#0a0a0a;" class="ink">{e(t)}</strong><br>{e(d)}</td></tr>'
         for i, (m, (t, d)) in enumerate(zip(MARKS, c['stamps'])))
+    brand = BRAND
     return f'''<!doctype html>
 <html lang="{c['lang']}" xmlns="http://www.w3.org/1999/xhtml"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>{e(c['subject'])}</title>
 <style>
 @media (prefers-color-scheme: dark){{
- .bg{{background:#0a0a0a!important}} .sheet{{background:#161615!important}} .ink{{color:#f2efe8!important}} .ink-soft{{color:#d9d5cc!important}}
- .rule{{border-color:#2a2a28!important}} .btn{{background:#f2efe8!important}} .btn a{{color:#0a0a0a!important}} .mute{{color:#8a857c!important}} a.lnk{{color:#f2efe8!important}}
+ .bg{{background:#0a0a0a!important}} .sheet{{background:#161615!important;border-color:#2a2a28!important}} .ink{{color:#f2efe8!important}} .ink-soft{{color:#d9d5cc!important}}
+ .rule{{border-color:#2a2a28!important}} .btn{{background:#f2efe8!important}} .btn a{{color:#0a0a0a!important}} .mute{{color:#b5b0a6!important}} a.lnk{{color:#f2efe8!important}} .brand{{color:#f2efe8!important}} .bm{{background:#f2efe8!important}}
  .mk0{{background:#f2efe8!important;border-color:#f2efe8!important}} .mk1{{border-color:#f2efe8!important;background-image:linear-gradient(135deg,#f2efe8 25%,#161615 25%,#161615 50%,#f2efe8 50%,#f2efe8 75%,#161615 75%)!important}} .mk2{{border-color:#f2efe8!important}}
 }}
 @media (max-width:620px){{ .wrap{{width:100%!important}} .pad{{padding:24px 20px!important}} .h{{font-size:30px!important}} }}
 </style></head>
-<body class="bg" style="margin:0;padding:0;background:#0a0a0a;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#0a0a0a;">{e(c['pre'])}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#0a0a0a;"><tr><td align="center" style="padding:24px 12px;">
+<body class="bg" style="margin:0;padding:0;background:#e3dfd5;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#e3dfd5;">{e(c['pre'])}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#e3dfd5;"><tr><td align="center" style="padding:24px 12px;">
 <table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;">
-<tr><td style="padding:0 0 16px 0;font:800 22px/1 {SANS};letter-spacing:-1px;color:#f2efe8;">FCMO AI</td></tr>
-<tr><td class="sheet pad" style="background:#f2efe8;padding:36px 36px 28px 36px;">
+<tr><td style="padding:0 0 16px 0;">{brand}</td></tr>
+<tr><td class="sheet pad" style="background:#f2efe8;border:1px solid #0a0a0a;padding:36px 36px 28px 36px;">
  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
  <tr><td style="padding:0 0 14px 0;font:12px/1.4 {MONO};letter-spacing:2px;text-transform:uppercase;color:#3a3a38;" class="ink-soft"><span style="display:inline-block;width:10px;height:10px;background:#f05a28;margin-right:8px;"></span>{e(c['kicker'])}</td></tr>
  <tr><td class="h ink" style="padding:0 0 14px 0;font:800 38px/1.05 {SANS};letter-spacing:-1.5px;color:#0a0a0a;">{e(c['h'])}</td></tr>
@@ -76,7 +86,7 @@ def html(c):
  <tr><td class="ink-soft" style="padding:10px 0 0 0;font:14px/1.5 {SANS};color:#3a3a38;">{e(c['ign'])}</td></tr>
  </table>
 </td></tr>
-<tr><td style="padding:20px 4px 0 4px;font:12px/1.6 {SANS};color:#8a857c;" class="mute">{e(c['why'])}<br><br>{e(c['sender'])}<br>{{{{POSTAL_ADDRESS}}}}</td></tr>
+<tr><td style="padding:20px 4px 0 4px;font:12px/1.6 {SANS};color:#4a4741;" class="mute">{e(c['why'])}<br><br>{e(c['sender'])}<br>{{{{POSTAL_ADDRESS}}}}</td></tr>
 </table></td></tr></table></body></html>
 '''
 

@@ -151,4 +151,23 @@ class SubscriptionJourneyTests(unittest.TestCase):
             self.assertEqual((r.OUT / f'{k}.html').read_text(), r.html(r.COPY[loc]))
             self.assertEqual((r.OUT / f'{k}.txt').read_text(), r.text(r.COPY[loc]))
 
+    PLACEHOLDERS = {'{{CONFIRM_URL}}', '{{POSTAL_ADDRESS}}'}
+
+    def test_unresolved_confirmation_markers_are_exactly_the_documented_ones(self):
+        import re
+        docs = (ROOT / 'docs/EMAIL-PROVIDERS.md').read_text()
+        for k in ('en', 'es', 'zh'):
+            for ext in ('html', 'txt'):
+                found = set(re.findall(r'\{\{[^}]*\}\}', (ROOT / f'email/kit/confirmacion/{k}.{ext}').read_text()))
+                self.assertLessEqual(found, self.PLACEHOLDERS, f'{k}.{ext}: unknown marker')
+        for marker in self.PLACEHOLDERS: self.assertIn(marker, docs)
+
+    @unittest.expectedFailure
+    def test_confirmation_email_has_no_unresolved_markers(self):
+        # Kit's real variable names are not verified. Until they are used in the templates this stays an expected
+        # failure; once it passes, unittest reports an unexpected success and this decorator must be removed.
+        for k in ('en', 'es', 'zh'):
+            for ext in ('html', 'txt'):
+                self.assertNotIn('{{', (ROOT / f'email/kit/confirmacion/{k}.{ext}').read_text())
+
 if __name__ == '__main__': unittest.main()

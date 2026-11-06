@@ -12,7 +12,7 @@ Daily adapter exports contain language memberships and all available subscriptio
 
 The following operational guarantees describe the retained Listmonk + SES route:
 
-Matías Peña Szőke is responsible for subscription data. The complete notice at the configured email service’s `/privacy` includes the actual postal address and monitored rights contact; it must be complete before activation. The source-controlled EN/es-419/zh-Hans notice is `legal/email-privacy.json` and the paper generator renders it on all three privacy routes.
+Javier Castellanos Peña (javo@fcmo.group) is responsible for subscription data. The complete notice at the configured email service’s `/privacy` includes the actual postal address and monitored rights contact; it must be complete before activation. The source-controlled EN/es-419/zh-Hans notice is `legal/email-privacy.json` and the paper generator renders it on all three privacy routes.
 
 Listmonk holds subscriber addresses, list membership, confirmation metadata and delivery/bounce state on the private host. Amazon Web Services SES processes delivery. Processor terms and applicable international-transfer safeguards must be arranged before the operator sets `FCMO_EMAIL_COMPLIANCE_READY=true`. No addresses are sold; individual/open/click tracking is disabled. Membership in the FCMO AI Newsletter does not subscribe readers to Javier’s Letters.
 

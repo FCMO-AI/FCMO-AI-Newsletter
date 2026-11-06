@@ -132,19 +132,22 @@ def diario_form(locale, base, form, page=False):
                     re.fullmatch(r'https://app\.kit\.com/forms/[1-9][0-9]*/subscriptions', form.action) else '')
     proof = ''.join(f'<li class="sub-proof-{k}"><span class="sub-mark sub-mark-{k}" aria-hidden="true"></span>'
                     f'<strong>{escape(extra[k][0])}</strong><span>{escape(extra[k][1])}</span></li>' for k in ('shown', 'claimed', 'gap'))
+    plate = (f'<div class="sub-plate" aria-hidden="true"><img src="{escape(base.rstrip("/") + "/assets/img/d-plates/d-piedra-grieta.webp")}" '
+             'alt="" width="1800" height="600" loading="lazy" decoding="async"></div>')
+    stop = '。' if locale == 'zh-Hans' else '.'
     notice = (f'<aside class="sub-notice" data-sub-notice><span class="sub-label">{escape(copy["notice_h"])}</span><ul>'
               + ''.join(f'<li>{escape(t)}</li>' for t in copy['notice']) + '</ul></aside>')
     return (f'<section class="subscribe-v2 {wrapper} sub-experience" data-subscribe-state="active" data-state="idle">'
             f'<div data-sub-idle class="sub-grid"><div class="sub-story"><div class="sub-copy">'
             f'<p class="section-kicker sub-kicker">{copy["kicker"]}</p><{tag} class="page-title">{copy["title"]}</{tag}><p class="sub-lede">{copy["lede"]}</p>'
-            f'</div><div class="sub-proof"><p class="sub-label">{escape(extra["lead"])}</p><ol>{proof}</ol></div></div>'
+            f'</div><div class="sub-proof"><p class="sub-label">{escape(extra["lead"])}</p><ol>{proof}</ol></div>{plate}</div>'
             f'<div class="sub-ledger">{switcher}'
             f'<form method="post" data-email-form{confirmation} data-email-locale="{locale}" action="{escape(form.action,quote=True)}" data-busy="{copy["busy"]}" data-error="{escape(copy["error"], quote=True)}">'
             f'{language}'
             f'<div class="sub-step"><span class="sub-num" aria-hidden="true">01</span><div class="sub-step-body">'
             f'<label class="sub-field"><span class="sub-label">{copy["email"]}</span><input type="email" name="{escape(form.email_field,quote=True)}" autocomplete="email" maxlength="254" placeholder="{copy["placeholder"]}" required></label></div></div>'
             f'<div class="sub-step"><span class="sub-num" aria-hidden="true">02</span><div class="sub-step-body">'
-            f'<label class="sub-consent"><input type="checkbox" name="consent" value="yes" required><span>{copy["consent"]} <a href="{escape(root + "privacy/")}">{copy["privacy"]}</a>.</span></label></div></div>'
+            f'<label class="sub-consent"><input type="checkbox" name="consent" value="yes" required><span>{copy["consent"]} <a href="{escape(root + "privacy/")}">{copy["privacy"]}</a>{stop}</span></label></div></div>'
             '<input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" hidden>'
             f'<button class="button sub-submit" type="submit">{copy["button"]}</button>'
             f'<p class="sub-error" role="alert" hidden></p>{error_link}</form>'

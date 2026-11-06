@@ -191,3 +191,8 @@ explícita después de esa reconciliación. Apagar `FCMO_EMAIL_ENABLED` detiene
 nuevos envíos; no revoca campañas ya programadas ni recupera correo entregado.
 
 Integración L29: Studio lee `dispatch.json` mediante Contents API al consultar el estado de una pieza cuya publicación web ya verificó. El CLI común es `python3 tools/email_dispatch.py --pieces` seguido de `--collect`, `--claim` o `--send`; conserva todos los controles de L28b. No necesita refrescar main ni redesplegar para leer correo.
+
+
+## Correo de confirmación de Kit: marcadores sin resolver
+
+Las plantillas de `email/kit/confirmacion/` (generadas por `tools/email_confirm_render.py`) llevan dos marcadores propios: `{{CONFIRM_URL}}` (enlace de confirmación, botón y enlace de respaldo) y `{{POSTAL_ADDRESS}}` (dirección postal del pie). **Los nombres reales de las variables de Kit no están verificados** (no se pudo comprobar en la documentación de Kit). Antes de pegar la plantilla en Kit hay que renombrarlos a las variables de Kit, o usar su bloque de confirmación y de dirección, y comprobar con un envío de prueba que no queda ninguna llave literal y que el pie muestra la dirección postal (CAN-SPAM). Hasta entonces `test_confirmation_email_has_no_unresolved_markers` es un fallo esperado; al cambiar los nombres pasará a éxito inesperado y hay que quitarle `expectedFailure`.
