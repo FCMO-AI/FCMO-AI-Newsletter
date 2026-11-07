@@ -33758,6 +33758,73 @@
       "title": "Cache-to-Cache informa una comunicación más rápida entre modelos mediante transferencia directa de KV cache",
       "why_it_matters": "C2C usa el estado interno de un modelo como medio de comunicación en vez de convertirlo en texto legible. Si las mejoras informadas se transfieren, los sistemas multimodelo podrían evitar demoras de decodificación secuencial y transferir información que se pierde en los traspasos de texto. El diseño también crea un canal menos inspeccionable y requiere alinear y fusionar representaciones; los resultados se limitan a pruebas específicas y el costo de entrenamiento por pares sigue siendo un obstáculo de escala."
     },
+    "FCMO-A2007FB5E4E4": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Anthropic publicó el 6 de noviembre de 2026 un artículo de ingeniería que describe una jerarquía de memoria: los agentes conservan registros de sesiones y notas, crean representaciones enlazadas y usan procesos offline de “soñar” para revisar, corregir o promover recuerdos entre sesiones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una tarea de base de datos de CL-Bench, Anthropic informa que la memoria persistente elevó la recompensa media de Opus 4.7 de 0.383 a 0.700, de Opus 5 de 0.564 a 0.828 y de Opus 5.5 de 0.655 a 0.838; Sonnet 5.5 obtuvo 0.833 con memoria frente a 0.644 sin ella. Son resultados del proveedor para la tarea descrita."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una sola partida de Pokémon Red, Anthropic informa que un proceso offline cotejó una nota de ubicación errónea con la transcripción, la corrigió y permitió que el agente llegara a Ciudad Celeste; con la nota sin corregir, el agente retrocedió varias veces y no llegó a la ciudad."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 128 sesiones secuenciales de creación de memoria sobre un corpus interno de 350,000 archivos y unos 420 millones de tokens, Anthropic informa que una wiki de Opus 5 elevó del 13% al 48% los criterios cumplidos en 25 preguntas. Con búsqueda y la wiki en crecimiento, el resultado agregado subió de 54% a 61%, frente a 53% con búsqueda sola, y se ahorraron unos 20,000 tokens por pregunta. La muestra y la evaluación son internas y acotadas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una tarea jurídica centrada en contratos, Anthropic informa que cambiar de resúmenes concurrentes en una tabla compartida a páginas separadas con términos literales elevó los criterios cumplidos de 41/57 (72%) a 57/57 (100%); ilustra un mecanismo específico de pérdida de información, no un desempeño jurídico general."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que estos mecanismos de memoria mejoren la fiabilidad o los resultados en sistemas independientes, organizaciones, tareas o despliegues de larga duración. Describe casos en que las wikis no aportaron una mejora clara o superaron el tamaño de sus documentos fuente, y reconoce riesgos pendientes por memoria obsoleta o errónea y por el cómputo de mantenimiento."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de CL-Bench, Pokémon y los corpus documentales son informes del proveedor y nadie los ha reproducido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "No se ha establecido el desempeño más allá de tareas selectas de benchmark y un corpus interno de una empresa.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "No se cuantifican de forma integral el costo de mantenimiento, la tasa de recuerdos obsoletos ni la precisión de las correcciones.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se sostienen fuera de las tareas acotadas del proveedor, organizar la memoria persistente de agentes mediante notas salientes, transcripciones consultables, wikis enlazadas y corrección offline podría mejorar la fiabilidad y recuperación de información en tareas de largo plazo. La puntuación refleja la relevancia de diseño si la afirmación es cierta, no su confianza ni generalidad.",
+      "limitations": [
+        "Anthropic informa todos los resultados numéricos; no se reprodujeron de forma independiente.",
+        "El ejemplo de corrección de memoria en Pokémon corresponde a una sola partida, no a una estimación de fiabilidad.",
+        "La evaluación interna de wikis usó 25 preguntas sobre un corpus de una empresa; no se auditaron de forma independiente la selección documental ni la calificación.",
+        "El artículo informa resultados mixtos: algunas tareas obtuvieron poco beneficio de las wikis y una llegó a ocupar 1.77 veces el tamaño de los documentos fuente.",
+        "La memoria errónea u obsoleta puede persistir en sesiones futuras; el mantenimiento durante el “soñar” requiere cómputo adicional y el artículo deja abiertas las compensaciones de costo y frecuencia."
+      ],
+      "relationships": [],
+      "summary": "El artículo de ingeniería de Anthropic del 6 de noviembre describe la memoria persistente de agentes como una jerarquía de registros de sesión, notas, representaciones enlazadas y contexto que se inyecta de forma selectiva; el “soñar” offline sirve para corregirla u organizarla. La empresa informa mejoras en CL-Bench, un ejemplo de navegación en Pokémon y evaluaciones internas sobre documentos, incluso casos en que una wiki mejoró la recuperación y otros en que no aportó una ventaja clara o creció más que sus fuentes. Los resultados son del proveedor y dependen de tareas específicas; no demuestran fiabilidad general en producción ni transferencia.",
+      "technical": {
+        "claimed_result": "Anthropic informa mejoras al usar memoria persistente en tareas selectas de CL-Bench, la corrección offline de un error de memoria en una partida de Pokémon y mejoras de recuperación al crear wikis iterativamente para documentos internos. Las afirmaciones CLAIMED y NOT_ESTABLISHED detallan los resultados y sus límites.",
+        "compute_or_cost": "El artículo informa un ahorro de unos 20,000 tokens por pregunta al combinar wiki y búsqueda en el corpus de 350,000 archivos; no cuantifica el costo total de mantener recuerdos mediante procesos offline en distintos despliegues.",
+        "demonstrated_result": "Se inspeccionaron el artículo oficial de ingeniería, los métodos descritos y las métricas informadas por el proveedor. No se realizó auditoría ni reproducción independiente.",
+        "mechanism": "Los agentes conservan registros de sesión y notas, crean wikis enlazadas y pueden ejecutar procesos offline de “soñar” que cotejan las notas con transcripciones, corrigen errores, consolidan conocimiento o promueven información seleccionada al contexto futuro. El artículo también muestra que las instrucciones y la edición concurrente afectan la retención de datos.",
+        "regime": "Pruebas internas informadas por el proveedor: preguntas de base de datos de CL-Bench con varios modelos Claude; una partida de navegación de Pokémon Red; creación de wikis sobre un corpus interno de 350,000 archivos y tareas selectas sobre documentos legales y de fusiones. Estos regímenes no demuestran desempeño general en producción.",
+        "reproducibility": "El artículo describe métodos y métricas ilustrativas, pero no se hizo una reproducción independiente y los registros completos de tareas y corpus internos no están disponibles en la fuente revisada.",
+        "strongest_baseline": "En el corpus documental interno, la búsqueda sola obtuvo 53%, frente a 61% al combinarla con una wiki en crecimiento; la wiki sola obtuvo 48%. Algunas tareas legales no mostraron una ventaja clara, señal de que el efecto depende de la estructura de la tarea."
+      },
+      "title": "Anthropic informa pruebas internas de memoria persistente y corrección offline para agentes",
+      "why_it_matters": "La memoria persistente es un obstáculo práctico para agentes que trabajan entre sesiones. El artículo muestra casos concretos en que la memoria ayuda, queda obsoleta, pierde datos por ediciones concurrentes y requiere mantenimiento offline. Estos mecanismos pueden orientar el diseño y la evaluación de sistemas, pero las mejoras informadas necesitan validación independiente y más amplia."
+    },
     "FCMO-A21239174580": {
       "claims": [
         {
