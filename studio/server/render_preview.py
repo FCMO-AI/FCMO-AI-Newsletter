@@ -9,6 +9,7 @@ import importlib
 import json
 from pathlib import Path
 from tools.paper.build import PaperBuilder, esc
+from tools.paper.i18n import label
 from tools.paper.routes import href, slugify
 from .validation import validate_doc, LOCALES
 
@@ -46,10 +47,11 @@ class StudioPaperBuilder(PaperBuilder):
             for count, value, slug, route in self._studio_neighbors:
                 exclude = exclude_topic if route == 'topic' else exclude_org
                 if value == exclude or slug == exclude: continue
-                selected.append((count, value, href(self.base, locale['path_prefix'] + route + '/' + slug + '/')))
+                selected.append((count, value, href(self.base, locale['path_prefix'] + route + '/' + slug + '/'),
+                                 label(self.catalogs[locale['code']], 'topic', slug, fallback=value) if route == 'topic' else value))
             selected.sort(key=lambda row: (-row[0], row[1].casefold()))
-            links = ''.join(f'<li><a href="{esc(url)}" translate="no">{esc(value)}</a><span>{count}</span></li>'
-                            for count, value, url in selected[:limit])
+            links = ''.join(f'<li><a href="{esc(url)}" translate="no">{esc(shown)}</a><span>{count}</span></li>'
+                            for count, value, url, shown in selected[:limit])
             title = esc(self.catalogs[locale['code']]['strings']['front']['see_all'])
             self._studio_neighbor_html[key] = f'<nav class="taxonomy-neighbors"><h2>{title}</h2><ul>{links}</ul></nav>' if links else ''
         return self._studio_neighbor_html[key]

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from tools.publication_freshness import reader_status
 import subprocess
@@ -13,6 +14,9 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
+# A link to one topic page; the menu's link to the Topics index (topic/) is on every page and does not count.
+TOPIC_PAGE_LINK = re.compile(r'href="/FCMO-AI-Newsletter/topic/[^"/]+/"')
 
 class PaperEditorialDepthTests(unittest.TestCase):
     @classmethod
@@ -42,13 +46,13 @@ class PaperEditorialDepthTests(unittest.TestCase):
 
     def test_story_has_a_visual_anchor_and_two_reading_paths(self):
         route = next(route for route in self.routes if route["kind"] == "story" and route["locale"] == "en"
-                     and 'href="/FCMO-AI-Newsletter/topic/' in self.page(route))
+                     and TOPIC_PAGE_LINK.search(self.page(route)))
         page = self.page(route)
         self.assertIn('class="data-hero"', page)
         self.assertIn('class="edition-neighbors"', page)
         self.assertIn('class="related-reading"', page)
         self.assertIn('class="story-taxonomy"', page)
-        self.assertGreaterEqual(page.count('href="/FCMO-AI-Newsletter/topic/'), 1)
+        self.assertGreaterEqual(len(TOPIC_PAGE_LINK.findall(page)), 1)
 
     def test_no_story_page_is_a_navigation_dead_end(self):
         # A story alone on its subject falls back to the whole live sequence for Newer/Older.

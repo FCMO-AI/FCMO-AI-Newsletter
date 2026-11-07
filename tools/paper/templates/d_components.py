@@ -5,7 +5,6 @@ schema has no claim-to-source edges: the diagram preserves two lists rather
 than manufacturing a fully connected network.
 """
 from html import escape
-import hashlib
 import json
 import math
 import re
@@ -449,15 +448,18 @@ _TOPIC_SIGNALS = json.loads((Path(__file__).resolve().parents[3] / 'design/token
 
 
 def _topic_signal_fallback(key):
-    """Unmapped topics: keyword family, then a stable hash, so the column keeps R4's colour per topic."""
+    """Topics outside the token map: keyword family, else Intelligence (the paper's core: models, agents, research).
+
+    No hash: a hash put «speculative decoding» under Living and «prompt injection» under Foundry (11-06).
+    """
     if not key:
         return 'stone'
-    for words, signal in ((('infra', 'chip', 'hardware', 'compute', 'cloud', 'energy', 'data'), 'foundry'),
-                          (('polic', 'govern', 'regul', 'law', 'society', 'robot', 'health', 'bio', 'education', 'work'), 'living'),
+    for words, signal in ((('infra', 'chip', 'hardware', 'compute', 'cloud', 'energy', 'robot', 'inference', 'latency', 'accelerator', 'gpu', 'semiconductor', 'datacent', 'data-cent'), 'foundry'),
+                          (('polic', 'govern', 'regul', 'law', 'society', 'health', 'bio', 'education', 'labor', 'labour', 'privacy', 'adoption', 'economy', 'public-sector'), 'living'),
                           (('agent', 'model', 'eval', 'safety', 'secur', 'research', 'reason', 'learning', 'align'), 'intelligence')):
         if any(w in key for w in words):
             return signal
-    return ('foundry', 'living', 'intelligence')[int.from_bytes(hashlib.sha256(key.encode()).digest()[:2], 'big') % 3]
+    return 'intelligence'
 
 
 def topic_signal(story, catalog):
