@@ -34455,6 +34455,71 @@
       "title": "Estados Unidos y Finlandia firman un acuerdo no vinculante para cooperar en una infraestructura abierta y segura de IA",
       "why_it_matters": "Si se concreta mediante programas separados, la coordinación sobre exportaciones de infraestructura confiable de IA, financiamiento y estándares podría influir en la difusión tecnológica y las opciones de despliegue entre países socios. El memorando documenta un marco bilateral, pero no crea obligaciones vinculantes ni aporta fondos; su importancia práctica depende de medidas posteriores concretas."
     },
+    "FCMO-A38C45B949CF": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores presentan FlexFloor, un planificador y entorno de ejecución co-diseñados que asignan solicitudes y liberan progresivamente nodos de un grupo de paralelismo por expertos durante la generación síncrona de trayectorias MoE, mientras conservan la disponibilidad de expertos y restauran el grupo completo antes de las etapas posteriores de entrenamiento."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la configuración informada con Qwen3-30B-A3B, 16 dispositivos Ascend y vLLM 0.14.1, tres semillas de ejecución y dos épocas secuenciales con actualización de política por semilla, los autores informan que Flex-P4 generó 5,668.7 ± 42.8 tokens de respuesta por segundo, frente a 3,711.3 ± 33.0 con la línea base verl: una mejora del 52.74%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En esa misma comparación, los autores reconstruyen el tiempo de ocupación por nodo a partir de registros del ciclo de vida y calculan una mejora relativa de eficiencia de 65.23%–65.57%, después de contabilizar la liberación y la ocupación al restaurar los nodos. El intervalo refleja la resolución temporal de los registros, no un intervalo de confianza estadístico."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa poca variación en la recompensa de las ejecuciones, pero la evaluación separada con preguntas reservadas se hizo con una semilla y 256 preguntas, después de cinco actualizaciones adicionales de política: Flex-P4 acertó 208/256 frente a 211/256 de la línea base verl. Los autores indican que estas observaciones no demuestran no inferioridad, convergencia final ni una mejora de calidad atribuible a la ejecución en grafo."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El preprint no demuestra que FlexFloor preserve la calidad final del modelo durante un entrenamiento RL más prolongado, que funcione con otros modelos MoE o combinaciones de aceleradores y entornos de ejecución, ni que produzca los mismos ahorros en despliegues de producción."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de rendimiento y tiempo de ocupación son informes de los autores; nadie los ha recalculado de forma independiente a partir de los datos archivados ni los ha reproducido.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La evidencia se limita a una familia de modelos, una combinación de acelerador y entorno de ejecución, y un horizonte corto de entrenamiento; no se establecen la calidad a largo plazo ni la transferencia a otras pilas.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "El artículo remite a un archivo separado de reproducción, pero en esta activación no se comprobó la disponibilidad del código fuente ni de los eventos sin procesar.",
+          "kind": "missing_artifact",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras de eficiencia informadas se generalizan, liberar los nodos de paralelismo por expertos que de otro modo seguirían acoplados durante las trayectorias MoE podría reducir de forma material el tiempo de acelerador por respuesta de entrenamiento generada. La consecuencia potencial es relevante, pero la evidencia se limita a una configuración de Qwen3-30B-A3B y Ascend y no demuestra ahorros de costo en despliegues generales.",
+      "limitations": [
+        "Las mejoras centrales de rendimiento y tiempo de ocupación provienen del artículo de los autores y no se verificaron de forma independiente.",
+        "La configuración principal usa una familia de modelos, un entorno de ejecución y tres semillas; dos épocas secuenciales por semilla no equivalen a trayectorias independientes.",
+        "La comparación de calidad reservada después de cinco actualizaciones adicionales usa una sola semilla y no demuestra no inferioridad ni convergencia final.",
+        "La comparación de código con política congelada usa una semilla y reporta pass@1 de 71/160 frente a 70/160; no demuestra equivalencia estadística ni transferencia amplia.",
+        "El tiempo de ocupación mide la asignación de nodos principales bajo el protocolo descrito; no mide costos monetarios, liberación total de HBM ni utilización universal."
+      ],
+      "relationships": [],
+      "summary": "Un preprint describe FlexFloor, que planifica la asignación de solicitudes y reduce progresivamente el grupo activo de paralelismo por expertos durante las ejecuciones síncronas de aprendizaje por refuerzo con modelos MoE. En una configuración con Qwen3-30B-A3B, 16 dispositivos Ascend y vLLM 0.14.1, los autores informan 52.74% más rendimiento de generación y cerca de 65.4% más tokens de respuesta por nodo-segundo ocupado que con verl. El artículo detalla cómo contabiliza la liberación de nodos y su posterior restauración, pero los resultados siguen siendo informes de los autores. Una evaluación de calidad reservada con una semilla y una prueba de código con política congelada no demuestran equivalencia de calidad a largo plazo ni transferencia general.",
+      "technical": {
+        "claimed_result": "Los autores informan 52.74% más rendimiento de generación y 65.23%–65.57% más tokens de respuesta por nodo-segundo ocupado con Flex-P4 frente a verl, usando Qwen3-30B-A3B, 16 dispositivos Ascend y vLLM 0.14.1. La recompensa informada es similar en la comparación principal de tres semillas; las pruebas separadas de corto plazo no demuestran no inferioridad de calidad.",
+        "compute_or_cost": "El experimento principal informado utiliza 16 dispositivos Ascend visibles para el software. La eficiencia por tiempo de ocupación es una métrica de asignación de recursos para este protocolo, no un costo monetario medido ni una afirmación de utilización universal.",
+        "demonstrated_result": "La fuente primaria describe una implementación, un protocolo de medición y la contabilidad del ciclo de vida. En esta activación se leyó el artículo, pero no se examinó el código fuente ni se reprodujo el experimento de forma independiente.",
+        "implementation_status": "El artículo describe un entorno de ejecución implementado e incluye resúmenes de reproducción, huellas de fuentes, registros, un analizador y código de gráficos en un archivo separado; aquí no se auditó el código ni se repitió la ejecución.",
+        "mechanism": "FlexFloor combina el historial de longitudes de respuesta, un límite para colas largas, admisión de KV según el tamaño del grupo, asignación de solicitudes según los umbrales de finalización y ejecución elástica del paralelismo por expertos. Los nodos se separan solo cuando las finalizaciones observadas y las restricciones de expertos y KV lo permiten; el entorno coordina cambios de topología, captura de grafos, limpieza y restauración posterior del grupo completo.",
+        "novelty": "Coordina los umbrales de finalización, la factibilidad de KV por tamaño de grupo y los cambios de topología del paralelismo por expertos para liberar nodos dentro de un trabajador activo, como complemento al aprovechamiento previo entre trabajadores.",
+        "regime": "Modelo MoE Qwen3-30B-A3B en BF16, 128 expertos por capa, 16 dispositivos Ascend con 64 GiB de HBM cada uno, vLLM 0.14.1 e integración local Ascend/VERL. La comparación principal usa tres semillas y dos épocas secuenciales con política actualizada por semilla, sobre preguntas de razonamiento matemático de DeepScaleR.",
+        "reproducibility": "Los apéndices del preprint detallan el protocolo, los métodos de registro de eventos y los resúmenes de reproducción. El archivo descrito no contiene todos los registros de ejecución ni los puntos de control del modelo; los resultados no se reprodujeron de forma independiente.",
+        "strongest_baseline": "verl Full16 en el mismo entorno de ejecución con grafos, además de controles con ordenamiento por longitud, límite para colas largas, tamaño de grupo fijo y sesgo mínimo de duración. El artículo también incluye una comparación con tres semillas y una carga de programación con política congelada."
+      },
+      "title": "Preprint informa menor tiempo de ejecución RL para modelos MoE mediante paralelismo elástico por expertos",
+      "why_it_matters": "Si las mejoras informadas se mantienen en otros despliegues de entrenamiento RL con modelos MoE, liberar nodos del paralelismo por expertos durante las colas largas podría aumentar el rendimiento de entrenamiento y reducir el tiempo de acelerador ocupado. La evidencia actual cubre una sola combinación de equipo, software y modelo, y un horizonte de entrenamiento corto; por eso aún no permite afirmar una reducción general de costos."
+    },
     "FCMO-A3E7DC60B89C": {
       "claims": [
         {
