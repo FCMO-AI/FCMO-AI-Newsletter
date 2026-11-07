@@ -233,6 +233,63 @@
       "title": "JAZ informa que un agente recursivo mínimo iguala sistemas especializados en dos flujos acotados",
       "why_it_matters": "Si se reproducen de manera independiente, los resultados sugerirían que algunas funciones de recuerdo a largo plazo y mejora entre tareas pueden surgir de un ciclo de agente orientado a código y llamadas recursivas, lo que podría reducir la necesidad de componentes especializados en estos entornos. La evidencia se limita a dos conjuntos de benchmarks y comparaciones ejecutadas por los autores."
     },
+    "FCMO-0162EEAD4D41": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que BlockLock-Rows conserva bit a bit los tokens generados y los logits de vocabulario completo de la solicitud protegida cuando cambian las solicitudes acompañantes, bajo una configuración de despliegue fija y con kernels y operaciones colectivas estables entre ejecuciones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En cinco modelos densos y despliegues NVIDIA A6000, A100 y H100, los autores informan que, con lote de 4 y 64 tokens de salida, BlockLock-Rows redujo la latencia 53.5–55.0% y aumentó el rendimiento 115.2–122.2% frente a vLLM Batch-Invariant; la latencia informada fue 5.4–6.9% mayor que con vLLM estándar y 0.5–0.8% mayor que con PyTorch con padding."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece una reproducción independiente, transferencia entre configuraciones de despliegue, beneficios con colas reales de solicitudes o cargas de latencia de cola, ni rendimiento en modelos de mezcla de expertos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de determinismo y tiempo informados por el artículo no se han reproducido de forma independiente; en el registro de arXiv revisado no se encontró un enlace a la implementación.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "El contrato formal de determinismo se limita a un despliegue fijo y presupone kernels y operaciones colectivas estables; los cambios de despliegue y las colas operativas o latencias de cola quedan fuera del alcance demostrado.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El artículo evalúa únicamente modelos densos; deja para trabajo futuro el enrutamiento de tokens en modelos de mezcla de expertos.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados informados se sostienen en más configuraciones de servicio, fijar la geometría de lote por solicitud podría preservar una inferencia reproducible y el prellenado por lotes, evitando la penalización de latencia de los kernels invariantes al lote. El resultado actual se limita a cinco modelos densos y unos pocos tipos de GPU: es un avance significativo en sistemas, no una medición general de costos de servicio.",
+      "limitations": [
+        "Los resultados son afirmaciones de los autores en un preprint y no se reprodujeron de forma independiente durante esta activación.",
+        "La garantía de determinismo está condicionada a una configuración fija de hardware, software, precisión, backend y geometría de lote, además de kernels y operaciones colectivas estables; no cubre cambios de despliegue.",
+        "Solo se evalúan cinco modelos densos y tres tipos de despliegue con una GPU; el trabajo deja para el futuro los modelos MoE.",
+        "La comparación de benchmarks usa grupos fijos y controlados; no mide colas, procesos de llegada, TTFT/TPOT ni latencias de cola.",
+        "Con una variación muy alta en las longitudes de las solicitudes acompañantes aumenta el desperdicio por padding, una limitación reconocida por los autores."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 4 de noviembre de 2026 presenta BlockLock, que fija la geometría de ejecución de una solicitud protegida mientras conserva el prellenado compartido por lotes para las solicitudes acompañantes. Los autores informan salidas idénticas bit a bit cuando cambian las solicitudes acompañantes, bajo un contrato de despliegue fijo. En cinco modelos densos y despliegues NVIDIA A6000, A100 y H100, informan 53.5–55.0% menos latencia y 115.2–122.2% más rendimiento que vLLM Batch-Invariant, con lote de 4 y 64 tokens de salida; informan una sobrecarga de 5.4–6.9% frente a vLLM estándar y de 0.5–0.8% frente a PyTorch con padding. Son resultados informados por los autores y específicos a esas configuraciones; no se establece una reproducción independiente, evaluación MoE ni estudio de colas o latencia de cola.",
+      "technical": {
+        "claimed_result": "BlockLock-Rows mantiene fijas la forma, las posiciones y la ruta aritmética de una solicitud protegida entre lotes acompañantes compatibles; BlockLock-Pack aísla el estado KV de la solicitud objetivo para decodificarla por separado. Los autores informan identidad bit a bit y mejoras de latencia/rendimiento frente a kernels invariantes al lote.",
+        "compute_or_cost": "Con lote de 4 y 64 tokens de salida, los autores informan que BlockLock-Rows reduce la latencia 53.5–55.0% frente a vLLM Batch-Invariant y aumenta el rendimiento 115.2–122.2%. Frente a vLLM estándar, la sobrecarga geométrica media de latencia informada es 5.4–6.9%; frente a PyTorch con padding es 0.5–0.8%. El tiempo de grupos fijos excluye colas y latencia de cola.",
+        "demonstrated_result": "El preprint y sus tablas experimentales están disponibles; las cifras y la concordancia bit a bit siguen siendo afirmaciones de los autores y no se reprodujeron de forma independiente en esta revisión.",
+        "implementation_status": "El artículo describe implementaciones en PyTorch y vLLM e incluye un contrato formal de diseño y el protocolo experimental en sus apéndices. No se encontró un enlace a código público en el registro de arXiv revisado; no se determinó si existe una implementación en otro lugar.",
+        "mechanism": "BlockLock-Rows alinea las solicitudes protegidas en filas de lote de ancho fijo para que la longitud de las solicitudes acompañantes no altere la geometría de tensores de la solicitud objetivo. BlockLock-Pack ancla la solicitud protegida al final del prellenado empaquetado y extrae su estado KV para una decodificación aislada. Ambos métodos dependen de una configuración fija y de kernels/operaciones colectivas estables.",
+        "novelty": "El artículo busca reproducibilidad para una solicitud protegida sin obligar a todas las solicitudes a usar kernels deterministas especializados ni eliminar todo el prellenado por lotes compartido. La compensación medida depende de la configuración y todavía no se ha reproducido.",
+        "regime": "Cinco modelos densos (Qwen3-8B/14B, Llama-3.1-8B-Instruct y Gemma-3-4B/12B-IT) en despliegues de una GPU NVIDIA A6000, A100 y H100; el contrato se limita a cada configuración congelada. Los tiempos usan grupos fijos, principalmente lote de 4 y 64 tokens de salida.",
+        "reproducibility": "El artículo ofrece detalles experimentales y de despliegue, pero no se encontró un enlace a código en la página de arXiv revisada y el equipo de investigación no ejecutó una implementación. Por ello, los hashes bit a bit y las cifras de latencia/rendimiento siguen siendo afirmaciones de primera parte.",
+        "strongest_baseline": "El artículo compara BlockLock-Rows con vLLM estándar, vLLM Batch-Invariant, PyTorch con padding y una línea base tipo CoRun con prellenado aislado. Las comparaciones de trabajo total igualado producen el mismo número de tokens en los métodos de lote completo; BlockLock-Pack genera solo la salida objetivo y no es una comparación de igual trabajo."
+      },
+      "title": "El artículo de BlockLock informa inferencia reproducible de LLM por lotes con geometría fija por solicitud",
+      "why_it_matters": "La reproducibilidad fiable importa para evaluar modelos, generar trayectorias de aprendizaje por refuerzo y ejecutar sistemas que usan herramientas. Si los resultados se generalizan, fijar la geometría solo para las solicitudes que requieren reproducibilidad podría reducir el costo de latencia de la inferencia determinista y conservar el prellenado compartido por lotes. El artículo no establece beneficios de costo ni de colas en producción."
+    },
     "FCMO-0180330ECF93": {
       "claims": [
         {
@@ -36737,10 +36794,10 @@
       "contradictory_evidence": [],
       "evidence_gaps": [
         {
-          "description": "尚未独立复现性能与效率结果；本次检查中论文所链接的实现仓库返回 404。",
+          "description": "Los resultados de rendimiento y eficiencia aún no se han reproducido de forma independiente. El repositorio enlazado ya ofrece las tareas de referencia y los artefactos de comparación base, pero indica que el código principal de SwarmEvolve todavía está por publicarse.",
           "kind": "missing_independent",
           "state": "open",
-          "updated_at": "2026-11-06T16:18:46Z"
+          "updated_at": "2026-11-06T23:26:38Z"
         },
         {
           "description": "21 项任务都使用明确的程序评估器；尚未证明在开放式科学研究或由外部设计的任务集上也有相同表现。",
@@ -36755,10 +36812,10 @@
         "Las líneas base conservan sus configuraciones predeterminadas; los límites de tiempo iguales no aíslan todas las diferencias de implementación o ajuste.",
         "Los resultados corresponden a 21 tareas fijas con evaluadores, 16 tomadas del apéndice de AlphaEvolve y cinco diseñadas por los autores; no demuestran descubrimiento científico abierto.",
         "El modelo de mayor tamaño se probó con una GPU H100; el método requiere atención estándar y el uso de memoria de las cachés KV crece con el tamaño del enjambre y la longitud del razonamiento.",
-        "El repositorio de GitHub enlazado desde el artículo devolvió 404 durante esta activación; no se inspeccionó ni ejecutó la implementación."
+        "El repositorio enlazado ahora está disponible e incluye tareas, evaluadores y comparaciones base, pero indica que el código principal de SwarmEvolve se publicará más adelante; la implementación no se ejecutó de forma independiente."
       ],
       "relationships": [],
-      "summary": "Qile Jiang y George Em Karniadakis presentan SwarmEvolve, un sistema que ejecuta 10 enjambres de agentes Qwen3, con 45 agentes por enjambre que razonan durante 40 pasos en espacio latente; después de filtrar las trazas, un resumidor recibe las cachés KV y propone programas. En 21 tareas evaluadas de matemáticas y computación científica, los autores informan la mayor puntuación media frente a OpenEvolve, ShinkaEvolve y CodeEvolve con Qwen3 8B, 14B y 32B-FP8; cada resultado usa tres semillas, una GPU y ocho núcleos de CPU por configuración. También informan que Qwen3 8B mejora construcciones de AlphaEvolve en tres tareas. Son resultados reportados en el artículo y no se reprodujeron de forma independiente aquí. Los experimentos se limitan a las tareas y al cómputo seleccionados; el repositorio enlazado devolvió 404 al revisarlo.",
+      "summary": "Qile Jiang y George Em Karniadakis presentan SwarmEvolve, un sistema que ejecuta 10 enjambres de agentes Qwen3, con 45 agentes por enjambre que razonan durante 40 pasos en espacio latente; después de filtrar las trazas, un resumidor recibe las cachés KV y propone programas. En 21 tareas evaluadas de matemáticas y computación científica, los autores informan la mayor puntuación media frente a OpenEvolve, ShinkaEvolve y CodeEvolve con Qwen3 8B, 14B y 32B-FP8; cada resultado usa tres semillas, una GPU y ocho núcleos de CPU por configuración. También informan que Qwen3 8B mejora construcciones de AlphaEvolve en tres tareas. Son resultados reportados en el artículo y no se reprodujeron de forma independiente aquí. Los experimentos se limitan a las tareas y al cómputo seleccionados. El repositorio de GitHub enlazado ya está disponible e incluye tareas, evaluadores, comparaciones base y análisis, pero su README indica que el código principal de SwarmEvolve aún está por publicarse; por ello, la implementación todavía no se puede ejecutar de forma independiente.",
       "technical": {
         "claimed_result": "En 21 tareas fijas guiadas por evaluadores, los autores informan que SwarmEvolve logra la mayor puntuación media frente a OpenEvolve, ShinkaEvolve y CodeEvolve con Qwen3 8B, 14B y 32B-FP8, promediando tres semillas. Con Qwen3 8B, informan una mediana de 4–8 minutos para alcanzar las puntuaciones de las líneas base tras 60 minutos, y mejoras sobre construcciones de AlphaEvolve en tres tareas.",
         "demonstrated_result": "Se inspeccionaron directamente el artículo, el método descrito, la configuración de las tareas, las tablas y las limitaciones. En esta activación no se ejecutó código ni se reprodujeron los resultados de forma independiente.",
@@ -39849,6 +39906,49 @@
       },
       "title": "Un estudio de clics reales encuentra que un predictor LLM sin personas supera a un panel de personas simuladas",
       "why_it_matters": "Las personas sintéticas se usan para anticipar cómo reaccionarán las personas ante un contenido. Frente a resultados de clics medidos, este estudio encuentra que representar roles demográficos redujo la precisión al ordenar titulares, comparado con una consulta simple sobre un lector promedio. Resalta la necesidad de datos conductuales reales y una referencia sin personas. No descarta su uso para segmentación o tareas cualitativas donde importe la heterogeneidad."
+    },
+    "FCMO-C448347FD9ED": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "OpenAI publicó el 6 de noviembre de 2026 un anuncio fechado en el que afirma que se asocia con Hacktron para buscar vulnerabilidades en los sistemas de OpenAI."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI dice que el trabajo conjunto dará prioridad a las interacciones entre sus sistemas y servicios de terceros, y que ampliará el acceso de Hacktron a modelos de frontera mediante Daybreak Red."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El anuncio no informa pruebas conjuntas completadas, vulnerabilidades encontradas, parches, resultados confirmados de forma independiente ni impacto de seguridad medido."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El anuncio no presenta resultados completados ni corroboración independiente del trabajo conjunto.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se lleva a cabo según lo anunciado, la colaboración amplía el acceso a modelos de frontera para un equipo externo de investigación de seguridad y dirige las pruebas conjuntas a las interacciones con servicios de terceros, un riesgo recurrente a medida que los agentes de IA conectan sistemas. Es un cambio significativo del programa operativo de seguridad; el anuncio no demuestra resultados de pruebas ni impacto defensivo medible.",
+      "limitations": [
+        "Es un anuncio de primera parte sobre una colaboración y su alcance previsto, no evidencia de que las pruebas conjuntas hayan concluido.",
+        "No se informan vulnerabilidades, parches, resultados independientes ni resultados de seguridad medidos.",
+        "La descripción proviene de OpenAI, parte interesada; en esta revisión no se encontró corroboración de Hacktron ni de los servicios afectados."
+      ],
+      "relationships": [],
+      "summary": "El 6 de noviembre de 2026, OpenAI anunció una colaboración con Hacktron para probar vulnerabilidades en los sistemas de OpenAI, con énfasis en las interacciones con servicios de terceros. OpenAI dijo que ampliaría el acceso de Hacktron a modelos de frontera mediante Daybreak Red. El anuncio describe un cambio en el programa de seguridad, no una evaluación completada: no informa hallazgos conjuntos, parches, resultados confirmados de forma independiente ni impacto medido.",
+      "technical": {
+        "claimed_result": "OpenAI anuncia una colaboración con Hacktron y dice que el trabajo conjunto probará sus sistemas, con énfasis en las integraciones con servicios de terceros. OpenAI dice que Hacktron recibirá acceso ampliado a modelos de frontera mediante Daybreak Red.",
+        "demonstrated_result": "Se inspeccionaron directamente el anuncio público fechado y el alcance declarado. No informa resultados de pruebas.",
+        "implementation_status": "Anunciada el 6 de noviembre de 2026; no se informa si ya se completó ni qué resultados tuvo.",
+        "mechanism": "OpenAI dice que sus ingenieros y los investigadores de seguridad de Hacktron elegirán áreas prioritarias de prueba, centrándose en las interacciones con servicios de terceros, con acceso ampliado a modelos de frontera mediante Daybreak Red.",
+        "regime": "Colaboración anunciada por una empresa para probar sistemas de OpenAI y sus interacciones con servicios de terceros. El anuncio no describe pruebas completadas ni su protocolo de evaluación.",
+        "reproducibility": "El anuncio no incluye artefactos de prueba, hallazgos, parches ni reproducción independiente.",
+        "strongest_baseline": "No se informa una línea base emparejada ni resultados de seguridad antes y después."
+      },
+      "title": "OpenAI anuncia pruebas conjuntas de vulnerabilidades con Hacktron en integraciones de terceros",
+      "why_it_matters": "Los sistemas de IA se conectan cada vez más con herramientas y servicios externos, lo que crea riesgos de seguridad en los límites de integración. La colaboración anunciada amplía el acceso de un equipo externo de investigación de seguridad a modelos de frontera y se centra en esas interacciones. Su contribución aún debe medirse: el anuncio por sí solo no demuestra que se hayan encontrado o corregido más vulnerabilidades."
     },
     "FCMO-C465AF4FE252": {
       "claims": [
