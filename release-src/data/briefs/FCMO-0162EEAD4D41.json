@@ -8,7 +8,7 @@
     "confidence": "credible_unconfirmed",
     "importance": 5,
     "tier": "Notable",
-    "summary": "A 4 November 2026 preprint introduces BlockLock, which fixes the execution geometry of one protected request while retaining shared batched prefill for companion requests. The authors report bitwise-identical target outputs across companion changes under a fixed deployment contract. Across five dense models and NVIDIA A6000, A100 and H100 deployments, they report 53.5–55.0% lower latency and 115.2–122.2% higher throughput than vLLM Batch-Invariant at batch size 4 and 64 output tokens; reported overhead is 5.4–6.9% versus standard vLLM and 0.5–0.8% versus padded PyTorch. These are author-reported, configuration-specific results; no independent reproduction, MoE evaluation or queueing/tail-latency study is established.",
+    "summary": "A 4 November 2026 preprint introduces BlockLock, which fixes the execution geometry of one protected request while retaining shared batched prefill for companion requests. Across five dense models and three GPU types, the authors report bitwise-identical target outputs across companion changes under a fixed deployment contract. The headline performance comparison is narrower: at B=4 and 64 output tokens per request, BlockLock-Rows reduced latency by 53.5–55.0% and increased throughput by 115.2–122.2% versus vLLM Batch-Invariant for Qwen3-8B/14B across eight datasets; reported overhead was 5.4–6.9% versus standard vLLM and 0.5–0.8% versus padded PyTorch. These are author-reported fixed-workload results; no independent reproduction, MoE evaluation or queueing/tail-latency study is established.",
     "topics": [
       "LLM inference",
       "batching",
@@ -35,7 +35,7 @@
       },
       {
         "label": "CLAIMED",
-        "text": "Across five dense models on NVIDIA A6000, A100 and H100 deployments, the authors report that at batch size 4 and 64 output tokens BlockLock-Rows reduced latency by 53.5–55.0% and increased throughput by 115.2–122.2% versus vLLM Batch-Invariant; reported latency overhead was 5.4–6.9% versus standard vLLM and 0.5–0.8% versus padded PyTorch."
+        "text": "The authors report an equal-delivered-work BlockLock-Rows comparison at B=4 and 64 output tokens per request: for Qwen3-8B and Qwen3-14B across eight datasets, latency was 53.5–55.0% lower and throughput 115.2–122.2% higher than vLLM Batch-Invariant. Reported geometric-mean latency overhead versus standard vLLM was 5.4–6.9%, and versus padded PyTorch 0.5–0.8%. The broader five-model, three-GPU evaluation supports the reported determinism results; these performance figures are not established across that full matrix."
       },
       {
         "label": "NOT_ESTABLISHED",
@@ -51,7 +51,8 @@
     ],
     "development_type": "paper",
     "editions": [
-      "2026-11-04"
+      "2026-11-04",
+      "2026-11-08"
     ],
     "event_at": "2026-11-04T00:00:00Z",
     "evidence_class": "A",
@@ -78,7 +79,7 @@
     "importance_scale_version": 2,
     "importance_score": 5,
     "importance_tier": "Notable",
-    "last_verified_at": "2026-11-07T00:20:00Z",
+    "last_verified_at": "2026-11-08T18:20:47Z",
     "limitations": [
       "Results are author-reported in a preprint and were not independently reproduced in this activation.",
       "The determinism guarantee is conditional on a fixed hardware/software/precision/backend/batch-geometry configuration and repeat-stable kernels and collectives; changing deployments is outside the claim.",
@@ -101,15 +102,15 @@
       "https://arxiv.org/abs/2611.06977"
     ],
     "status": "active",
-    "summary": "A 4 November 2026 preprint introduces BlockLock, which fixes the execution geometry of one protected request while retaining shared batched prefill for companion requests. The authors report bitwise-identical target outputs across companion changes under a fixed deployment contract. Across five dense models and NVIDIA A6000, A100 and H100 deployments, they report 53.5–55.0% lower latency and 115.2–122.2% higher throughput than vLLM Batch-Invariant at batch size 4 and 64 output tokens; reported overhead is 5.4–6.9% versus standard vLLM and 0.5–0.8% versus padded PyTorch. These are author-reported, configuration-specific results; no independent reproduction, MoE evaluation or queueing/tail-latency study is established.",
+    "summary": "A 4 November 2026 preprint introduces BlockLock, which fixes the execution geometry of one protected request while retaining shared batched prefill for companion requests. Across five dense models and three GPU types, the authors report bitwise-identical target outputs across companion changes under a fixed deployment contract. The headline performance comparison is narrower: at B=4 and 64 output tokens per request, BlockLock-Rows reduced latency by 53.5–55.0% and increased throughput by 115.2–122.2% versus vLLM Batch-Invariant for Qwen3-8B/14B across eight datasets; reported overhead was 5.4–6.9% versus standard vLLM and 0.5–0.8% versus padded PyTorch. These are author-reported fixed-workload results; no independent reproduction, MoE evaluation or queueing/tail-latency study is established.",
     "technical": {
-      "claimed_result": "BlockLock-Rows keeps a protected request’s shape, positions and arithmetic path fixed across compatible companion batches; BlockLock-Pack isolates target KV state for target-only decode. Authors report bitwise identity and throughput/latency gains versus batch-invariant kernels.",
+      "claimed_result": "For equal delivered work at B=4 and 64 output tokens per request, the authors report BlockLock-Rows latency 53.5–55.0% below vLLM Batch-Invariant and throughput 115.2–122.2% higher for Qwen3-8B and Qwen3-14B across eight datasets. Reported geometric-mean overhead is 5.4–6.9% versus standard vLLM and 0.5–0.8% versus padded PyTorch. Broader five-model/three-GPU evaluation is reported for determinism, not these headline performance percentages.",
       "compute_or_cost": "At batch size 4, 64 output tokens, reported BlockLock-Rows latency is 53.5–55.0% below vLLM Batch-Invariant; throughput is 115.2–122.2% higher. Relative to standard vLLM, reported geometric mean latency overhead is 5.4–6.9%; relative to padded PyTorch, reported overhead is 0.5–0.8%. Fixed group timing excludes queuing and tail latency.",
       "demonstrated_result": "The preprint and its experimental tables are accessible; the reported numerical findings and bitwise agreement remain author-reported and were not independently reproduced here.",
       "implementation_status": "The paper describes PyTorch and vLLM implementations and provides a formal design contract and experimental protocol in appendices. No public code link was visible in the inspected arXiv record; implementation availability elsewhere was not established.",
       "mechanism": "BlockLock-Rows aligns protected prompts into fixed-width batch rows so companion lengths do not change target tensor geometry. BlockLock-Pack anchors the protected request at the end of a packed prefill and extracts its KV state for isolated decoding. Both depend on a fixed deployment configuration and repeat-stable kernels/collectives.",
       "novelty": "The paper targets reproducibility for a protected request without forcing every request onto specialized deterministic kernels or removing all shared prefill batching. Its measured tradeoff is configuration-specific and remains unreplicated.",
-      "regime": "Five dense models (Qwen3-8B/14B, Llama-3.1-8B-Instruct, Gemma-3-4B/12B-IT) on single-GPU NVIDIA A6000, A100 and H100 deployments; the contract is per frozen deployment configuration. Timing uses fixed groups, primarily batch size 4 and 64 output tokens.",
+      "regime": "The determinism evaluation spans five dense models (Qwen3-8B/14B, Llama-3.1-8B-Instruct, Gemma-3-4B/12B-IT) and single-GPU NVIDIA A6000, A100 and H100, with a separate A6000 tensor-parallel check. The headline performance comparison covers Qwen3-8B/14B over eight datasets at B=4 and 64 generated tokens per request; the contract remains per frozen deployment configuration. Fixed-group timing excludes queueing and tail latency.",
       "reproducibility": "The paper gives experimental and deployment details, but a code link was not visible on the checked arXiv page and the research desk did not run an implementation. The reported bitwise hashes and latency/throughput values therefore remain first-party claims.",
       "strongest_baseline": "The paper compares BlockLock-Rows with standard vLLM, vLLM Batch-Invariant, padded PyTorch, and a CoRun-style isolated-prefill baseline. Equal-delivered-work comparisons use the same number of generated tokens for full-batch methods; BlockLock-Pack is target-only and not a same-work comparison."
     },

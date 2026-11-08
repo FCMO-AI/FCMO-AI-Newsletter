@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "db42d0ff0222aef3ae686518099a8e8949e7b63150f2b7f5a9b461682233dc32",
+  "canonical_source_sha256": "08acb4602ddc0cd54659b93abfbea5c7a46e68ff51d98ce85b048d9453280cc4",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -243,7 +243,7 @@
         },
         {
           "label": "CLAIMED",
-          "text": "En cinco modelos densos y despliegues NVIDIA A6000, A100 y H100, los autores informan que, con lote de 4 y 64 tokens de salida, BlockLock-Rows redujo la latencia 53.5–55.0% y aumentó el rendimiento 115.2–122.2% frente a vLLM Batch-Invariant; la latencia informada fue 5.4–6.9% mayor que con vLLM estándar y 0.5–0.8% mayor que con PyTorch con padding."
+          "text": "Los autores informan una comparación de trabajo entregado equivalente para BlockLock-Rows, con B=4 y 64 tokens generados por solicitud: en Qwen3-8B y Qwen3-14B a través de ocho conjuntos de datos, la latencia fue 53.5–55.0% menor y el rendimiento 115.2–122.2% mayor que con vLLM Batch-Invariant. La sobrecarga geométrica media de latencia informada fue 5.4–6.9% frente a vLLM estándar y 0.5–0.8% frente a PyTorch con padding. La evaluación más amplia de cinco modelos y tres GPU respalda los resultados de determinismo informados; esas cifras de rendimiento no se establecen para toda esa matriz."
         },
         {
           "label": "NOT_ESTABLISHED",
@@ -277,15 +277,15 @@
         "Con una variación muy alta en las longitudes de las solicitudes acompañantes aumenta el desperdicio por padding, una limitación reconocida por los autores."
       ],
       "relationships": [],
-      "summary": "Un preprint del 4 de noviembre de 2026 presenta BlockLock, que fija la geometría de ejecución de una solicitud protegida mientras conserva el prellenado compartido por lotes para las solicitudes acompañantes. Los autores informan salidas idénticas bit a bit cuando cambian las solicitudes acompañantes, bajo un contrato de despliegue fijo. En cinco modelos densos y despliegues NVIDIA A6000, A100 y H100, informan 53.5–55.0% menos latencia y 115.2–122.2% más rendimiento que vLLM Batch-Invariant, con lote de 4 y 64 tokens de salida; informan una sobrecarga de 5.4–6.9% frente a vLLM estándar y de 0.5–0.8% frente a PyTorch con padding. Son resultados informados por los autores y específicos a esas configuraciones; no se establece una reproducción independiente, evaluación MoE ni estudio de colas o latencia de cola.",
+      "summary": "Un preprint del 4 de noviembre de 2026 presenta BlockLock, que fija la geometría de ejecución de una solicitud protegida y mantiene el prellenado por lotes compartido con solicitudes acompañantes. Para cinco modelos densos y tres tipos de GPU, los autores informan salidas idénticas bit a bit pese a cambios en solicitudes acompañantes, bajo un contrato de despliegue fijo. La comparación principal de rendimiento es más acotada: con B=4 y 64 tokens generados por solicitud, BlockLock-Rows redujo la latencia 53.5–55.0% y elevó el rendimiento 115.2–122.2% frente a vLLM Batch-Invariant para Qwen3-8B/14B en ocho conjuntos de datos; la sobrecarga informada fue 5.4–6.9% frente a vLLM estándar y 0.5–0.8% frente a PyTorch con padding. Son resultados informados por los autores en cargas de trabajo fijas; no se establecen una reproducción independiente, una evaluación con modelos de mezcla de expertos ni resultados de colas reales o latencia de cola.",
       "technical": {
-        "claimed_result": "BlockLock-Rows mantiene fijas la forma, las posiciones y la ruta aritmética de una solicitud protegida entre lotes acompañantes compatibles; BlockLock-Pack aísla el estado KV de la solicitud objetivo para decodificarla por separado. Los autores informan identidad bit a bit y mejoras de latencia/rendimiento frente a kernels invariantes al lote.",
+        "claimed_result": "Para trabajo entregado equivalente con B=4 y 64 tokens generados por solicitud, los autores informan que BlockLock-Rows tuvo una latencia 53.5–55.0% menor y un rendimiento 115.2–122.2% mayor que vLLM Batch-Invariant para Qwen3-8B y Qwen3-14B en ocho conjuntos de datos. La sobrecarga geométrica media informada fue 5.4–6.9% frente a vLLM estándar y 0.5–0.8% frente a PyTorch con padding. La evaluación más amplia de cinco modelos y tres GPU se refiere a la prueba de determinismo, no a estos porcentajes de rendimiento.",
         "compute_or_cost": "Con lote de 4 y 64 tokens de salida, los autores informan que BlockLock-Rows reduce la latencia 53.5–55.0% frente a vLLM Batch-Invariant y aumenta el rendimiento 115.2–122.2%. Frente a vLLM estándar, la sobrecarga geométrica media de latencia informada es 5.4–6.9%; frente a PyTorch con padding es 0.5–0.8%. El tiempo de grupos fijos excluye colas y latencia de cola.",
         "demonstrated_result": "El preprint y sus tablas experimentales están disponibles; las cifras y la concordancia bit a bit siguen siendo afirmaciones de los autores y no se reprodujeron de forma independiente en esta revisión.",
         "implementation_status": "El artículo describe implementaciones en PyTorch y vLLM e incluye un contrato formal de diseño y el protocolo experimental en sus apéndices. No se encontró un enlace a código público en el registro de arXiv revisado; no se determinó si existe una implementación en otro lugar.",
         "mechanism": "BlockLock-Rows alinea las solicitudes protegidas en filas de lote de ancho fijo para que la longitud de las solicitudes acompañantes no altere la geometría de tensores de la solicitud objetivo. BlockLock-Pack ancla la solicitud protegida al final del prellenado empaquetado y extrae su estado KV para una decodificación aislada. Ambos métodos dependen de una configuración fija y de kernels/operaciones colectivas estables.",
         "novelty": "El artículo busca reproducibilidad para una solicitud protegida sin obligar a todas las solicitudes a usar kernels deterministas especializados ni eliminar todo el prellenado por lotes compartido. La compensación medida depende de la configuración y todavía no se ha reproducido.",
-        "regime": "Cinco modelos densos (Qwen3-8B/14B, Llama-3.1-8B-Instruct y Gemma-3-4B/12B-IT) en despliegues de una GPU NVIDIA A6000, A100 y H100; el contrato se limita a cada configuración congelada. Los tiempos usan grupos fijos, principalmente lote de 4 y 64 tokens de salida.",
+        "regime": "La evaluación de determinismo abarca cinco modelos densos (Qwen3-8B/14B, Llama-3.1-8B-Instruct, Gemma-3-4B/12B-IT) en GPU NVIDIA A6000, A100 y H100, además de una prueba tensor-paralela separada en A6000. La comparación principal de rendimiento cubre Qwen3-8B/14B en ocho conjuntos de datos con B=4 y 64 tokens generados por solicitud; el contrato sigue dependiendo de una configuración de despliegue fija. Los tiempos de grupos fijos excluyen las colas y la latencia de cola.",
         "reproducibility": "El artículo ofrece detalles experimentales y de despliegue, pero no se encontró un enlace a código en la página de arXiv revisada y el equipo de investigación no ejecutó una implementación. Por ello, los hashes bit a bit y las cifras de latencia/rendimiento siguen siendo afirmaciones de primera parte.",
         "strongest_baseline": "El artículo compara BlockLock-Rows con vLLM estándar, vLLM Batch-Invariant, PyTorch con padding y una línea base tipo CoRun con prellenado aislado. Las comparaciones de trabajo total igualado producen el mismo número de tokens en los métodos de lote completo; BlockLock-Pack genera solo la salida objetivo y no es una comparación de igual trabajo."
       },
@@ -51099,8 +51099,8 @@
     },
     "FCMO-0162EEAD4D41": {
       "claims": {
-        "locale_sha256": "c8d339176f08fc2f7969e406f94c5ff0fa5d8de3995f324c0a773cacaaf2a57b",
-        "source_sha256": "cf8f2ff936860e0477ee6535301c9e7e4b7d2bdad915ead27b90710cf9a9b82c"
+        "locale_sha256": "988844f10fe900d9d5702c008e7b7dab49d6e444c241603c8d5e637d08bb92c5",
+        "source_sha256": "294042b338b3d522524346811becd703eeca76f281b3dbf049223848cdd2030f"
       },
       "contradictory_evidence": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -51123,12 +51123,12 @@
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
-        "locale_sha256": "2e422115893eae7f64e8f37b0c97b713ce20d38329f085619c4b7e00d81369f0",
-        "source_sha256": "7d8064a5bb58576768b00db572ad24f3c810bad33ace523388200e6a2cf560ed"
+        "locale_sha256": "b54ab72f538deb88212e043342890fe1909d14c15297eef0ea038af5249ad3d8",
+        "source_sha256": "75efbd408d57dbb55c747b4eae5d4bbd02c02aa47fdac94b3fedb664f59348e4"
       },
       "technical": {
-        "locale_sha256": "4bdc5dbf5d718d61dba9a81ae38fad160600d3787ed6664011d848c8de61a7b1",
-        "source_sha256": "7b2cba82513d36783d19b0daf230d420df30bf2230b1e9099c73c6ea7475cad0"
+        "locale_sha256": "ec9d1037f9847c53a985e224442da401d35206d88ca75ce53dcab8789a997299",
+        "source_sha256": "c88ffdacde3cdf80b58c00c3cb3be8ccf53fc7dc85b5dbc26900ae8e58f19da4"
       },
       "title": {
         "locale_sha256": "8c5bf1cd7aeaeca70ee47e6d4e58f6f7689e05fe4258223072ec92f1b7d8db3e",

@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "db42d0ff0222aef3ae686518099a8e8949e7b63150f2b7f5a9b461682233dc32",
+  "canonical_source_sha256": "08acb4602ddc0cd54659b93abfbea5c7a46e68ff51d98ce85b048d9453280cc4",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -243,7 +243,7 @@
         },
         {
           "label": "CLAIMED",
-          "text": "在五种稠密模型及 NVIDIA A6000、A100 和 H100 部署上，作者报告称，当批量大小为 4、输出长度为 64 个 token 时，BlockLock-Rows 相较 vLLM Batch-Invariant 将延迟降低 53.5–55.0%，吞吐量提高 115.2–122.2%；相较标准 vLLM 的报告延迟开销为 5.4–6.9%，相较带填充的 PyTorch 为 0.5–0.8%。"
+          "text": "作者报告了一项等量交付工作量的 BlockLock-Rows 对比，条件为 B=4、每个请求生成 64 个 token：在 Qwen3-8B 和 Qwen3-14B 上跨八个数据集，延迟比 vLLM Batch-Invariant 低 53.5–55.0%，吞吐量高 115.2–122.2%。报告的几何平均延迟开销为：相较标准 vLLM 高 5.4–6.9%，相较填充版 PyTorch 高 0.5–0.8%。更广泛的五种模型、三类 GPU 评测支持的是作者报告的确定性结果；这些性能数字并未在完整矩阵上得到证明。"
         },
         {
           "label": "NOT_ESTABLISHED",
@@ -277,15 +277,15 @@
         "伴随请求长度差异很大时，填充浪费会增加，作者将其列为局限。"
       ],
       "relationships": [],
-      "summary": "2026 年十一月 4 日的一篇预印本提出 BlockLock：固定一个受保护请求的执行几何，同时保留伴随请求的共享批量预填充。作者报告称，在固定部署契约下，即使伴随请求变化，目标输出仍可按位保持一致。在五种稠密模型和 NVIDIA A6000、A100、H100 部署上，作者报告称，批量大小为 4、输出长度为 64 个 token 时，相较 vLLM Batch-Invariant 延迟降低 53.5–55.0%、吞吐量提高 115.2–122.2%；相较标准 vLLM 的报告开销为 5.4–6.9%，相较带填充 PyTorch 为 0.5–0.8%。这些结果由作者报告且限于特定配置；论文未证明独立复现、MoE 性能或排队与尾延迟表现。",
+      "summary": "2026 年 十一月 4 日的一篇预印本提出 BlockLock：固定一个受保护请求的执行几何，同时保留与伴随请求共享的批量预填充。作者报告称，在五种稠密模型和三类 GPU 上，即使伴随请求变化，受保护请求的输出仍可在固定部署配置下逐位一致。主要性能对比的范围更窄：在 B=4、每个请求生成 64 个 token 时，BlockLock-Rows 对 Qwen3-8B/14B 在八个数据集上的延迟比 vLLM Batch-Invariant 低 53.5–55.0%，吞吐量高 115.2–122.2%；报告的开销为相较标准 vLLM 高 5.4–6.9%，相较填充版 PyTorch 高 0.5–0.8%。这些是作者报告的固定工作负载结果；论文尚未证明其经独立复现、适用于混合专家模型，或在真实请求队列和尾延迟负载下仍有收益。",
       "technical": {
-        "claimed_result": "BlockLock-Rows 在兼容的伴随批次之间固定受保护请求的形状、位置和算术路径；BlockLock-Pack 则隔离目标请求的 KV 状态并单独解码。作者报告称其实现了按位一致性，并相较批次不变内核改善延迟和吞吐量。",
+        "claimed_result": "在等量交付工作量、B=4、每个请求生成 64 个 token 的条件下，作者报告称，BlockLock-Rows 在 Qwen3-8B 和 Qwen3-14B 的八个数据集上，延迟比 vLLM Batch-Invariant 低 53.5–55.0%，吞吐量高 115.2–122.2%。报告的几何平均开销为相较标准 vLLM 高 5.4–6.9%，相较填充版 PyTorch 高 0.5–0.8%。更广泛的五种模型、三类 GPU 评测对应的是确定性测试，而非这些主要性能百分比。",
         "compute_or_cost": "在批量大小为 4、输出长度为 64 个 token 时，作者报告称 BlockLock-Rows 相较 vLLM Batch-Invariant 延迟降低 53.5–55.0%，吞吐量提高 115.2–122.2%。相较标准 vLLM，报告的几何平均延迟开销为 5.4–6.9%；相较带填充 PyTorch 为 0.5–0.8%。固定请求组计时不包含排队和尾延迟。",
         "demonstrated_result": "预印本和实验表格可供查阅；本次审查未独立复现论文报告的数值结果或按位一致性。",
         "implementation_status": "论文描述了 PyTorch 和 vLLM 实现，并在附录中给出形式化设计契约和实验方案。在所查 arXiv 记录中未看到公开代码链接；未能确认其他位置是否有实现。",
         "mechanism": "BlockLock-Rows 将受保护请求对齐到固定宽度的批次行，使伴随请求长度不会改变目标请求的张量几何。BlockLock-Pack 将受保护请求锚定在打包预填充的末端，并提取其 KV 状态以进行隔离解码。两种方法都依赖固定部署配置和可重复稳定的内核/集合通信。",
         "novelty": "该论文尝试只为受保护请求实现可复现性，无需让所有请求都使用专门的确定性内核，也不必放弃所有共享批量预填充。其测得的权衡依赖特定配置，尚未独立复现。",
-        "regime": "五种稠密模型（Qwen3-8B/14B、Llama-3.1-8B-Instruct、Gemma-3-4B/12B-IT），分别运行于 NVIDIA A6000、A100、H100 单 GPU 部署；契约按固定部署配置定义。计时采用固定请求组，主要为批量大小 4、输出长度 64 个 token。",
+        "regime": "确定性评测覆盖五种稠密模型（Qwen3-8B/14B、Llama-3.1-8B-Instruct、Gemma-3-4B/12B-IT）以及 NVIDIA A6000、A100、H100 单 GPU 部署，另有一项单独的 A6000 张量并行测试。主要性能对比只覆盖 Qwen3-8B/14B 的八个数据集，条件为 B=4、每个请求生成 64 个 token；确定性契约仍依赖固定的部署配置。固定请求组计时不包括排队和尾延迟。",
         "reproducibility": "论文提供实验和部署细节，但所查 arXiv 页面没有代码链接，研究团队也未运行实现。因此，按位哈希和延迟/吞吐量数字仍属于一手来源报告。",
         "strongest_baseline": "论文将 BlockLock-Rows 与标准 vLLM、vLLM Batch-Invariant、带填充的 PyTorch 以及类似 CoRun 的隔离预填充基线进行比较。完整批次方法的等工作量比较会生成相同数量的 token；BlockLock-Pack 只生成目标输出，并非等工作量比较。"
       },
@@ -51099,8 +51099,8 @@
     },
     "FCMO-0162EEAD4D41": {
       "claims": {
-        "locale_sha256": "870343d7c24a75a97d2e1dd3d6c11d2f89b846ef36662bfd367729372bcc2292",
-        "source_sha256": "cf8f2ff936860e0477ee6535301c9e7e4b7d2bdad915ead27b90710cf9a9b82c"
+        "locale_sha256": "fcfcc8cee704c974ca59450ac9470b3d9a704fa41281f8ce8cae7a97fa3befeb",
+        "source_sha256": "294042b338b3d522524346811becd703eeca76f281b3dbf049223848cdd2030f"
       },
       "contradictory_evidence": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -51123,12 +51123,12 @@
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
-        "locale_sha256": "cfdd5ab3b2f45bf0f327c1b79456debb81b76b72a0686cf5ffb720d5c4049dd4",
-        "source_sha256": "7d8064a5bb58576768b00db572ad24f3c810bad33ace523388200e6a2cf560ed"
+        "locale_sha256": "c41ae7576f3c9b28378e92f08845675c81ab7ca4a240c9df29101625e4cc137c",
+        "source_sha256": "75efbd408d57dbb55c747b4eae5d4bbd02c02aa47fdac94b3fedb664f59348e4"
       },
       "technical": {
-        "locale_sha256": "67182e8474ce84c1418712034bb7fe5abf57791c289f301108cd80603acc4ed9",
-        "source_sha256": "7b2cba82513d36783d19b0daf230d420df30bf2230b1e9099c73c6ea7475cad0"
+        "locale_sha256": "c1fc61fc93ce0bc1a9e5ef277b383dbbe20c73e7bdbfd17ead16db12f7908a28",
+        "source_sha256": "c88ffdacde3cdf80b58c00c3cb3be8ccf53fc7dc85b5dbc26900ae8e58f19da4"
       },
       "title": {
         "locale_sha256": "fcb17ac5d2b7b34077d4a9527e9179236307bc92e122e9ebc54a5716c6fbd56d",
