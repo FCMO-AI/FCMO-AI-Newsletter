@@ -1,0 +1,137 @@
+{
+  "record": {
+    "id": "FCMO-A38C45B949CF",
+    "title": "Preprint reports elastic expert parallelism for more efficient MoE reinforcement-learning rollouts",
+    "desk": "Inference Systems",
+    "event_at": "2026-11-04T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 6,
+    "tier": "Major",
+    "summary": "A preprint describes FlexFloor, which jointly plans prompt placement and progressively shrinks the active expert-parallel group during synchronous mixture-of-experts reinforcement-learning rollouts. In one setup using Qwen3-30B-A3B on 16 Ascend devices with vLLM 0.14.1, the authors report 52.74% higher rollout throughput and roughly 65.4% higher response-token work per occupied rank-second than the verl baseline. The paper gives a detailed accounting protocol, including rank detach and restoration intervals, but its performance results remain author-reported. A one-seed, short held-out evaluation and one frozen-policy code workload do not establish long-run quality equivalence or general transfer.",
+    "topics": [
+      "mixture-of-experts",
+      "expert-parallelism",
+      "reinforcement-learning-post-training",
+      "rollout-throughput",
+      "accelerator-efficiency"
+    ],
+    "organizations": [
+      "Tsinghua University"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-A38C45B949CF.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-A38C45B949CF.json",
+    "citation": {
+      "id": "FCMO-A38C45B949CF",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-A38C45B949CF.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "The authors introduce FlexFloor, a co-designed planner and runtime that schedules prompt placement and progressively releases ranks from an expert-parallel group during synchronous MoE rollout generation, while retaining expert availability and restoring the full group before later training stages."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "In the reported Qwen3-30B-A3B setup on 16 Ascend devices using vLLM 0.14.1, three rollout seeds and two sequential updated-policy epochs per seed, the authors report Flex-P4 throughput of 5,668.7 ± 42.8 response tokens/s versus 3,711.3 ± 33.0 for the verl baseline, a 52.74% gain."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "For the same reported comparison, the authors reconstruct occupied rank-time from per-rank lifecycle logs and give a 65.23%–65.57% relative efficiency-gain range after charging shrink and restore reoccupation; this range reflects timestamp-resolution bounds, not a statistical confidence interval."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper reports little variation in rollout reward between methods, but its separate held-out evaluation after five additional policy updates uses one seed and 256 questions: Flex-P4 scored 208/256 versus 211/256 for the verl baseline. The paper explicitly states these observations do not establish non-inferiority, final convergence or graph-specific quality gains."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The preprint does not establish that FlexFloor preserves final model quality over longer RL training, transfers to other MoE models or accelerator/runtime stacks, or yields the same cost gains in production deployments."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "reasoning_posttraining",
+      "efficiency"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-11-07"
+    ],
+    "event_at": "2026-11-04T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The throughput and rank-time results are author-reported and have not been independently recomputed from the archived data or reproduced.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "Evidence is limited to one model family, one accelerator/runtime combination and a short training horizon; longer-run model quality and transfer to other stacks are not established.",
+        "kind": "regime_unclear",
+        "state": "open"
+      },
+      {
+        "description": "The paper points to a separate reproduction archive, but source-code and raw-event availability were not verified during this activation.",
+        "kind": "missing_artifact",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-A38C45B949CF",
+    "importance_effective_score": 6,
+    "importance_rationale": "If the reported efficiency gains generalize, reclaiming otherwise coupled expert-parallel ranks during MoE RL rollouts could materially lower accelerator time per generated training response. The potential consequence is meaningful, but evidence is confined to a single Qwen3-30B-A3B / Ascend configuration and does not establish deployment-wide cost savings.",
+    "importance_scale_version": 2,
+    "importance_score": 6,
+    "importance_tier": "Major",
+    "last_verified_at": "2026-11-07T10:17:03.540804Z",
+    "limitations": [
+      "The central throughput and rank-time gains are first-party paper results, not independently verified.",
+      "The main configuration uses one model family, one backend and three rollout seeds; two sequential epochs per seed do not provide independent trajectories.",
+      "The short held-out quality comparison after five additional updates is one-seed evidence and explicitly does not establish non-inferiority or final convergence.",
+      "The separate frozen-policy code comparison is one seed and reports 71/160 versus 70/160 pass@1; it does not establish statistical equivalence or broad task transfer.",
+      "Occupied rank-time measures primary rank allocation under the described lifecycle protocol, not dollar cost, all HBM release or universal utilization."
+    ],
+    "organizations": [
+      "Tsinghua University"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-11-07T10:17:03.540804Z",
+    "regions": [
+      "China",
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2611.06984"
+    ],
+    "status": "developing",
+    "summary": "A preprint describes FlexFloor, which jointly plans prompt placement and progressively shrinks the active expert-parallel group during synchronous mixture-of-experts reinforcement-learning rollouts. In one setup using Qwen3-30B-A3B on 16 Ascend devices with vLLM 0.14.1, the authors report 52.74% higher rollout throughput and roughly 65.4% higher response-token work per occupied rank-second than the verl baseline. The paper gives a detailed accounting protocol, including rank detach and restoration intervals, but its performance results remain author-reported. A one-seed, short held-out evaluation and one frozen-policy code workload do not establish long-run quality equivalence or general transfer.",
+    "technical": {
+      "claimed_result": "Authors report 52.74% higher rollout throughput and 65.23%–65.57% higher response-token work per occupied rank-second for Flex-P4 versus verl on Qwen3-30B-A3B with 16 Ascend devices and vLLM 0.14.1. Reported reward is similar across the primary three-seed comparison; separate short-horizon quality results do not establish non-inferiority.",
+      "compute_or_cost": "The reported primary experiment uses 16 software-visible Ascend devices. Rank-time efficiency is an allocation metric for this protocol, not a measured monetary cost or a universal utilization claim.",
+      "demonstrated_result": "The primary source describes an implementation, measured evaluation protocol and lifecycle accounting. This activation inspected the paper but did not inspect source code or independently reproduce the experiment.",
+      "implementation_status": "The paper describes an implemented runtime and includes reproduction summaries, source digests, ledgers, parser and plotting code in a separate reproduction archive; no source-code audit or independent rerun was performed here.",
+      "mechanism": "FlexFloor combines response-length history, a tail guard, floor-conditioned KV admission, quorum-aware prompt/rank assignment, and elastic expert-parallel execution. Ranks detach only after observed completion quorums and expert/KV constraints are satisfied; the runtime coordinates topology changes, graph recapture, cleanup and later full-world restoration.",
+      "novelty": "Coordinates completion-quorum scheduling, floor-specific KV feasibility and expert-parallel topology changes to release ranks within an active worker, complementing earlier reuse between workers.",
+      "regime": "BF16 Qwen3-30B-A3B MoE, 128 experts per layer, 16 Ascend devices with 64 GiB HBM each, vLLM 0.14.1 and local Ascend/VERL integration. Primary comparison uses three rollout seeds and two sequential updated-policy epochs per seed on DeepScaleR mathematical reasoning prompts.",
+      "reproducibility": "Detailed protocol, event-ledger methods and reproduction summaries are in the preprint appendices. Raw execution logs and model checkpoints are not all public in the described archive; the reported results were not independently reproduced.",
+      "strongest_baseline": "verl Full16 on the same graph-enabled backend, plus length-sorted, tail-guarded, fixed-floor and minimum-skew controls. The primary paper also includes a three-seed comparison and a separate matched frozen-policy code workload."
+    },
+    "title": "Preprint reports elastic expert parallelism for more efficient MoE reinforcement-learning rollouts",
+    "topics": [
+      "mixture-of-experts",
+      "expert-parallelism",
+      "reinforcement-learning-post-training",
+      "rollout-throughput",
+      "accelerator-efficiency"
+    ],
+    "why_it_matters": "If the reported gains hold in other MoE RL post-training deployments, releasing expert-parallel ranks during long-tail generation could raise training throughput and lower occupied accelerator time. The evidence currently covers one hardware/software/model regime and short training horizons, so it is a promising systems result rather than a general cost reduction estimate."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

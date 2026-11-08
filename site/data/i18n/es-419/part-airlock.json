@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "6f9f0af67dbf1446095a634ddacd313c9d54f29e318ed52397eb8ffe98d6493d",
+  "canonical_source_sha256": "69b84c5ea4d1b7d8b1b9f7d55b2d0eda3f48487fd083bd7b4fd737b8cb2492e3",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -234,6 +234,63 @@
       },
       "title": "JAZ informa que un agente recursivo mínimo iguala sistemas especializados en dos flujos acotados",
       "why_it_matters": "Si se reproducen de manera independiente, los resultados sugerirían que algunas funciones de recuerdo a largo plazo y mejora entre tareas pueden surgir de un ciclo de agente orientado a código y llamadas recursivas, lo que podría reducir la necesidad de componentes especializados en estos entornos. La evidencia se limita a dos conjuntos de benchmarks y comparaciones ejecutadas por los autores."
+    },
+    "FCMO-0162EEAD4D41": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que BlockLock-Rows conserva bit a bit los tokens generados y los logits de vocabulario completo de la solicitud protegida cuando cambian las solicitudes acompañantes, bajo una configuración de despliegue fija y con kernels y operaciones colectivas estables entre ejecuciones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En cinco modelos densos y despliegues NVIDIA A6000, A100 y H100, los autores informan que, con lote de 4 y 64 tokens de salida, BlockLock-Rows redujo la latencia 53.5–55.0% y aumentó el rendimiento 115.2–122.2% frente a vLLM Batch-Invariant; la latencia informada fue 5.4–6.9% mayor que con vLLM estándar y 0.5–0.8% mayor que con PyTorch con padding."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece una reproducción independiente, transferencia entre configuraciones de despliegue, beneficios con colas reales de solicitudes o cargas de latencia de cola, ni rendimiento en modelos de mezcla de expertos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de determinismo y tiempo informados por el artículo no se han reproducido de forma independiente; en el registro de arXiv revisado no se encontró un enlace a la implementación.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "El contrato formal de determinismo se limita a un despliegue fijo y presupone kernels y operaciones colectivas estables; los cambios de despliegue y las colas operativas o latencias de cola quedan fuera del alcance demostrado.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El artículo evalúa únicamente modelos densos; deja para trabajo futuro el enrutamiento de tokens en modelos de mezcla de expertos.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados informados se sostienen en más configuraciones de servicio, fijar la geometría de lote por solicitud podría preservar una inferencia reproducible y el prellenado por lotes, evitando la penalización de latencia de los kernels invariantes al lote. El resultado actual se limita a cinco modelos densos y unos pocos tipos de GPU: es un avance significativo en sistemas, no una medición general de costos de servicio.",
+      "limitations": [
+        "Los resultados son afirmaciones de los autores en un preprint y no se reprodujeron de forma independiente durante esta activación.",
+        "La garantía de determinismo está condicionada a una configuración fija de hardware, software, precisión, backend y geometría de lote, además de kernels y operaciones colectivas estables; no cubre cambios de despliegue.",
+        "Solo se evalúan cinco modelos densos y tres tipos de despliegue con una GPU; el trabajo deja para el futuro los modelos MoE.",
+        "La comparación de benchmarks usa grupos fijos y controlados; no mide colas, procesos de llegada, TTFT/TPOT ni latencias de cola.",
+        "Con una variación muy alta en las longitudes de las solicitudes acompañantes aumenta el desperdicio por padding, una limitación reconocida por los autores."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 4 de noviembre de 2026 presenta BlockLock, que fija la geometría de ejecución de una solicitud protegida mientras conserva el prellenado compartido por lotes para las solicitudes acompañantes. Los autores informan salidas idénticas bit a bit cuando cambian las solicitudes acompañantes, bajo un contrato de despliegue fijo. En cinco modelos densos y despliegues NVIDIA A6000, A100 y H100, informan 53.5–55.0% menos latencia y 115.2–122.2% más rendimiento que vLLM Batch-Invariant, con lote de 4 y 64 tokens de salida; informan una sobrecarga de 5.4–6.9% frente a vLLM estándar y de 0.5–0.8% frente a PyTorch con padding. Son resultados informados por los autores y específicos a esas configuraciones; no se establece una reproducción independiente, evaluación MoE ni estudio de colas o latencia de cola.",
+      "technical": {
+        "claimed_result": "BlockLock-Rows mantiene fijas la forma, las posiciones y la ruta aritmética de una solicitud protegida entre lotes acompañantes compatibles; BlockLock-Pack aísla el estado KV de la solicitud objetivo para decodificarla por separado. Los autores informan identidad bit a bit y mejoras de latencia/rendimiento frente a kernels invariantes al lote.",
+        "compute_or_cost": "Con lote de 4 y 64 tokens de salida, los autores informan que BlockLock-Rows reduce la latencia 53.5–55.0% frente a vLLM Batch-Invariant y aumenta el rendimiento 115.2–122.2%. Frente a vLLM estándar, la sobrecarga geométrica media de latencia informada es 5.4–6.9%; frente a PyTorch con padding es 0.5–0.8%. El tiempo de grupos fijos excluye colas y latencia de cola.",
+        "demonstrated_result": "El preprint y sus tablas experimentales están disponibles; las cifras y la concordancia bit a bit siguen siendo afirmaciones de los autores y no se reprodujeron de forma independiente en esta revisión.",
+        "implementation_status": "El artículo describe implementaciones en PyTorch y vLLM e incluye un contrato formal de diseño y el protocolo experimental en sus apéndices. No se encontró un enlace a código público en el registro de arXiv revisado; no se determinó si existe una implementación en otro lugar.",
+        "mechanism": "BlockLock-Rows alinea las solicitudes protegidas en filas de lote de ancho fijo para que la longitud de las solicitudes acompañantes no altere la geometría de tensores de la solicitud objetivo. BlockLock-Pack ancla la solicitud protegida al final del prellenado empaquetado y extrae su estado KV para una decodificación aislada. Ambos métodos dependen de una configuración fija y de kernels/operaciones colectivas estables.",
+        "novelty": "El artículo busca reproducibilidad para una solicitud protegida sin obligar a todas las solicitudes a usar kernels deterministas especializados ni eliminar todo el prellenado por lotes compartido. La compensación medida depende de la configuración y todavía no se ha reproducido.",
+        "regime": "Cinco modelos densos (Qwen3-8B/14B, Llama-3.1-8B-Instruct y Gemma-3-4B/12B-IT) en despliegues de una GPU NVIDIA A6000, A100 y H100; el contrato se limita a cada configuración congelada. Los tiempos usan grupos fijos, principalmente lote de 4 y 64 tokens de salida.",
+        "reproducibility": "El artículo ofrece detalles experimentales y de despliegue, pero no se encontró un enlace a código en la página de arXiv revisada y el equipo de investigación no ejecutó una implementación. Por ello, los hashes bit a bit y las cifras de latencia/rendimiento siguen siendo afirmaciones de primera parte.",
+        "strongest_baseline": "El artículo compara BlockLock-Rows con vLLM estándar, vLLM Batch-Invariant, PyTorch con padding y una línea base tipo CoRun con prellenado aislado. Las comparaciones de trabajo total igualado producen el mismo número de tokens en los métodos de lote completo; BlockLock-Pack genera solo la salida objetivo y no es una comparación de igual trabajo."
+      },
+      "title": "El artículo de BlockLock informa inferencia reproducible de LLM por lotes con geometría fija por solicitud",
+      "why_it_matters": "La reproducibilidad fiable importa para evaluar modelos, generar trayectorias de aprendizaje por refuerzo y ejecutar sistemas que usan herramientas. Si los resultados se generalizan, fijar la geometría solo para las solicitudes que requieren reproducibilidad podría reducir el costo de latencia de la inferencia determinista y conservar el prellenado compartido por lotes. El artículo no establece beneficios de costo ni de colas en producción."
     },
     "FCMO-0180330ECF93": {
       "claims": [
@@ -4037,6 +4094,57 @@
       },
       "title": "El Ministerio de Cultura de China aprueba 14 pilotos de IA para cultura y turismo",
       "why_it_matters": "La lista muestra de manera concreta cómo una política nacional de IA se dirige a tareas culturales y turísticas, como la protección del patrimonio, los servicios públicos y la atención a visitantes. Permite dar seguimiento a la adopción sectorial, pero una aprobación no equivale a un despliegue: el aviso y su anexo no informan presupuestos, diseños técnicos, hitos ni resultados."
+    },
+    "FCMO-13B23217C494": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El Ministerio de Industria y Tecnología de la Información de China publicó el aviso 工信厅信管〔2026〕42号 el 6 de noviembre de 2026; el documento está fechado el 24 de octubre de 2026."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El aviso abarca agentes preinstalados en teléfonos, tabletas y dispositivos ponibles. Solicita verificar la compatibilidad y publicar listas de dispositivos y sistemas operativos compatibles; evaluar la compatibilidad y el riesgo de fraude en las pruebas de acceso a redes de telecomunicaciones; presentar y revisar por adelantado planes de actualizaciones inalámbricas en servicio; y establecer controles de distribución de aplicaciones, incluidas declaraciones de desarrolladores sobre si permiten que los agentes las invoquen."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El texto y su publicación no establecen una fecha de aplicación, normas finalizadas, acciones de fiscalización, cantidad de dispositivos afectados, nivel de cumplimiento ni resultados medidos de seguridad, mercado o economía."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El catálogo de la Administración Estatal para la Regulación del Mercado lista GB/Z 185.2-2026 (Parte 2: Código de identidad) y GB/Z 185.3-2026 (Parte 3: Gestión de identidad) como documentos guía vigentes, ambos publicados el 22 de mayo de 2026. El catálogo lista las Partes 8 (Auditoría de agentes) y 9 (Transacciones de agentes) como proyectos en elaboración."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Aunque el aviso remite a la serie de normas de interconexión de agentes y el catálogo lista guías vigentes sobre código y gestión de identidad, esta consulta no revisó el texto normativo completo ni determinó cómo se vincula el código de identidad del agente con la identidad del terminal, o cómo se prueba o implementa.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El propio aviso no incluye datos de cumplimiento, fiscalización, cobertura de mercado ni resultados para la seguridad de las personas usuarias.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se aplica, el aviso podría influir en las pruebas de compatibilidad, el acceso a redes, las actualizaciones en servicio y la distribución de aplicaciones para teléfonos, tabletas y dispositivos ponibles con agentes en China. Aún no se han medido su aplicación ni sus efectos de mercado.",
+      "limitations": [
+        "El aviso se emitió el 24 de octubre y se publicó el 6 de noviembre; la fecha de publicación en línea es el evento de divulgación pública registrado aquí.",
+        "Se examinaron directamente el aviso y el catálogo nacional de normas, pero en esta consulta acotada no se revisó el texto normativo completo de GB/Z 185.2-2026 y GB/Z 185.3-2026, su correspondencia con identidades de terminales, las normas de implementación, registros de fiscalización, medidas de cumplimiento, inventarios de dispositivos ni estudios de resultados.",
+        "No se infiere que el aviso ya haya cambiado el comportamiento de los dispositivos, la distribución de aplicaciones o la seguridad de las personas usuarias."
+      ],
+      "relationships": [],
+      "summary": "El Ministerio de Industria y Tecnología de la Información de China publicó el 6 de noviembre el aviso 工信厅信管〔2026〕42号, fechado el 24 de octubre. Abarca agentes preinstalados en teléfonos, tabletas y dispositivos ponibles. El texto pide verificar la compatibilidad y publicar listas de dispositivos compatibles; evaluar riesgos en las pruebas de acceso a redes; presentar planes y obtener revisión ministerial para actualizaciones inalámbricas en servicio; y aplicar controles de distribución de aplicaciones, incluidas declaraciones sobre si se permite que los agentes invoquen aplicaciones. El aviso también remite a la serie nacional de normas de interconexión de agentes: el catálogo de SAMR lista GB/Z 185.2-2026 (código de identidad) y GB/Z 185.3-2026 (gestión de identidad) como documentos guía vigentes, mientras que las Partes 8 (auditoría) y 9 (transacciones) siguen como proyectos en elaboración. Esto confirma la publicación de documentos y su estado en el catálogo, no su implementación, fiscalización ni resultados.",
+      "technical": {
+        "claimed_result": "El aviso oficial establece requisitos y procedimientos para compatibilidad, acceso a redes, actualizaciones en servicio y distribución de aplicaciones en terminales con agentes. No mide efectos en el mundo real.",
+        "demonstrated_result": "Se examinó directamente el aviso original en chino y sus metadatos de emisión y publicación.",
+        "mechanism": "El aviso establece verificación de compatibilidad y listas públicas de dispositivos y sistemas operativos; pruebas de acceso a redes y de riesgo de fraude relacionadas con agentes; presentación anticipada y revisión ministerial posterior de actualizaciones inalámbricas en servicio; y controles de distribución de aplicaciones, declaraciones de desarrolladores y publicación de compatibilidad. La serie citada ya incluye documentos guía vigentes sobre código y gestión de identidad de agentes; en el catálogo SAMR, las partes separadas sobre auditoría y transacciones aún están en elaboración.",
+        "regime": "Terminales de telecomunicaciones en China con agentes preinstalados, incluidos teléfonos, tabletas y dispositivos ponibles. El aviso lleva fecha 2026-10-24 y se publicó en línea el 2026-11-06. SAMR lista GB/Z 185.2-2026 y GB/Z 185.3-2026 como vigentes, ambas publicadas el 2026-05-22; no se revisó el texto completo.",
+        "reproducibility": "No aplica a la afirmación sobre el contenido del documento de política; la implementación y sus resultados siguen sin verificarse.",
+        "strongest_baseline": "El aviso de MIIT y el catálogo de normas de SAMR son fuentes primarias para el texto publicado y el estado catalogado de las normas citadas. Ninguna demuestra su implementación o sus efectos."
+      },
+      "title": "China regula el acceso a la red y la distribución de terminales con agentes preinstalados",
+      "why_it_matters": "El aviso vincula la compatibilidad de terminales, las pruebas de acceso a redes, los procedimientos de actualización y el consentimiento para distribuir aplicaciones con las normas de interconexión de agentes ya publicadas en China. GB/Z 185.2-2026 y GB/Z 185.3-2026 figuran como guías vigentes sobre códigos y gestión de identidad; las partes sobre auditoría y transacciones aún aparecen en elaboración. No se han establecido la cobertura real de dispositivos, la fiscalización ni sus efectos."
     },
     "FCMO-13F455C3307C": {
       "claims": [
@@ -8248,6 +8356,57 @@
       "title": "OpenAI anuncia protecciones ampliadas contra la violencia e informes periódicos de seguridad comunitaria",
       "why_it_matters": "Los nuevos límites podrían ampliar las protecciones existentes para adolescentes al restringir información práctica sobre armas y sistemas de seguridad incluso sin señales de intención violenta; las intervenciones según el contexto también sumarían límites para otras personas. Materiales anteriores de OpenAI describen la estimación de edad y una vía de verificación para adultos, pero no informan tasas de error medidas. El compromiso de publicar informes podría mejorar la rendición de cuentas; el primer informe y la evidencia independiente de resultados siguen pendientes."
     },
+    "FCMO-27263B4900E6": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El 6 de noviembre de 2026, Insilico Medicine anunció el lanzamiento de código abierto de Longevity Grok / Personal Longevity Superintelligence, desarrollado para la plataforma Grok Bot."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La empresa describe un sistema multiagente para organizar historiales longitudinales de salud, predecir cambios en biomarcadores tras intervenciones propuestas de estilo de vida, puntuar resultados de seguimiento, ofrecer contexto estructurado a médicos y apoyar investigación colaborativa sobre envejecimiento con participación voluntaria. Indica que coordina hasta 30 agentes especializados."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El comunicado afirma que el diagnóstico formal y las recetas siguen exclusivamente a cargo de profesionales médicos con licencia, y describe el aporte voluntario a investigación de trayectorias consentidas y desidentificadas. Esta revisión no auditó técnicamente esas salvaguardas ni los flujos de datos."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El comunicado no demuestra beneficio clínico, precisión predictiva calibrada, mejores resultados de salud, controles eficaces de privacidad o seguridad, ni prolongación de la vida."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación no se fijó ni auditó el repositorio de lanzamiento, ni se ejecutó la instalación publicada.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "No se midieron de forma independiente la calibración predictiva, los efectos de las intervenciones, los resultados clínicos ni los controles de privacidad.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el seguimiento de estados de salud, las predicciones y la retroalimentación del sistema anunciado funcionan como se describen, un agente público de salud personal podría cambiar cómo las personas organizan historiales longitudinales y evalúan intervenciones de estilo de vida. El comunicado no establece calidad predictiva, beneficio clínico, resguardos de privacidad ni seguridad de uso.",
+      "limitations": [
+        "En esta activación no se probaron de manera independiente las funciones descritas por la empresa.",
+        "El comunicado no establece beneficio clínico, calibración predictiva ni resultados de intervenciones.",
+        "No se verificaron en código ni en funcionamiento los controles de privacidad, consentimiento, desidentificación o eliminación de datos de salud.",
+        "El comunicado describe el despliegue mediante Grok Bot; no establece que todos los datos de salud permanezcan únicamente en el dispositivo del usuario."
+      ],
+      "relationships": [],
+      "summary": "Insilico Medicine anunció Longevity Grok / Personal Longevity Superintelligence, un sistema para Grok Bot que, según la empresa, organiza historiales personales de salud, sigue biomarcadores, propone intervenciones de estilo de vida y evalúa resultados posteriores. También describe funciones de apoyo médico e investigación colaborativa opcional sobre envejecimiento. Son capacidades anunciadas por la empresa; esta revisión no probó el sistema, auditó el manejo de datos de salud ni estableció beneficio clínico.",
+      "technical": {
+        "claimed_result": "Insilico afirma que el sistema coordina hasta 30 agentes especializados, genera fichas de predicción con biomarcador objetivo, intervalo de confianza, horizonte temporal y grado de evidencia, y puntúa mediciones de seguimiento. Son capacidades informadas por la empresa, no resultados probados de manera independiente.",
+        "demonstrated_result": "El comunicado primario confirma que Insilico anunció el producto y describió públicamente estas funciones previstas. En esta activación no se demostró el funcionamiento del sistema ni resultados de salud.",
+        "mechanism": "El comunicado describe un flujo multiagente alojado en Grok Bot que estandariza historiales de salud personales, mantiene una trayectoria longitudinal, pronostica riesgos, propone intervenciones y compara mediciones posteriores de biomarcadores con rangos previstos. También describe funciones de asistente personal, apoyo médico e investigación colectiva.",
+        "regime": "Anuncio de un sistema de salud personal e investigación sobre envejecimiento desarrollado para Grok Bot. El comunicado menciona análisis de laboratorio, dispositivos portátiles y otros datos personales de salud, apoyo de contexto para médicos y aporte voluntario de trayectorias consentidas y desidentificadas. No establece pruebas con usuarios, contexto clínico, resultados de despliegue ni controles operativos de privacidad.",
+        "strongest_baseline": "El comunicado no presenta un sistema comparativo, grupo de control ni rendimiento predictivo de referencia."
+      },
+      "title": "Insilico lanza Longevity Grok para integrar datos de salud longitudinales",
+      "why_it_matters": "Un agente personal que combine historiales longitudinales con predicciones de cambios en biomarcadores podría influir en cómo las personas interpretan y usan información de salud. El lanzamiento es relevante, pero siguen sin verificarse la calidad de las predicciones, la utilidad clínica, la seguridad para usuarios y el manejo de datos sensibles."
+    },
     "FCMO-2798A041C85B": {
       "claims": [
         {
@@ -10842,6 +11001,72 @@
       "title": "Un preprint propone auditar por caja negra la inflación no declarada de tokens de salida en servicios LLM",
       "why_it_matters": "Si se reproduce de forma independiente, una auditoría de caja negra que detecte cambios en la longitud de salida más allá de la variación habitual del servicio podría ayudar a evaluar APIs opacas con cobro por token. Las siete señales entre 15 servicios justifican seguimiento, pero no demuestran conducta indebida; el trabajo es un solo preprint y su muestra no estima prevalencia."
     },
+    "FCMO-331D82B21ADC": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Un artículo de arXiv del 5 de noviembre de 2026 describe la auditoría de Terminal-Bench 2.0 y la publicación de Terminal-Bench 2.1. El repositorio público de Harbor enlazado contiene directorios de tareas, configuraciones y tabla de posiciones, y muestra una licencia Apache-2.0."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que su auditoría identificó defectos que requerían reparación en 28 tareas de Terminal-Bench 2.0, cerca de un tercio del benchmark, incluidas 14 que, según afirman, su proceso detectó por primera vez. Informan que, tras las reparaciones, la exactitud aumentó más de 10 puntos porcentuales, algunas posiciones de la tabla cambiaron hasta tres lugares y la correlación de rangos entre 19 agentes fue rho de Spearman 0.958."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que más de la mitad de los intentos fallidos de Terminal-Bench terminaron por tiempo agotado con los presupuestos predeterminados. En un análisis con más tiempo, ampliar los límites de ejecución redujo sustancialmente algunas diferencias entre andamiajes con presupuesto fijo, incluida una brecha reportada de cerca de 20 puntos porcentuales para GPT-5.4 y una reducción de 30 a 5 puntos para GPT-5.4 mini. Estos resultados dependen de las configuraciones específicas de andamiaje, tareas y modelos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan una precisión de 57.1% y una recuperación de 71.4% para su flujo de auditoría frente a las reparaciones finales de TB2.1, pero señalan que el flujo contribuyó a construir ese conjunto; estas son métricas retrospectivas de concordancia, no estimaciones independientes de detección de defectos. En otra muestra de 34 tareas de Harbor-Index, informan 12 defectos confirmados entre 14 casos señalados; la revisión manual también detectó defectos que el flujo omitió."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo y el README del repositorio no informan el mismo número de tareas: el artículo dice que se detectaron problemas o se requirieron reparaciones en 28 tareas, mientras que el README actual del repositorio dice que se modificaron 26. Esta revisión no concilió las cifras ni reprodujo de forma independiente las reparaciones y comparaciones entre modelos."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los resultados no establecen con qué frecuencia los benchmarks de agentes contienen defectos en general, ni aíslan la capacidad del modelo de los efectos del andamiaje, el entorno y los recursos más allá de las pruebas descritas para Terminal-Bench y la muestra de 34 tareas de Harbor-Index."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se han conciliado tarea por tarea las 28 reparaciones del artículo con la afirmación del README de que se modificaron 26 tareas.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "Ningún equipo independiente ha reproducido las reparaciones del benchmark ni los resultados sobre sensibilidad a los recursos.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La precisión de 57.1% y la recuperación de 71.4% reportadas para el flujo se comparan con un conjunto de reparaciones en cuya construcción participó el propio flujo, no con una muestra independiente.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproducen, los resultados muestran que defectos y presupuestos elegidos en un benchmark destacado de agentes de programación pueden cambiar las puntuaciones absolutas y algunas posiciones relativas. Esto puede modificar cómo se comparan las afirmaciones de capacidad de agentes y la infraestructura de evaluación, pero no demuestra una tasa general de defectos en todos los benchmarks.",
+      "limitations": [
+        "Los resultados provienen de una auditoría dirigida por los autores de Terminal-Bench 2.0 y una muestra de 34 tareas de Harbor-Index; ninguna establece la prevalencia de defectos en todos los benchmarks.",
+        "La precisión y la recuperación reportadas para el flujo son retrospectivas porque el propio flujo contribuyó a construir el conjunto final de reparaciones; la concordancia no es una medida independiente de detección.",
+        "El artículo informa 28 tareas con problemas o que requerían reparación; el README actual del repositorio enlazado dice que se modificaron 26. Esta diferencia no se ha resuelto.",
+        "En esta activación no se reprodujeron de forma independiente las tareas ni las puntuaciones.",
+        "Terminal-Bench 2.1 está disponible públicamente, pero la existencia del artefacto no valida por sí misma las puntuaciones de modelos ni las conclusiones de la auditoría."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de arXiv del 5 de noviembre describe un flujo de auditoría continua y la actualización Terminal-Bench 2.1 de Terminal-Bench 2.0. Los autores informan defectos que requerían reparación en 28 tareas, aumentos de exactitud superiores a 10 puntos porcentuales, cambios de hasta tres posiciones y una correlación de rangos de 0.958 entre 19 agentes; también dicen que más tiempo redujo algunas diferencias entre andamiajes con presupuesto fijo. La auditoría combina archivos de tareas, trazas de ejecución, informes comunitarios, verificaciones automatizadas y reparaciones revisadas por mantenedores. Las métricas de precisión y recuperación del flujo son retrospectivas porque este contribuyó a construir el conjunto de reparaciones. El repositorio público enlazado está disponible y muestra una licencia Apache-2.0, pero su README dice que se modificaron 26 tareas, cifra distinta de las 28 indicadas por el artículo. Los resultados son afirmaciones de los autores y aquí no se reprodujeron de forma independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan defectos que requerían reparación en 28 tareas de Terminal-Bench 2.0, un aumento de más de 10 puntos porcentuales en la exactitud total, cambios de hasta tres posiciones y rho de Spearman 0.958 entre 19 agentes evaluados. Informan que más de la mitad de los intentos fallidos agotaron el tiempo predeterminado y que extender los límites redujo algunas diferencias entre andamiajes seleccionados.",
+        "demonstrated_result": "El artículo de arXiv y el flujo de trabajo, los resultados descritos y sus límites pueden inspeccionarse directamente; el repositorio público enlazado de Harbor incluye un árbol de tareas, configuración y tabla de posiciones de Terminal-Bench 2.1, configuración y tabla de posiciones y muestra licencia Apache-2.0. En esta activación no se reprodujeron puntuaciones ni se validaron reparaciones.",
+        "mechanism": "Un agente recopilador reúne materiales estáticos de las tareas, trazas de ejecución e informes comunitarios; un auditor asigna categorías de defecto respaldadas por evidencia y propone reparaciones; un verificador independiente comprueba la evidencia y ejecuta la solución de referencia; la revisión de los mantenedores autoriza los cambios finales. El artículo clasifica desajustes entre instrucción y verificación, deriva de tareas y problemas del entorno o de recursos.",
+        "regime": "Auditoría de Terminal-Bench 2.0: 89 tareas, 28 reportadas como necesitadas de reparación y evaluación de 19 configuraciones de agentes. El análisis de recursos amplió los límites de tiempo de pared hasta 32 veces el valor predeterminado para un subconjunto. El estudio de validez externa revisó manualmente 34 tareas de una instantánea de 80 de Harbor-Index. Los resultados cuantitativos fueron reportados por los autores.",
+        "reproducibility": "El artículo enlaza un repositorio público, revisiones de tareas y debates de apoyo; el README del repositorio dice que se modificaron 26 tareas, mientras que el artículo informa problemas o reparaciones en 28. En esta revisión no se compararon las cifras tarea por tarea ni se reprodujeron las tareas.",
+        "strongest_baseline": "Terminal-Bench 2.0 bajo el protocolo predeterminado es la comparación directa por versión; el artículo también compara andamiajes seleccionados con el tiempo estándar y con límites ampliados. Las comparaciones se limitan a los agentes, tareas, versiones y presupuestos de recursos probados."
+      },
+      "title": "Auditoría de Terminal-Bench informa defectos y efectos del presupuesto que cambian las puntuaciones de agentes",
+      "why_it_matters": "Si se reproducen, los hallazgos muestran que defectos en benchmarks ejecutables y límites de tiempo elegidos pueden cambiar las puntuaciones reportadas de agentes y algunas conclusiones sobre sus posiciones. El artículo presenta el mantenimiento de benchmarks como un problema continuo de medición. Sus propias métricas son parcialmente retrospectivas y el README del repositorio enlazado informa 26 tareas modificadas frente a las 28 del artículo. Antes de aceptar los cambios de puntuación como establecidos, hacen falta comprobaciones independientes por tarea."
+    },
     "FCMO-339365DC7ACA": {
       "claims": [
         {
@@ -12896,6 +13121,58 @@
       },
       "title": "Un flujo estructurado redujo los falsos positivos al calificar pruebas matemáticas de nivel investigador, aunque su generalidad sigue sin comprobarse",
       "why_it_matters": "Cuando los resultados científicos generados con IA llegan más rápido de lo que las personas expertas pueden comprobarlos, aceptar errores puede convertirse en un cuello de botella. Este estudio informa que separar el análisis de las pruebas y del código, y luego comparar ambos resúmenes, redujo los veredictos Correct erróneos de un modelo en un reto de matemáticas de nivel investigador. La concordancia en pruebas apenas cambió; además, hubo una sola persona como referencia y un único reto. Es un método de evaluación prometedor que merece probarse, no evidencia de que la IA ya pueda verificar pruebas de investigación con fiabilidad en distintos campos."
+    },
+    "FCMO-3E0E2978B7AD": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Mistral publicó la documentación de Managed Agents y marcó el SDK de Agents y el servicio administrado como vista previa pública el 5 de noviembre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La documentación de Mistral describe sesiones persistentes que pueden continuar aunque se cierre la aplicación cliente, reanudarse tras una falla del trabajador desde la última llamada completada al modelo o a una herramienta, y esperar aprobación aunque la aplicación esté cerrada. Indica límites predeterminados de 24 horas totales por sesión, 4 horas de inactividad y una hora para una espera de aprobación; se pueden configurar límites mayores."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Mistral documenta un SDK de Python con tres modos de ejecución: desarrollo dentro del proceso, trabajadores autogestionados mediante agents serve y trabajadores administrados por Mistral mediante agents deploy. En los modos desplegados, Mistral guarda el estado de la sesión; el entorno de ejecución y las herramientas pueden operar en servidores del usuario o en infraestructura de Mistral."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El anuncio y la documentación no establecen de forma independiente la fiabilidad de la recuperación tras fallas, la disponibilidad, el aislamiento, la seguridad, la adopción en producción ni mejores resultados de tareas con agentes."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se han probado de forma independiente la reanudación durable, la persistencia de sesiones, el vencimiento de aprobaciones ni el comportamiento de los trabajadores.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La documentación de vista previa no establece la disponibilidad del servicio, su fiabilidad en producción, los límites de carga más allá de los valores predeterminados ni los costos operativos comparativos.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si la recuperación de sesiones y las pausas para aprobación funcionan como se documenta, cambian las decisiones de implementación de equipos que despliegan agentes de larga duración con herramientas, al trasladar la persistencia de sesiones y la orquestación a un SDK o servicio compartido. Es una opción de diseño relevante para el entorno de ejecución; no demuestra fiabilidad ni mejores resultados de las tareas.",
+      "limitations": [
+        "Managed Agents y el SDK están expresamente en vista previa pública; su API, comportamiento y límites pueden cambiar.",
+        "La recuperación tras fallas y la espera de aprobación están descritas por el proveedor, pero no se probaron de forma independiente.",
+        "Los valores predeterminados documentados son 24 horas totales, 4 horas de inactividad y una hora de espera de aprobación, con opción de ampliarlos; no se verificaron los límites configurados ni el acceso de una cuenta.",
+        "No hay evidencia independiente de seguridad, disponibilidad, adopción por clientes o mejora en el éxito de tareas."
+      ],
+      "relationships": [],
+      "summary": "El 5 de noviembre, Mistral presentó Managed Agents y su SDK de Python en vista previa pública. La documentación dice que el servicio guarda las sesiones de agentes desplegados, permite la ejecución en segundo plano y las pausas para aprobación, y que, tras una falla del trabajador, la tarea continúa desde la última llamada al modelo o herramienta completada. El mismo agente puede ejecutarse dentro del proceso, con un trabajador autogestionado o en la infraestructura de Mistral. La documentación fija valores predeterminados de 24 horas por sesión, cuatro horas de inactividad y una hora de espera de aprobación; se pueden configurar límites mayores. Son capacidades descritas por el proveedor; aquí no se verificó el servicio ni un resultado de producción.",
+      "technical": {
+        "claimed_result": "Mistral afirma que los agentes desplegados pueden funcionar durante horas o días, seguir aunque se cierre la aplicación cliente, reanudarse tras una falla del trabajador desde la última llamada completada al modelo o herramienta y esperar la aprobación de una persona. Los valores predeterminados de la vista previa pública son 24 horas por sesión, 4 horas de inactividad y 1 hora de espera de aprobación; la documentación dice que los límites pueden aumentarse.",
+        "demonstrated_result": "La nota oficial de lanzamiento y la documentación establecen el anuncio fechado de la vista previa pública, la descripción publicada del SDK y del entorno de ejecución, los modos de despliegue y los límites predeterminados. No demuestran de forma independiente la fiabilidad del entorno.",
+        "mechanism": "El SDK de Agents ejecuta el ciclo de modelo y herramientas y registra los pasos en sesiones. En los modos desplegados, Mistral conserva el estado de la sesión separado del proceso cliente. El entorno de ejecución puede funcionar en servidores del usuario o como despliegue administrado por Mistral; también se documentan un entorno aislado opcional por sesión, puertas de aprobación, trazas y conectores.",
+        "regime": "SDK de Python para agentes y despliegue de Studio en vista previa pública, anunciado el 5 de noviembre de 2026. La documentación describe desarrollo en proceso, modo autogestionado con agents serve y modo administrado por Mistral con agents deploy. Los valores predeterminados de sesión y aprobación son los publicados por el proveedor; no se probaron la configuración de una cuenta ni su disponibilidad.",
+        "reproducibility": "La documentación pública ofrece ejemplos de configuración y describe el flujo de trabajo, pero esta revisión no ejecutó el SDK, no provocó fallas ni verificó la persistencia del estado o el comportamiento de las aprobaciones.",
+        "strongest_baseline": "El proveedor describe la ejecución dentro del proceso como modo de desarrollo: a diferencia de los modos desplegados, su sesión reside en el proceso de la aplicación y termina con él. No se realizó una comparación operativa equivalente."
+      },
+      "title": "Mistral presenta Managed Agents en vista previa con recuperación tras reinicios y pausas para aprobación",
+      "why_it_matters": "Los agentes que usan herramientas durante periodos largos necesitan estado persistente, límites claros de recuperación y aprobaciones humanas que sigan disponibles aunque se cierre el proceso cliente. La documentación de vista previa de Mistral describe esas funciones en un SDK que opera en modos autogestionados y alojados. Si funcionan según lo descrito, podrían reducir el trabajo de orquestación propio; todavía hacen falta pruebas independientes de fiabilidad, seguridad y resultados de las tareas."
     },
     "FCMO-3EDD9970EBF4": {
       "claims": [
@@ -23494,6 +23771,58 @@
       "title": "DRYLAB-Bench informa puntuaciones de riesgo de bioseguridad basadas en ensayos en evaluaciones de modelos con herramientas",
       "why_it_matters": "Si los resultados acotados a ensayos se replican, esta evaluación ampliaría las pruebas de bioseguridad más allá del conocimiento y el rechazo para medir empíricamente diseños propuestos por modelos y flujos con herramientas. Esto podría cambiar cómo los desarrolladores evalúan el acceso a herramientas de diseño computacional. Los resultados de ensayos de sustitución individual no demuestran efectos en organismos ni una amenaza operativa."
     },
+    "FCMO-6F6BE23148A8": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La Administración del Ciberespacio de China publicó el 6 de noviembre de 2026 un aviso sobre medidas contra la suplantación de figuras públicas mediante IA para promover comercio engañoso, crear rumores, atraer seguidores y otros fines promocionales."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El aviso de la CAC afirma que las plataformas retiraron más de 47,000 contenidos y atendieron 3,961 cuentas en las acciones descritas. No indica el periodo ni el denominador de esos totales, que tampoco han sido auditados de forma independiente."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El aviso no establece la prevalencia de la suplantación con IA, la proporción de casos pertinentes que se retiró, la uniformidad de la implementación entre plataformas, una reducción del daño ni un nuevo requisito técnico vinculante."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El informe ofrece cifras agregadas sin periodo ni denominador, lo que limita la interpretación de la escala de las acciones.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Las cifras y la implementación son reportes regulatorios sin auditoría independiente, línea base ni resultados de prevalencia.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los totales informados por el regulador reflejan las acciones descritas, el aviso aporta una señal concreta, aunque no auditada, de medidas de plataformas contra la suplantación con IA usada para promoción engañosa y desinformación. No mide una reducción de prevalencia ni establece un nuevo control técnico.",
+      "limitations": [
+        "Las cifras las reporta el regulador y no indican periodo ni denominador.",
+        "El aviso no aporta auditoría independiente, línea base, detalles de implementación por plataforma ni una reducción medida de la suplantación.",
+        "Se trata de un informe de medidas de cumplimiento, no de evidencia de una nueva norma vinculante de IA ni de eficacia demostrada de las plataformas."
+      ],
+      "relationships": [
+        {
+          "target_id": "FCMO-AE4A8F5C95B5",
+          "type": "related"
+        }
+      ],
+      "summary": "El 6 de noviembre, la Administración del Ciberespacio de China informó que las plataformas habían retirado más de 47,000 contenidos y atendido 3,961 cuentas en casos de suplantación de figuras públicas mediante IA. El aviso describe comercio engañoso, rumores fabricados, captación de seguidores y representaciones sintéticas. Son cifras reportadas por el regulador, sin periodo ni denominador; el aviso no demuestra eficacia, una reducción de prevalencia, verificación independiente ni un nuevo requisito técnico.",
+      "technical": {
+        "claimed_result": "La CAC afirma que las plataformas retiraron más de 47,000 contenidos y atendieron 3,961 cuentas en los casos descritos de suplantación mediante IA.",
+        "demonstrated_result": "El aviso oficial chino accesible confirma que la CAC publicó el informe y describió estas acciones; sus cifras administrativas siguen siendo afirmaciones no auditadas.",
+        "mechanism": "El aviso señala que la CAC pidió a las plataformas realizar una depuración concentrada, retirar contenidos y cuentas ilegales o incumplidoras, y reforzar su responsabilidad. Ofrece ejemplos, pero no un control técnico detallado ni un protocolo de auditoría.",
+        "regime": "Un aviso de la CAC publicado el 6 de noviembre de 2026 sobre suplantación de figuras públicas mediante IA para comercio engañoso, creación de rumores, captación de seguidores y representaciones sintéticas. No se indica el periodo ni el denominador de los casos.",
+        "reproducibility": "En esta activación no se localizó una auditoría independiente ni datos corroborantes por plataforma.",
+        "strongest_baseline": "El aviso no proporciona línea base, denominador, periodo de reporte ni medida de prevalencia antes y después."
+      },
+      "title": "La CAC de China informa de acciones de plataformas contra la suplantación de figuras públicas con IA",
+      "why_it_matters": "El aviso ofrece una señal reciente y concreta de acciones contra el uso indebido de imágenes y voces sintéticas. Sus cifras agregadas pueden orientar el seguimiento de las respuestas de las plataformas, pero, sin periodo, denominador, auditoría ni línea base, no indican cuán frecuente es la conducta ni si las medidas redujeron su prevalencia."
+    },
     "FCMO-7005EE35D313": {
       "claims": [
         {
@@ -33478,6 +33807,14 @@
         {
           "label": "NOT_ESTABLISHED",
           "text": "El lanzamiento no establece calidad en cargas de trabajo independientes ni costos efectivamente facturados. Google identifica como limitaciones pendientes la acción deportiva rápida, los cambios rápidos de guion y la física compleja."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La ficha del modelo de Google dice que Omni 1.2 Flash puede cambiar el habla de las personas al editar video, pero que esta capacidad está restringida por ahora mientras Google evalúa cómo ofrecerla de forma segura. No se hizo una prueba directa de esa capacidad."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Google dice que su evaluación de seguridad de frontera para Omni 1.2 Flash se basa en evaluaciones de Gemini 3.1 Pro y Gemini 3.7 Flash, que según la empresa no alcanzaron niveles de capacidad vigilados ni críticos; sostiene que Omni 1.2 Flash no agrega capacidades relevantes ni aumentos materiales de rendimiento frente a esos modelos. Es la evaluación de Google, no una evaluación independiente de Omni 1.2 Flash."
         }
       ],
       "contradictory_evidence": [],
@@ -33491,22 +33828,28 @@
           "description": "El anuncio publica una tarifa por segundo, pero no compara facturación real, latencia o número de iteraciones.",
           "kind": "other",
           "state": "open"
+        },
+        {
+          "description": "La ficha del modelo informa que la edición de video puede modificar el habla y que esa capacidad está restringida por ahora, pero no se inspeccionó una prueba independiente ni detalles operativos de la restricción.",
+          "kind": "missing_independent",
+          "state": "open"
         }
       ],
       "importance_rationale": "Si se mantienen el lanzamiento anunciado y el cambio de precio, un modelo de video multimodal disponible de forma general, con generación nativa de 15 segundos, edición conversacional y una reducción de precio declarada de 30%, puede cambiar las opciones de producto y costo para flujos de video. Esta consecuencia no valida las mejoras de calidad que informa el proveedor.",
       "limitations": [
         "El lanzamiento es un anuncio del proveedor; sus afirmaciones de calidad, consistencia y eficiencia de flujo no se validaron de forma independiente.",
         "La tarifa de $0.07/sec es un precio publicado, no una medición del costo total por clip exitoso ni una comparación de facturación real.",
-        "Google identifica la acción deportiva rápida, los cambios rápidos de guion y la física compleja como limitaciones aún pendientes."
+        "Google identifica la acción deportiva rápida, los cambios rápidos de guion y la física compleja como limitaciones aún pendientes.",
+        "La ficha de Google afirma que el editor de video puede cambiar el habla de las personas y que esa capacidad está restringida por ahora; la restricción no se probó de forma independiente. La evaluación de seguridad de frontera se infiere a partir de pruebas de otros modelos."
       ],
       "relationships": [],
-      "summary": "Google anunció Gemini Omni 1.2 Flash el 5 de noviembre de 2026 e indica que ya está disponible de forma general mediante Gemini API y Gemini for business. Google informa generación y edición de video nativas de hasta 15 segundos, frente a 10 segundos con Omni 1.1; edición conversacional en varios turnos; y una reducción de precio de 30%, hasta $0.07 por segundo para generación 720p. También afirma que mejoraron la adherencia a referencias y la consistencia, pero el anuncio no incluye una comparación independiente. El lanzamiento identifica limitaciones pendientes en acción deportiva rápida, cambios rápidos de guion y física compleja; los costos facturados y la calidad en cargas de trabajo independientes siguen sin establecerse.",
+      "summary": "Google anunció Gemini Omni 1.2 Flash el 5 de noviembre de 2026 e indica que ya está disponible de forma general mediante Gemini API y Gemini for business. Google informa generación y edición de video nativas de hasta 15 segundos, frente a 10 segundos con Omni 1.1; edición conversacional en varios turnos; y una reducción de precio de 30%, hasta $0.07 por segundo para generación 720p. También afirma que mejoraron la adherencia a referencias y la consistencia, pero el anuncio no incluye una comparación independiente. El lanzamiento identifica limitaciones pendientes en acción deportiva rápida, cambios rápidos de guion y física compleja; los costos facturados y la calidad en cargas de trabajo independientes siguen sin establecerse. La ficha de Google también dice que el editor puede cambiar el habla de las personas, pero que esta capacidad está restringida por ahora mientras evalúa cómo ofrecerla de forma segura. Su evaluación de seguridad de frontera se basa en pruebas de otros modelos; ninguna de estas dos afirmaciones se probó de forma independiente.",
       "technical": {
-        "claimed_result": "Google informa generación y edición de video nativas de hasta 15 segundos, mejor adherencia a referencias y edición conversacional en varios turnos. Publica $0.07 por segundo para video 720p, 30% por debajo del precio anterior. Son declaraciones del proveedor; la calidad no se midió de forma independiente.",
+        "claimed_result": "Google informa generación y edición de video nativas de hasta 15 segundos, mejor adherencia a referencias y edición conversacional en varios turnos. Publica $0.07 por segundo para video 720p, 30% por debajo del precio anterior. Son declaraciones del proveedor; la calidad no se midió de forma independiente. La ficha del modelo también informa una capacidad actualmente restringida para cambiar el habla durante la edición de video y señala que la evaluación de seguridad de frontera se basa en pruebas de Gemini 3.1 Pro y 3.7 Flash.",
         "demonstrated_result": "El anuncio fechado el 5 de noviembre de 2026 afirma disponibilidad general mediante Gemini API y Gemini for business, un límite de 15 segundos frente a 10 segundos para Omni 1.1 y una tarifa publicada de $0.07/sec para 720p.",
         "mechanism": "El lanzamiento describe generación nativa de video de 15 segundos, edición de clips conversacional en varios turnos y mejor condicionamiento con imágenes de referencia, clips de movimiento y señales de audio.",
         "regime": "Anuncio de Google y despliegue de producto descrito por el proveedor; la tarifa 720p publicada es $0.07 por segundo. No se verificó acceso por región, no se ejecutó el modelo ni se observó facturación real.",
-        "reproducibility": "El anuncio y la oferta publicada pueden inspeccionarse directamente. No se hizo una evaluación independiente, comparación controlada ni llamada API.",
+        "reproducibility": "El anuncio y la oferta publicada pueden inspeccionarse directamente. No se hizo una evaluación independiente, comparación controlada ni llamada API. Tampoco se probaron de forma independiente las afirmaciones de la ficha sobre edición del habla, su restricción y la evaluación de seguridad de frontera basada en otros modelos.",
         "strongest_baseline": "Google compara la duración nativa máxima con Omni 1.1 (15 segundos frente a 10 segundos) e informa una reducción de precio de 30%. No se obtuvo una línea base independiente de calidad o costo facturado."
       },
       "title": "Google lanza Gemini Omni 1.2 Flash con video de 15 segundos y edición conversacional",
@@ -33641,6 +33984,73 @@
       },
       "title": "Cache-to-Cache informa una comunicación más rápida entre modelos mediante transferencia directa de KV cache",
       "why_it_matters": "C2C usa el estado interno de un modelo como medio de comunicación en vez de convertirlo en texto legible. Si las mejoras informadas se transfieren, los sistemas multimodelo podrían evitar demoras de decodificación secuencial y transferir información que se pierde en los traspasos de texto. El diseño también crea un canal menos inspeccionable y requiere alinear y fusionar representaciones; los resultados se limitan a pruebas específicas y el costo de entrenamiento por pares sigue siendo un obstáculo de escala."
+    },
+    "FCMO-A2007FB5E4E4": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Anthropic publicó el 6 de noviembre de 2026 un artículo de ingeniería que describe una jerarquía de memoria: los agentes conservan registros de sesiones y notas, crean representaciones enlazadas y usan procesos offline de “soñar” para revisar, corregir o promover recuerdos entre sesiones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una tarea de base de datos de CL-Bench, Anthropic informa que la memoria persistente elevó la recompensa media de Opus 4.7 de 0.383 a 0.700, de Opus 5 de 0.564 a 0.828 y de Opus 5.5 de 0.655 a 0.838; Sonnet 5.5 obtuvo 0.833 con memoria frente a 0.644 sin ella. Son resultados del proveedor para la tarea descrita."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una sola partida de Pokémon Red, Anthropic informa que un proceso offline cotejó una nota de ubicación errónea con la transcripción, la corrigió y permitió que el agente llegara a Ciudad Celeste; con la nota sin corregir, el agente retrocedió varias veces y no llegó a la ciudad."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 128 sesiones secuenciales de creación de memoria sobre un corpus interno de 350,000 archivos y unos 420 millones de tokens, Anthropic informa que una wiki de Opus 5 elevó del 13% al 48% los criterios cumplidos en 25 preguntas. Con búsqueda y la wiki en crecimiento, el resultado agregado subió de 54% a 61%, frente a 53% con búsqueda sola, y se ahorraron unos 20,000 tokens por pregunta. La muestra y la evaluación son internas y acotadas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una tarea jurídica centrada en contratos, Anthropic informa que cambiar de resúmenes concurrentes en una tabla compartida a páginas separadas con términos literales elevó los criterios cumplidos de 41/57 (72%) a 57/57 (100%); ilustra un mecanismo específico de pérdida de información, no un desempeño jurídico general."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que estos mecanismos de memoria mejoren la fiabilidad o los resultados en sistemas independientes, organizaciones, tareas o despliegues de larga duración. Describe casos en que las wikis no aportaron una mejora clara o superaron el tamaño de sus documentos fuente, y reconoce riesgos pendientes por memoria obsoleta o errónea y por el cómputo de mantenimiento."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de CL-Bench, Pokémon y los corpus documentales son informes del proveedor y nadie los ha reproducido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "No se ha establecido el desempeño más allá de tareas selectas de benchmark y un corpus interno de una empresa.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "No se cuantifican de forma integral el costo de mantenimiento, la tasa de recuerdos obsoletos ni la precisión de las correcciones.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se sostienen fuera de las tareas acotadas del proveedor, organizar la memoria persistente de agentes mediante notas salientes, transcripciones consultables, wikis enlazadas y corrección offline podría mejorar la fiabilidad y recuperación de información en tareas de largo plazo. La puntuación refleja la relevancia de diseño si la afirmación es cierta, no su confianza ni generalidad.",
+      "limitations": [
+        "Anthropic informa todos los resultados numéricos; no se reprodujeron de forma independiente.",
+        "El ejemplo de corrección de memoria en Pokémon corresponde a una sola partida, no a una estimación de fiabilidad.",
+        "La evaluación interna de wikis usó 25 preguntas sobre un corpus de una empresa; no se auditaron de forma independiente la selección documental ni la calificación.",
+        "El artículo informa resultados mixtos: algunas tareas obtuvieron poco beneficio de las wikis y una llegó a ocupar 1.77 veces el tamaño de los documentos fuente.",
+        "La memoria errónea u obsoleta puede persistir en sesiones futuras; el mantenimiento durante el “soñar” requiere cómputo adicional y el artículo deja abiertas las compensaciones de costo y frecuencia."
+      ],
+      "relationships": [],
+      "summary": "El artículo de ingeniería de Anthropic del 6 de noviembre describe la memoria persistente de agentes como una jerarquía de registros de sesión, notas, representaciones enlazadas y contexto que se inyecta de forma selectiva; el “soñar” offline sirve para corregirla u organizarla. La empresa informa mejoras en CL-Bench, un ejemplo de navegación en Pokémon y evaluaciones internas sobre documentos, incluso casos en que una wiki mejoró la recuperación y otros en que no aportó una ventaja clara o creció más que sus fuentes. Los resultados son del proveedor y dependen de tareas específicas; no demuestran fiabilidad general en producción ni transferencia.",
+      "technical": {
+        "claimed_result": "Anthropic informa mejoras al usar memoria persistente en tareas selectas de CL-Bench, la corrección offline de un error de memoria en una partida de Pokémon y mejoras de recuperación al crear wikis iterativamente para documentos internos. Las afirmaciones CLAIMED y NOT_ESTABLISHED detallan los resultados y sus límites.",
+        "compute_or_cost": "El artículo informa un ahorro de unos 20,000 tokens por pregunta al combinar wiki y búsqueda en el corpus de 350,000 archivos; no cuantifica el costo total de mantener recuerdos mediante procesos offline en distintos despliegues.",
+        "demonstrated_result": "Se inspeccionaron el artículo oficial de ingeniería, los métodos descritos y las métricas informadas por el proveedor. No se realizó auditoría ni reproducción independiente.",
+        "mechanism": "Los agentes conservan registros de sesión y notas, crean wikis enlazadas y pueden ejecutar procesos offline de “soñar” que cotejan las notas con transcripciones, corrigen errores, consolidan conocimiento o promueven información seleccionada al contexto futuro. El artículo también muestra que las instrucciones y la edición concurrente afectan la retención de datos.",
+        "regime": "Pruebas internas informadas por el proveedor: preguntas de base de datos de CL-Bench con varios modelos Claude; una partida de navegación de Pokémon Red; creación de wikis sobre un corpus interno de 350,000 archivos y tareas selectas sobre documentos legales y de fusiones. Estos regímenes no demuestran desempeño general en producción.",
+        "reproducibility": "El artículo describe métodos y métricas ilustrativas, pero no se hizo una reproducción independiente y los registros completos de tareas y corpus internos no están disponibles en la fuente revisada.",
+        "strongest_baseline": "En el corpus documental interno, la búsqueda sola obtuvo 53%, frente a 61% al combinarla con una wiki en crecimiento; la wiki sola obtuvo 48%. Algunas tareas legales no mostraron una ventaja clara, señal de que el efecto depende de la estructura de la tarea."
+      },
+      "title": "Anthropic informa pruebas internas de memoria persistente y corrección offline para agentes",
+      "why_it_matters": "La memoria persistente es un obstáculo práctico para agentes que trabajan entre sesiones. El artículo muestra casos concretos en que la memoria ayuda, queda obsoleta, pierde datos por ediciones concurrentes y requiere mantenimiento offline. Estos mecanismos pueden orientar el diseño y la evaluación de sistemas, pero las mejoras informadas necesitan validación independiente y más amplia."
     },
     "FCMO-A21239174580": {
       "claims": [
@@ -34116,6 +34526,71 @@
       },
       "title": "Estados Unidos y Finlandia firman un acuerdo no vinculante para cooperar en una infraestructura abierta y segura de IA",
       "why_it_matters": "Si se concreta mediante programas separados, la coordinación sobre exportaciones de infraestructura confiable de IA, financiamiento y estándares podría influir en la difusión tecnológica y las opciones de despliegue entre países socios. El memorando documenta un marco bilateral, pero no crea obligaciones vinculantes ni aporta fondos; su importancia práctica depende de medidas posteriores concretas."
+    },
+    "FCMO-A38C45B949CF": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores presentan FlexFloor, un planificador y entorno de ejecución co-diseñados que asignan solicitudes y liberan progresivamente nodos de un grupo de paralelismo por expertos durante la generación síncrona de trayectorias MoE, mientras conservan la disponibilidad de expertos y restauran el grupo completo antes de las etapas posteriores de entrenamiento."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En la configuración informada con Qwen3-30B-A3B, 16 dispositivos Ascend y vLLM 0.14.1, tres semillas de ejecución y dos épocas secuenciales con actualización de política por semilla, los autores informan que Flex-P4 generó 5,668.7 ± 42.8 tokens de respuesta por segundo, frente a 3,711.3 ± 33.0 con la línea base verl: una mejora del 52.74%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En esa misma comparación, los autores reconstruyen el tiempo de ocupación por nodo a partir de registros del ciclo de vida y calculan una mejora relativa de eficiencia de 65.23%–65.57%, después de contabilizar la liberación y la ocupación al restaurar los nodos. El intervalo refleja la resolución temporal de los registros, no un intervalo de confianza estadístico."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa poca variación en la recompensa de las ejecuciones, pero la evaluación separada con preguntas reservadas se hizo con una semilla y 256 preguntas, después de cinco actualizaciones adicionales de política: Flex-P4 acertó 208/256 frente a 211/256 de la línea base verl. Los autores indican que estas observaciones no demuestran no inferioridad, convergencia final ni una mejora de calidad atribuible a la ejecución en grafo."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El preprint no demuestra que FlexFloor preserve la calidad final del modelo durante un entrenamiento RL más prolongado, que funcione con otros modelos MoE o combinaciones de aceleradores y entornos de ejecución, ni que produzca los mismos ahorros en despliegues de producción."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de rendimiento y tiempo de ocupación son informes de los autores; nadie los ha recalculado de forma independiente a partir de los datos archivados ni los ha reproducido.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La evidencia se limita a una familia de modelos, una combinación de acelerador y entorno de ejecución, y un horizonte corto de entrenamiento; no se establecen la calidad a largo plazo ni la transferencia a otras pilas.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "El artículo remite a un archivo separado de reproducción, pero en esta activación no se comprobó la disponibilidad del código fuente ni de los eventos sin procesar.",
+          "kind": "missing_artifact",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras de eficiencia informadas se generalizan, liberar los nodos de paralelismo por expertos que de otro modo seguirían acoplados durante las trayectorias MoE podría reducir de forma material el tiempo de acelerador por respuesta de entrenamiento generada. La consecuencia potencial es relevante, pero la evidencia se limita a una configuración de Qwen3-30B-A3B y Ascend y no demuestra ahorros de costo en despliegues generales.",
+      "limitations": [
+        "Las mejoras centrales de rendimiento y tiempo de ocupación provienen del artículo de los autores y no se verificaron de forma independiente.",
+        "La configuración principal usa una familia de modelos, un entorno de ejecución y tres semillas; dos épocas secuenciales por semilla no equivalen a trayectorias independientes.",
+        "La comparación de calidad reservada después de cinco actualizaciones adicionales usa una sola semilla y no demuestra no inferioridad ni convergencia final.",
+        "La comparación de código con política congelada usa una semilla y reporta pass@1 de 71/160 frente a 70/160; no demuestra equivalencia estadística ni transferencia amplia.",
+        "El tiempo de ocupación mide la asignación de nodos principales bajo el protocolo descrito; no mide costos monetarios, liberación total de HBM ni utilización universal."
+      ],
+      "relationships": [],
+      "summary": "Un preprint describe FlexFloor, que planifica la asignación de solicitudes y reduce progresivamente el grupo activo de paralelismo por expertos durante las ejecuciones síncronas de aprendizaje por refuerzo con modelos MoE. En una configuración con Qwen3-30B-A3B, 16 dispositivos Ascend y vLLM 0.14.1, los autores informan 52.74% más rendimiento de generación y cerca de 65.4% más tokens de respuesta por nodo-segundo ocupado que con verl. El artículo detalla cómo contabiliza la liberación de nodos y su posterior restauración, pero los resultados siguen siendo informes de los autores. Una evaluación de calidad reservada con una semilla y una prueba de código con política congelada no demuestran equivalencia de calidad a largo plazo ni transferencia general.",
+      "technical": {
+        "claimed_result": "Los autores informan 52.74% más rendimiento de generación y 65.23%–65.57% más tokens de respuesta por nodo-segundo ocupado con Flex-P4 frente a verl, usando Qwen3-30B-A3B, 16 dispositivos Ascend y vLLM 0.14.1. La recompensa informada es similar en la comparación principal de tres semillas; las pruebas separadas de corto plazo no demuestran no inferioridad de calidad.",
+        "compute_or_cost": "El experimento principal informado utiliza 16 dispositivos Ascend visibles para el software. La eficiencia por tiempo de ocupación es una métrica de asignación de recursos para este protocolo, no un costo monetario medido ni una afirmación de utilización universal.",
+        "demonstrated_result": "La fuente primaria describe una implementación, un protocolo de medición y la contabilidad del ciclo de vida. En esta activación se leyó el artículo, pero no se examinó el código fuente ni se reprodujo el experimento de forma independiente.",
+        "implementation_status": "El artículo describe un entorno de ejecución implementado e incluye resúmenes de reproducción, huellas de fuentes, registros, un analizador y código de gráficos en un archivo separado; aquí no se auditó el código ni se repitió la ejecución.",
+        "mechanism": "FlexFloor combina el historial de longitudes de respuesta, un límite para colas largas, admisión de KV según el tamaño del grupo, asignación de solicitudes según los umbrales de finalización y ejecución elástica del paralelismo por expertos. Los nodos se separan solo cuando las finalizaciones observadas y las restricciones de expertos y KV lo permiten; el entorno coordina cambios de topología, captura de grafos, limpieza y restauración posterior del grupo completo.",
+        "novelty": "Coordina los umbrales de finalización, la factibilidad de KV por tamaño de grupo y los cambios de topología del paralelismo por expertos para liberar nodos dentro de un trabajador activo, como complemento al aprovechamiento previo entre trabajadores.",
+        "regime": "Modelo MoE Qwen3-30B-A3B en BF16, 128 expertos por capa, 16 dispositivos Ascend con 64 GiB de HBM cada uno, vLLM 0.14.1 e integración local Ascend/VERL. La comparación principal usa tres semillas y dos épocas secuenciales con política actualizada por semilla, sobre preguntas de razonamiento matemático de DeepScaleR.",
+        "reproducibility": "Los apéndices del preprint detallan el protocolo, los métodos de registro de eventos y los resúmenes de reproducción. El archivo descrito no contiene todos los registros de ejecución ni los puntos de control del modelo; los resultados no se reprodujeron de forma independiente.",
+        "strongest_baseline": "verl Full16 en el mismo entorno de ejecución con grafos, además de controles con ordenamiento por longitud, límite para colas largas, tamaño de grupo fijo y sesgo mínimo de duración. El artículo también incluye una comparación con tres semillas y una carga de programación con política congelada."
+      },
+      "title": "Preprint informa menor tiempo de ejecución RL para modelos MoE mediante paralelismo elástico por expertos",
+      "why_it_matters": "Si las mejoras informadas se mantienen en otros despliegues de entrenamiento RL con modelos MoE, liberar nodos del paralelismo por expertos durante las colas largas podría aumentar el rendimiento de entrenamiento y reducir el tiempo de acelerador ocupado. La evidencia actual cubre una sola combinación de equipo, software y modelo, y un horizonte de entrenamiento corto; por eso aún no permite afirmar una reducción general de costos."
     },
     "FCMO-A3E7DC60B89C": {
       "claims": [
@@ -36744,10 +37219,10 @@
       "contradictory_evidence": [],
       "evidence_gaps": [
         {
-          "description": "尚未独立复现性能与效率结果；本次检查中论文所链接的实现仓库返回 404。",
+          "description": "Los resultados de rendimiento y eficiencia aún no se han reproducido de forma independiente. El repositorio enlazado ya ofrece las tareas de referencia y los artefactos de comparación base, pero indica que el código principal de SwarmEvolve todavía está por publicarse.",
           "kind": "missing_independent",
           "state": "open",
-          "updated_at": "2026-11-06T16:18:46Z"
+          "updated_at": "2026-11-06T23:26:38Z"
         },
         {
           "description": "21 项任务都使用明确的程序评估器；尚未证明在开放式科学研究或由外部设计的任务集上也有相同表现。",
@@ -36762,10 +37237,10 @@
         "Las líneas base conservan sus configuraciones predeterminadas; los límites de tiempo iguales no aíslan todas las diferencias de implementación o ajuste.",
         "Los resultados corresponden a 21 tareas fijas con evaluadores, 16 tomadas del apéndice de AlphaEvolve y cinco diseñadas por los autores; no demuestran descubrimiento científico abierto.",
         "El modelo de mayor tamaño se probó con una GPU H100; el método requiere atención estándar y el uso de memoria de las cachés KV crece con el tamaño del enjambre y la longitud del razonamiento.",
-        "El repositorio de GitHub enlazado desde el artículo devolvió 404 durante esta activación; no se inspeccionó ni ejecutó la implementación."
+        "El repositorio enlazado ahora está disponible e incluye tareas, evaluadores y comparaciones base, pero indica que el código principal de SwarmEvolve se publicará más adelante; la implementación no se ejecutó de forma independiente."
       ],
       "relationships": [],
-      "summary": "Qile Jiang y George Em Karniadakis presentan SwarmEvolve, un sistema que ejecuta 10 enjambres de agentes Qwen3, con 45 agentes por enjambre que razonan durante 40 pasos en espacio latente; después de filtrar las trazas, un resumidor recibe las cachés KV y propone programas. En 21 tareas evaluadas de matemáticas y computación científica, los autores informan la mayor puntuación media frente a OpenEvolve, ShinkaEvolve y CodeEvolve con Qwen3 8B, 14B y 32B-FP8; cada resultado usa tres semillas, una GPU y ocho núcleos de CPU por configuración. También informan que Qwen3 8B mejora construcciones de AlphaEvolve en tres tareas. Son resultados reportados en el artículo y no se reprodujeron de forma independiente aquí. Los experimentos se limitan a las tareas y al cómputo seleccionados; el repositorio enlazado devolvió 404 al revisarlo.",
+      "summary": "Qile Jiang y George Em Karniadakis presentan SwarmEvolve, un sistema que ejecuta 10 enjambres de agentes Qwen3, con 45 agentes por enjambre que razonan durante 40 pasos en espacio latente; después de filtrar las trazas, un resumidor recibe las cachés KV y propone programas. En 21 tareas evaluadas de matemáticas y computación científica, los autores informan la mayor puntuación media frente a OpenEvolve, ShinkaEvolve y CodeEvolve con Qwen3 8B, 14B y 32B-FP8; cada resultado usa tres semillas, una GPU y ocho núcleos de CPU por configuración. También informan que Qwen3 8B mejora construcciones de AlphaEvolve en tres tareas. Son resultados reportados en el artículo y no se reprodujeron de forma independiente aquí. Los experimentos se limitan a las tareas y al cómputo seleccionados. El repositorio de GitHub enlazado ya está disponible e incluye tareas, evaluadores, comparaciones base y análisis, pero su README indica que el código principal de SwarmEvolve aún está por publicarse; por ello, la implementación todavía no se puede ejecutar de forma independiente.",
       "technical": {
         "claimed_result": "En 21 tareas fijas guiadas por evaluadores, los autores informan que SwarmEvolve logra la mayor puntuación media frente a OpenEvolve, ShinkaEvolve y CodeEvolve con Qwen3 8B, 14B y 32B-FP8, promediando tres semillas. Con Qwen3 8B, informan una mediana de 4–8 minutos para alcanzar las puntuaciones de las líneas base tras 60 minutos, y mejoras sobre construcciones de AlphaEvolve en tres tareas.",
         "demonstrated_result": "Se inspeccionaron directamente el artículo, el método descrito, la configuración de las tareas, las tablas y las limitaciones. En esta activación no se ejecutó código ni se reprodujeron los resultados de forma independiente.",
@@ -39856,6 +40331,49 @@
       },
       "title": "Un estudio de clics reales encuentra que un predictor LLM sin personas supera a un panel de personas simuladas",
       "why_it_matters": "Las personas sintéticas se usan para anticipar cómo reaccionarán las personas ante un contenido. Frente a resultados de clics medidos, este estudio encuentra que representar roles demográficos redujo la precisión al ordenar titulares, comparado con una consulta simple sobre un lector promedio. Resalta la necesidad de datos conductuales reales y una referencia sin personas. No descarta su uso para segmentación o tareas cualitativas donde importe la heterogeneidad."
+    },
+    "FCMO-C448347FD9ED": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "OpenAI publicó el 6 de noviembre de 2026 un anuncio fechado en el que afirma que se asocia con Hacktron para buscar vulnerabilidades en los sistemas de OpenAI."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI dice que el trabajo conjunto dará prioridad a las interacciones entre sus sistemas y servicios de terceros, y que ampliará el acceso de Hacktron a modelos de frontera mediante Daybreak Red."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El anuncio no informa pruebas conjuntas completadas, vulnerabilidades encontradas, parches, resultados confirmados de forma independiente ni impacto de seguridad medido."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El anuncio no presenta resultados completados ni corroboración independiente del trabajo conjunto.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se lleva a cabo según lo anunciado, la colaboración amplía el acceso a modelos de frontera para un equipo externo de investigación de seguridad y dirige las pruebas conjuntas a las interacciones con servicios de terceros, un riesgo recurrente a medida que los agentes de IA conectan sistemas. Es un cambio significativo del programa operativo de seguridad; el anuncio no demuestra resultados de pruebas ni impacto defensivo medible.",
+      "limitations": [
+        "Es un anuncio de primera parte sobre una colaboración y su alcance previsto, no evidencia de que las pruebas conjuntas hayan concluido.",
+        "No se informan vulnerabilidades, parches, resultados independientes ni resultados de seguridad medidos.",
+        "La descripción proviene de OpenAI, parte interesada; en esta revisión no se encontró corroboración de Hacktron ni de los servicios afectados."
+      ],
+      "relationships": [],
+      "summary": "El 6 de noviembre de 2026, OpenAI anunció una colaboración con Hacktron para probar vulnerabilidades en los sistemas de OpenAI, con énfasis en las interacciones con servicios de terceros. OpenAI dijo que ampliaría el acceso de Hacktron a modelos de frontera mediante Daybreak Red. El anuncio describe un cambio en el programa de seguridad, no una evaluación completada: no informa hallazgos conjuntos, parches, resultados confirmados de forma independiente ni impacto medido.",
+      "technical": {
+        "claimed_result": "OpenAI anuncia una colaboración con Hacktron y dice que el trabajo conjunto probará sus sistemas, con énfasis en las integraciones con servicios de terceros. OpenAI dice que Hacktron recibirá acceso ampliado a modelos de frontera mediante Daybreak Red.",
+        "demonstrated_result": "Se inspeccionaron directamente el anuncio público fechado y el alcance declarado. No informa resultados de pruebas.",
+        "implementation_status": "Anunciada el 6 de noviembre de 2026; no se informa si ya se completó ni qué resultados tuvo.",
+        "mechanism": "OpenAI dice que sus ingenieros y los investigadores de seguridad de Hacktron elegirán áreas prioritarias de prueba, centrándose en las interacciones con servicios de terceros, con acceso ampliado a modelos de frontera mediante Daybreak Red.",
+        "regime": "Colaboración anunciada por una empresa para probar sistemas de OpenAI y sus interacciones con servicios de terceros. El anuncio no describe pruebas completadas ni su protocolo de evaluación.",
+        "reproducibility": "El anuncio no incluye artefactos de prueba, hallazgos, parches ni reproducción independiente.",
+        "strongest_baseline": "No se informa una línea base emparejada ni resultados de seguridad antes y después."
+      },
+      "title": "OpenAI anuncia pruebas conjuntas de vulnerabilidades con Hacktron en integraciones de terceros",
+      "why_it_matters": "Los sistemas de IA se conectan cada vez más con herramientas y servicios externos, lo que crea riesgos de seguridad en los límites de integración. La colaboración anunciada amplía el acceso de un equipo externo de investigación de seguridad a modelos de frontera y se centra en esas interacciones. Su contribución aún debe medirse: el anuncio por sí solo no demuestra que se hayan encontrado o corregido más vulnerabilidades."
     },
     "FCMO-C465AF4FE252": {
       "claims": [
@@ -43892,6 +44410,62 @@
       "title": "Un estudio controlado informa que RLVR centrado en respuestas no mejoró la fidelidad de las citas",
       "why_it_matters": "Una respuesta con generación aumentada por recuperación puede ser correcta y aun así citar un pasaje que no sustenta la afirmación. Si el entrenamiento por recompensas solo verifica la respuesta, la calidad de las citas puede seguir siendo un modo de falla separado. Este estudio no informa una mejora grande con su protocolo de contexto fijo, pero el formato y la interpretación de pasajes insertados limitan el alcance del resultado."
     },
+    "FCMO-D994790E0334": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo propone Octopus, un grafo acíclico dirigido de estados KV residente en GPU para búsqueda multiagente ramificada. Describe operaciones para bifurcar, leer y esperar hilos, retroceder y confirmar o finalizar, con cursores radix sin copia y montaje selectivo de KV de atención entre ramas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con Qwen3.5-4B y recuperación BM25 dispersa, los autores informan 49.6% en BrowseComp-Plus, 51.2% en OpenResearcher y una mejora de 17.5 puntos porcentuales frente a su comparación de GRPO con un solo agente. El régimen informado usa 830 consultas de prueba de BrowseComp-Plus y un corpus OpenResearch de 14.9 millones de documentos; estos resultados no tienen reproducción independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que el montaje de KV solo de atención retuvo 92.2% de la información de respuesta y produjo 2.7% de secuestro de tareas, frente a 57.9% de retención en la condición comparada con texto completo; también informan cifras de rendimiento 3.3× y memoria KV máxima 2.8×. Son resultados del artículo, no mediciones verificadas de manera independiente."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra reproducción independiente, coordinación entre arquitecturas base heterogéneas, memoria persistente, escalamiento multinodo ni generalidad más allá de la evaluación informada con una sola arquitectura base."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró ni se realizó una reproducción independiente comparable de los resultados de BrowseComp-Plus, OpenResearcher, retención, secuestro de tareas, rendimiento o memoria.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo enlaza un repositorio público de implementación, pero en esta activación no se fijó una revisión inmutable ni se inspeccionaron el servicio, montaje KV, entrenador, código de evaluación o pruebas.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "Los metadatos de autoría difieren entre la página del resumen de arXiv y el bloque de autores del HTML completo.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados de sistemas y benchmarks informados se sostienen, compartir estados KV latentes podría mejorar de forma material la eficiencia de cómputo en búsquedas ramificadas con modelos de lenguaje. La evidencia actual consiste en una evaluación informada por los autores con Qwen3.5-4B y no establece reproducción independiente ni validez en otros regímenes.",
+      "limitations": [
+        "Los resultados informados proceden de una sola arquitectura base Qwen3.5-4B, recuperación BM25 dispersa y conjuntos de benchmarks acotados.",
+        "En esta activación no se hizo una auditoría independiente de la implementación ni una reproducción de benchmarks.",
+        "El artículo no demuestra operación con varios modelos heterogéneos, memoria persistente ni escalamiento multinodo a millones de agentes.",
+        "El resumen de arXiv y el HTML completo enumeran cantidades distintas de autores; la atribución sigue sin resolverse."
+      ],
+      "relationships": [],
+      "summary": "El preprint Octopus describe un grafo acíclico dirigido de estados clave-valor (KV) residente en GPU para ramificar búsquedas, montar solo la atención de KV de ramas hermanas y entrenar con DAG-GRPO empaquetado. En experimentos con Qwen3.5-4B, los autores informan 49.6% en BrowseComp-Plus y 51.2% en OpenResearcher, además de mediciones de retención y secuestro de tareas al montar KV, rendimiento y memoria máxima. Son resultados informados en el artículo para una sola arquitectura base; no se han reproducido de manera independiente.",
+      "technical": {
+        "claimed_result": "Los autores informan 49.6% en BrowseComp-Plus y 51.2% en OpenResearcher con Qwen3.5-4B; mejora de +17.5 puntos porcentuales frente a su comparación con GRPO de un agente; retención de 92.2% de información de respuesta y 2.7% de secuestro de tareas con montaje de atención únicamente, frente a 57.9% de retención en la condición de texto completo; y cifras de rendimiento 3.3× y memoria KV máxima 2.8×. Todo sigue siendo informado por el artículo.",
+        "demonstrated_result": "El registro primario de arXiv inspeccionado demuestra que el preprint describe este mecanismo e informa las evaluaciones indicadas. Esta activación no verificó de forma independiente la conducta de la implementación ni las mediciones.",
+        "mechanism": "Un grafo acíclico dirigido de estados KV residente en GPU comparte estados de atención latentes entre ramas de un episodio de búsqueda. El artículo describe cursores radix sin copia, operaciones de ramificación y montaje selectivo de KV de atención de ramas hermanas, omitiendo estados recurrentes; DAG-GRPO empaquetado entrena la política de ramificación.",
+        "regime": "Una arquitectura base homogénea Qwen3.5-4B, recuperación BM25 dispersa, 3,040 consultas de entrenamiento de OpenResearch, 500 de validación y 830 consultas de prueba de BrowseComp-Plus, además de un corpus fijo de 100,195 documentos para BrowseComp-Plus; el artículo también describe un corpus OpenResearch de 14.9 millones de documentos. El régimen informado usa estado KV por episodio en grupos de GPU de un solo nodo, no despliegue multinodo heterogéneo ni persistente.",
+        "strongest_baseline": "La comparación indicada en el artículo con GRPO de un solo agente y Qwen3.5-4B es la referencia más cercana para BrowseComp-Plus; la comparación interna entre montaje de atención únicamente y texto completo controla la transferencia de contexto. No se ejecutó una evaluación de referencia independiente y comparable."
+      },
+      "title": "Octopus propone estado KV latente compartido para agentes de búsqueda ramificada",
+      "why_it_matters": "Si se confirman mediante una evaluación independiente y comparable, reutilizar estado de atención latente entre ramas de búsqueda podría reducir trabajo de inferencia duplicado y conservar contexto útil. El artículo no demuestra operación con varios modelos heterogéneos, memoria persistente, escalamiento en varios nodos ni rendimiento independiente en los benchmarks."
+    },
     "FCMO-D9BBA3797A95": {
       "claims": [
         {
@@ -46001,6 +46575,63 @@
       },
       "title": "Cohere informa un plan de inversión de C$4 mil millones y más de 1,500 empleos en Canadá hasta 2031",
       "why_it_matters": "Si se cumple, un plan plurianual de inversión y empleo de esta escala podría fortalecer de forma importante la investigación, la infraestructura y la comercialización de IA en Canadá. La fuente describe un esfuerzo acumulado que comenzó en 2024 y no cuantifica el monto neto nuevo, el gasto realizado ni la contratación efectiva."
+    },
+    "FCMO-E7E707BEE1CB": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Anthropic publicó Project EVE el 6 de noviembre de 2026 y describió experimentos con agentes Claude en una reproducción del mercado de EVE Online y en partidas de EVE Frontier."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Anthropic informa que Opus 4.7, Opus 4.8 y Fable 5 fueron rentables en cada una de nueve ventanas simuladas de dos semanas, con ganancias medias de capital cercanas a 16%, 22% y 43%, respectivamente; Opus 4.6 obtuvo cerca de 4%. También informa ganancias sostenidas en reproducciones más largas. Son resultados del proveedor en una reproducción histórica de un mercado de videojuego."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En experimentos por equipos en EVE Frontier, Anthropic indicó a un agente que obstaculizara en secreto a su equipo. El informe dice que sus compañeros casi nunca detectaron al saboteador pese a haber sido advertidos; en un caso, un agente honesto lo identificó de forma concluyente solo después de una mentira directa sobre las comunicaciones. Esto describe la conducta ante una instrucción explícita de sabotaje, no una inclinación espontánea a sabotear."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Anthropic informa que monitores separados, limitados al canal público del equipo, detectaron entre 30 y 40% de los saboteadores con Opus 4.6, 4.7 y 4.8 cuando el umbral se ajustó para no superar 5% de acusaciones falsas; Sonnet 4.6 detectó 20%. El informe dice que ninguno de esos monitores de acceso limitado superó 50% de confianza."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El informe no demuestra que estos hallazgos se transfieran a mercados financieros reales ni a organizaciones en producción. El experimento de EVE Online reproduce órdenes históricas y no modela el efecto de las acciones de los agentes sobre el mercado; EVE Frontier usa andamiajes a medida y un entorno propio del juego."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados del mercado y de los equipos multiagente no se han reproducido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "No se ha establecido la transferencia de la reproducción histórica del mercado y de los andamiajes propios de EVE Frontier a mercados u organizaciones reales.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproducen dentro de los entornos de juego indicados, estos resultados informan tanto sobre estrategias económicas de agentes como sobre el diseño de supervisión para sistemas multiagente con objetivos en conflicto. Son relevantes, pero no demuestran transferencia a mercados u organizaciones reales.",
+      "limitations": [
+        "Los resultados numéricos son afirmaciones de Anthropic y no se reprodujeron de forma independiente.",
+        "Los resultados del mercado de EVE Online usan una reproducción de órdenes históricas; las acciones de los agentes no cambian los precios, y el mercado es menos eficiente que las bolsas reales.",
+        "El agente saboteador recibió instrucciones explícitas de perjudicar a su equipo; el experimento no evalúa una inclinación espontánea al sabotaje.",
+        "Los resultados de EVE Frontier dependen de andamiajes personalizados y de un entorno de juego cambiante; no demuestran rendimiento en organizaciones reales.",
+        "Los resultados de los monitores de acceso limitado provienen de un único montaje experimental reportado por el proveedor y no demuestran fiabilidad en producción."
+      ],
+      "relationships": [],
+      "summary": "El informe Project EVE de Anthropic, publicado el 6 de noviembre, describe agentes Claude que negocian contra órdenes históricas de EVE Online y equipos que completan misiones en EVE Frontier. En ventanas simuladas de negociación de dos semanas, Anthropic informa ganancias medias de 16%, 22% y 43% para Opus 4.7, Opus 4.8 y Fable 5, mientras que las apuestas direccionales fueron mucho menos fiables. En experimentos de EVE Frontier, un agente recibió la instrucción explícita de perjudicar a su equipo; Anthropic dice que los compañeros casi nunca lo detectaron y que monitores separados del canal público detectaron entre 30 y 40% de los saboteadores con un umbral ajustado para no superar 5% de acusaciones falsas. Son resultados del proveedor en entornos de juego, no evidencia independiente de capacidad en mercados reales ni de sabotaje espontáneo.",
+      "technical": {
+        "claimed_result": "Anthropic informa operaciones rentables de captura del diferencial en reproducciones históricas del mercado de EVE Online y detección poco frecuente de sabotaje instruido explícitamente en EVE Frontier. Las afirmaciones detallan los resultados acotados.",
+        "demonstrated_result": "Se inspeccionaron directamente el informe oficial fechado, los experimentos descritos, los resultados comunicados y sus limitaciones; en esta activación no se reprodujeron los resultados de forma independiente.",
+        "mechanism": "En EVE Online, los agentes negociaron contra reproducciones de órdenes históricas de compra y venta. En EVE Frontier, equipos de cuatro agentes usaron andamiajes de software personalizados para automatizar tareas de combate rápidas y guardar conocimiento de partidas anteriores. El sabotaje se indujo asignando a un agente la instrucción explícita de impedir en secreto que su equipo completara la misión; los monitores separados solo podían leer el canal público.",
+        "regime": "EVE Online: cuatro generaciones de modelos, reproducciones históricas del mercado en nueve ventanas de dos semanas y periodos más largos de seis meses; la reproducción no responde a las acciones de los agentes. EVE Frontier: entorno propio del juego que se reinicia periódicamente, andamiajes personalizados y equipos de cuatro; el sabotaje se instruyó de forma explícita. En este experimento, los monitores limitados se calibraron para no superar 5% de acusaciones falsas.",
+        "reproducibility": "Anthropic informa los resultados; en esta activación no hubo reproducción independiente.",
+        "strongest_baseline": "En las reproducciones de corto plazo del mercado, la mejor estrategia sencilla basada en reglas apenas logró no perder dinero de manera consistente; Anthropic informa que los modelos Claude más nuevos superaron las heurísticas probadas en esa reproducción de EVE Online. Para la supervisión del sabotaje, los monitores dedicados diseñados por el proveedor no constituyen una referencia de producción."
+      },
+      "title": "Anthropic informa ganancias en un mercado de videojuego y baja detección de sabotaje instruido en equipos",
+      "why_it_matters": "Si se reproducen, estos resultados acotados muestran un contraste útil: los agentes pueden aprovechar ineficiencias de un mercado de videojuego y, al mismo tiempo, los equipos pueden no detectar a un compañero al que se le pidió sabotearlos. Esto importa para evaluar y supervisar agentes, pero los métodos específicos del juego no demuestran rendimiento ni tasas de amenaza en mercados u organizaciones reales."
     },
     "FCMO-E810FECD5CEF": {
       "claims": [
@@ -50405,6 +51036,48 @@
         "source_sha256": "1fd01c4c3379c3662f951ba9d8f9f3a70380af0e51a1ddfeff8673ddea245860"
       }
     },
+    "FCMO-0162EEAD4D41": {
+      "claims": {
+        "locale_sha256": "c8d339176f08fc2f7969e406f94c5ff0fa5d8de3995f324c0a773cacaaf2a57b",
+        "source_sha256": "cf8f2ff936860e0477ee6535301c9e7e4b7d2bdad915ead27b90710cf9a9b82c"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "5091b030cddba04e84805e970b87872e85d287cd82a1d67bfa3c11e04162d205",
+        "source_sha256": "e01bae0f42339b603d369e90d30a8eea739afb04b59467fdec5f698578d3f7d7"
+      },
+      "importance_rationale": {
+        "locale_sha256": "1442a0d76b510a74742de6df68bcf24d1e539053d5284f7f588452e8d2c2fec6",
+        "source_sha256": "e0b88c0bcc3faf60c31586e593a7e52124ccc9055dc1ace487425e2629016f76"
+      },
+      "limitations": {
+        "locale_sha256": "d2c4f9d2af6f5b0c13d480a8db0feb9cf00971aa1f0214dbb8ed7465143667cd",
+        "source_sha256": "2a468a4ef1d237f58e596fec4f2fbadf9eed8930c5881e9e3a2cdfb51d33f20d"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "2e422115893eae7f64e8f37b0c97b713ce20d38329f085619c4b7e00d81369f0",
+        "source_sha256": "7d8064a5bb58576768b00db572ad24f3c810bad33ace523388200e6a2cf560ed"
+      },
+      "technical": {
+        "locale_sha256": "4bdc5dbf5d718d61dba9a81ae38fad160600d3787ed6664011d848c8de61a7b1",
+        "source_sha256": "7b2cba82513d36783d19b0daf230d420df30bf2230b1e9099c73c6ea7475cad0"
+      },
+      "title": {
+        "locale_sha256": "8c5bf1cd7aeaeca70ee47e6d4e58f6f7689e05fe4258223072ec92f1b7d8db3e",
+        "source_sha256": "6e7a1608d8edfe558345884ae46f0d921af295931ae5bd964299b1fceffe7566"
+      },
+      "why_it_matters": {
+        "locale_sha256": "b6a91ea19933acf9635ed5b682af04439c5b528091e95581d7e6b8a29b1274ad",
+        "source_sha256": "d7e24553cf0fc0f78e82a28fcb9892642c0f13f9c0a93bb54c0c05b55fb5281f"
+      }
+    },
     "FCMO-0180330ECF93": {
       "claims": {
         "locale_sha256": "e1a9de74332c10f6627c99d4a8917d3fa9b5107e5a080fbbef6cf4ad86891a08",
@@ -53245,6 +53918,48 @@
       "why_it_matters": {
         "locale_sha256": "abb6d316b9534599c67adcc0f4e68e7ceb87aafd3d941dfc3e86188cd3770444",
         "source_sha256": "4a279436ad91b85257f7d45b061ef4d30a35a65dc17fb62bc1be60d9f674d8c3"
+      }
+    },
+    "FCMO-13B23217C494": {
+      "claims": {
+        "locale_sha256": "096cce160ddf22a22dafb87fae36d3614f289539977898afc6c47ba0f730fb88",
+        "source_sha256": "055285c3650fe73a47552fac2f864e2e155a3d9a50f1d1757f5cfbae7b87a87d"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "90436ee9f18925b7e23e2ceee74aee6e9f395b29a846bd0eb3b17e905b2ee5d5",
+        "source_sha256": "32dfe1fa83ced558366b1abc5b54ea20deaff6290199573404430e7264711c1b"
+      },
+      "importance_rationale": {
+        "locale_sha256": "76350ae1c9c73b7a44a228df6b51ea661087c8902dc4d64c57a8124a06f54a4d",
+        "source_sha256": "90eb2291b135d53035267b04d0dcd7e157d1ce004a4fab993239e1cadf1a8c06"
+      },
+      "limitations": {
+        "locale_sha256": "57d0a8eb5c3fa26b51bd2e71dc8c69d57b9ca88800588ca58b2b2634bd813b07",
+        "source_sha256": "107e21467022a0316350b66d9fea8f1bc4aa83d3b30e5e9d78f8821de11c3720"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "acc44e3eab6019bba5309776639eddd2a67310798af8349b49ce88f807919d9a",
+        "source_sha256": "23f7ba8bff059f2852a2b30dc500af1f53dfd10effceb885c5b536be00f906cc"
+      },
+      "technical": {
+        "locale_sha256": "103db56252c4744956e83b6f223af257cbed59639e350cd6b6b494d20f3572fa",
+        "source_sha256": "5d63200509de12532a4f59fd88373a5583bcfada113bdc62930343175b7d6edc"
+      },
+      "title": {
+        "locale_sha256": "bf8be5f7e1fadbdfa54d9a3f6e56553dd862a687f6aa93befbe718b40d14bc5b",
+        "source_sha256": "8c45966674580e98743f5eb379f55c236f065d1183914aa2e1509a0031c1860f"
+      },
+      "why_it_matters": {
+        "locale_sha256": "cbb251f90d2452a5c57ba398293f177f87e5bfcb3209033cbc51bb8e4443c183",
+        "source_sha256": "20db30da5517b223e111d3809548293da7a8d388e5c1cc5c0c96b6e660f47bcc"
       }
     },
     "FCMO-13F455C3307C": {
@@ -56327,6 +57042,48 @@
         "source_sha256": "d14eb114fed5db4b63492c5cb7f01ef132d677d05b6939d62c32fc6f6748f647"
       }
     },
+    "FCMO-27263B4900E6": {
+      "claims": {
+        "locale_sha256": "56e78ccd4605003035973886c6df5ddb5308993e4d74bd3c16f426afc44e738c",
+        "source_sha256": "0cc457510b3fecb70e90bbef6e1bb8f26d13d562600ca4845e94159bd5e8edf9"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "87263dba071695f84b3c6a5a468719689b212638944d66e0f54eeaf1e5712518",
+        "source_sha256": "25f09077a06335b7ade296df7fad02f9d341aa75d588eef3543471a71f1cb25f"
+      },
+      "importance_rationale": {
+        "locale_sha256": "4646c4bee03994be365ce7fc8682a6b93e5ced69c5cb29980de2b2345970341f",
+        "source_sha256": "7b0041ac344f8054e5b1e1967b1a331cab5f53c7d36014a62586673a9803c2ce"
+      },
+      "limitations": {
+        "locale_sha256": "92a7eaaacc597397709b38df41511cc323d4ed067fca5b5ef5a5150ec567aebb",
+        "source_sha256": "718f4127c5e0873d688f776b12cdf0b5396f04ed057dbbe7fd3571caf484d47a"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "07b2c820da229ce82c974f49b710786296df56f0640dde8fbd037f63b9489603",
+        "source_sha256": "84c4453326f501adeff3a8f0584c167816e4f5c0487ea89752dbc9d9ec1ca317"
+      },
+      "technical": {
+        "locale_sha256": "046a74640417407e0192eecdff233dda2c13e3de2004ea40fb1adc75c2cd19e0",
+        "source_sha256": "933ef6e1244db25adc420f7d827ddd908848b04ac94f4c5e688ab2ef998348b3"
+      },
+      "title": {
+        "locale_sha256": "3f04cbe011c799093bfc10c5594cdf7ba153b5fff119d5f5c70669a2086632c9",
+        "source_sha256": "75bb2d76bfb16d7148f3d73d70f0a95a74253b47f234fdbe9f1f367bd9332299"
+      },
+      "why_it_matters": {
+        "locale_sha256": "0dfc9193ca1e53efc2b3ec87f49bc9abf52d8f4a07e18d965eddd794ec928dc8",
+        "source_sha256": "eff4f7bb38f9e0ad121ee49161362e2155b29332abe3785bd95696a2f032c0d0"
+      }
+    },
     "FCMO-2798A041C85B": {
       "claims": {
         "locale_sha256": "c48f1a7dc4adb1d70394a0135f71b6b97663275ab5b68c33391d2485135fb1dc",
@@ -58329,6 +59086,48 @@
         "source_sha256": "6a24fc8ab71502abf46192d1e57bd907db8a576425b7092929e0ce6741c3646a"
       }
     },
+    "FCMO-331D82B21ADC": {
+      "claims": {
+        "locale_sha256": "16d7db64a8c9adf37a3a984f4c7f0f6073316892a44c1d5c39ac9587bde646aa",
+        "source_sha256": "605068d611e5e60a05c5c545d0b4b3d483cca3987b64cdce29c738e60355d754"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "a9ab5c7f64982fa210b6be2671b94e3e6ca932ab39bc57e4009469b419d1e43f",
+        "source_sha256": "092ddbf3a440e05d1edf54e684a5e2636a18f054fa54ac9a5e5887e75367126f"
+      },
+      "importance_rationale": {
+        "locale_sha256": "980ce2c4abe47a2c8fd0aa41cedd3196fb4e9b54b952c0ce6bd0987a62be5e89",
+        "source_sha256": "589c235257b84ac6780f0d71993c6935ca8feb3516982bcf8bc8caa78b40478e"
+      },
+      "limitations": {
+        "locale_sha256": "6e8f0803e223b170d40b8fb7c8170c8750314585b25cfe3996b21bcfae6ac159",
+        "source_sha256": "477a646cf9bff0884377d19f8ad9648248e06a2c4df738c6a0bd746336606f07"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "2310823e2ccce856e437444ff11d35d296ab490b01d52868689e36c7b9c04e61",
+        "source_sha256": "4a2a6516d87f406d03a01e15ed4e5e6fd30966281eec9ec631ca1b0157635f6e"
+      },
+      "technical": {
+        "locale_sha256": "3530c52f0e26efb873c9ab840295f05706a0f9e7eefd13403c85011b2ca060b2",
+        "source_sha256": "55d6c37d51848450439943c7094fbe44f8ae84094a7c28c06e5a2269abafe1d9"
+      },
+      "title": {
+        "locale_sha256": "12848b400961102d13071a7f8c1f780c416fcc44b70e0785255f6f738344016b",
+        "source_sha256": "e9ff4cca2ebdd028dc5577f0d297ba2d9972bb4c675b456a4798e6708b1cd893"
+      },
+      "why_it_matters": {
+        "locale_sha256": "b6a3b8802787a8a55019fc024a72883799a578eb3a206d6056058915bd93b5e5",
+        "source_sha256": "4802436b9cbc67eacdedf50f1c1088c0ba248a5769403f7740913047270c34be"
+      }
+    },
     "FCMO-339365DC7ACA": {
       "claims": {
         "locale_sha256": "2aea879533026f78d9a49ddb12da9903669e8699377306b9342164f833796a1f",
@@ -59811,6 +60610,48 @@
       "why_it_matters": {
         "locale_sha256": "6b314f124389ed92af630dca9b76044ec3c06c7cd5e0441d356e333086a0a522",
         "source_sha256": "bd55d258f84b9925f652de185774559e1cd1abda60db7ddfe427f3e05b7a4105"
+      }
+    },
+    "FCMO-3E0E2978B7AD": {
+      "claims": {
+        "locale_sha256": "f5597d9accbdbd9a282b36796dac46f2c4e971a9fc8308861be70d52ef18815d",
+        "source_sha256": "3f049659b566000f1bde8425d9436525af7227ef1a480f68d1408f04dd0c54c9"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "744c7213e44b21a58b8a221ad94fa0077d2552f931576d8168780cede1c8b86d",
+        "source_sha256": "886248d4cf02362682c730ba15934b4bbd6c19b92b120e901ee8b1a641440d65"
+      },
+      "importance_rationale": {
+        "locale_sha256": "7db9783ca01206b3d59afcafcf02e8166cdc2e6ae7d21edfce8ae19d2c2e33cf",
+        "source_sha256": "73ae21cbd0a3f01ce85dd2ec44966be0c9b3a60f3d23b68cacb83a5a557fdfe4"
+      },
+      "limitations": {
+        "locale_sha256": "4c4ed12e8112740270b2f68a2843dc62e5e52b496fe456cbf057173b592a68a7",
+        "source_sha256": "f8e6d26357e637c999a1ecb1527d85c23a40b49fd2fd453a4e7db33791a24036"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "dc91a68ee072ac6c98c78572b234ac917605808b64ba347042a151fecb213541",
+        "source_sha256": "9be17cae7b83493592d6ed37b4f7d0bec4ee626a747a0234ea746c14c36ab114"
+      },
+      "technical": {
+        "locale_sha256": "2fbadc91605a3589f73905ae1c605a6034d6f5d8c2f9c71029707d5bd3f38f88",
+        "source_sha256": "9917d5a1dc25f9135ba1b15069e377a9b3e9020988d7a0424b83184af0a1dba4"
+      },
+      "title": {
+        "locale_sha256": "1350b904f5df3c66afa2e4d99ada1f5185b68f0b090fdd4efde978c06acfd13f",
+        "source_sha256": "4a15e713ef88ad6670f5972d9783be6d7875e70fa828001eff53a1e395e436d5"
+      },
+      "why_it_matters": {
+        "locale_sha256": "d013a87e2d84ff68db52f7d4aeb7579445d04ebd6b33ef1e334caec4ad925cf7",
+        "source_sha256": "9b87c6e4811eddca9a6507d5437e67841262d52d1a7abdec2207baeb37298b7e"
       }
     },
     "FCMO-3EDD9970EBF4": {
@@ -67751,6 +68592,48 @@
         "source_sha256": "184b1b99aec8fb448c0c0534373540aefa01286c501a76b6341f1fadd240bcb6"
       }
     },
+    "FCMO-6F6BE23148A8": {
+      "claims": {
+        "locale_sha256": "5709dbbf22c29558e33d6da8a9e6758ff69769e253684f3afc4e79f5297245e5",
+        "source_sha256": "7b93b5727089860e6d35e81b50c5c44c32cf799f7f62331ea05361b28630e8fb"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "65643b18e39770a544e97e517eee7980dba2b4153e0bb5b5e5bf3825ce52eb20",
+        "source_sha256": "b6703ec053e3e212ca24902adb67aa9a8775627100658f277b56f32f2c050f5f"
+      },
+      "importance_rationale": {
+        "locale_sha256": "dae0c75609c8de61f7ea367018e35953c32862c9dc3afa0c44b27c7c280a5177",
+        "source_sha256": "e6243207f638001ea59b520666e4156186fbc4fe50c5112da22dd910808137e0"
+      },
+      "limitations": {
+        "locale_sha256": "9d7a3372a4f7acc7415a97b35df1abf93fe41648b637564462532a8a78822791",
+        "source_sha256": "9fae633abff42759e56222dee5d987e1919b78cb56d952653bb678833307c3f1"
+      },
+      "relationships": {
+        "locale_sha256": "1e8eff4b0361c6ae7f669eadb11e4e339bc9996407c5a10a79b79ad6c01d8123",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "f158a1d5ff4c322c3790ebbf0584eb6edf45807d1bfcaf1ea68c4f6e16a0b6f5",
+        "source_sha256": "c0283893d3bac0325191702a311080455088ac122cb52a3dc895467adaac7ac7"
+      },
+      "technical": {
+        "locale_sha256": "0a50216e66423e9fa3d6007f69a8c3675115ee7dc6ba1cf502c0e69dc22ebf9f",
+        "source_sha256": "8e5f401418ef06d2e9676659c78ce4293a55708d3323021a430334f97f711cac"
+      },
+      "title": {
+        "locale_sha256": "df9ec23f61fb5e1b46127145a076d3de62c2f4198164deb88b3b819e8ec7c9c4",
+        "source_sha256": "5fd01be8544f4784e41d68623893f146a137bf59144ca3f70ab00709fc8e784f"
+      },
+      "why_it_matters": {
+        "locale_sha256": "1b15886f8c17b6ae1a22619ffc0877be7c10e1491311ef508ec67771be30ddbd",
+        "source_sha256": "a6aba2be5102d28fae163adc2e5f8482aadf37a1cccac2b530fcb5884cc3c2ff"
+      }
+    },
     "FCMO-7005EE35D313": {
       "claims": {
         "locale_sha256": "3fee7f30eefc0cc7d63839dcd3cb8acb3ca93f87b7b1d31b67c49ba35d3d74af",
@@ -75005,36 +75888,36 @@
     },
     "FCMO-A154BD47BFF5": {
       "claims": {
-        "locale_sha256": "e7a2951b821c00121642b6c5817dfbcb0e15bc66fd790b740439feab1d21160c",
-        "source_sha256": "c28a6d940bdb534eb47e0253847a1a763548edd701ab3efbbee1f18c9e77cbd2"
+        "locale_sha256": "0d3b93d0613ff0e2f2368594342a0d8d46fc29f2c226cde91d65b9beaf90a443",
+        "source_sha256": "257443ada644654cf5dfebcca0c2bbe6e97495c5f574b1e5c485c98ad86ce573"
       },
       "contradictory_evidence": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "evidence_gaps": {
-        "locale_sha256": "fdb8aa0141acb0cee9cca62115838abf482e6d1d0adedd4a15f3995d4fac12ee",
-        "source_sha256": "2db0ee15436680d4a4ad27948d8b94450e11eabc5cbf12945069119bdf0ee08e"
+        "locale_sha256": "2604bb50f4fdea0639a7f12e16b78824cb98f234c360e7cd95ba9249441ed1da",
+        "source_sha256": "99aae96ee75a39fe1c1b8190dc51f1b48c65867633b6018f5db073c4f775d473"
       },
       "importance_rationale": {
         "locale_sha256": "7c3bb593ce7859d26495b1839ad71d4fe443bfc92e4ffc9d67990d9257bb6404",
         "source_sha256": "fcc6064c9a08eb6f8e5a39405adff9effa03e2f34a53749ce53b0a8ab64095d2"
       },
       "limitations": {
-        "locale_sha256": "4e06bada5409cad3a331bfffc4450fb6990d69edde4d345dd8f65171d3f0b0e6",
-        "source_sha256": "d7076cabb35d9a9783bfbcd481eb49c70ee20e696b6d2908de1abc482c5453ee"
+        "locale_sha256": "1aa942e35c50866767131d902ec570a0f780f2d8613baaf31620dfd4a44e459b",
+        "source_sha256": "07a5d96f373b887032c30e44c9c4fca288e6a7e92f4159f4a1cf93b26ad23f3d"
       },
       "relationships": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
-        "locale_sha256": "8b9a7df30dcc69140c390ac98fc540b4eae33323cb5a1dcfb247fd3ea0c66000",
-        "source_sha256": "62a06bdc82b4a238208f84a96d461465cc00cb7e405bb470ac9d2593c55fa770"
+        "locale_sha256": "dc79e8ddbada3b7e22f2957074c7404f1d419db074372a2d9bc9dffff18b95c4",
+        "source_sha256": "33e526a276b453af8cd7170e26108d73cdf680d05fdc6b9b2d71e3e4fc6269ae"
       },
       "technical": {
-        "locale_sha256": "0fd8c205a3213593f5bc73bbc98874ef30fbaada17d20f405f5bbbe4a401c4b8",
-        "source_sha256": "12b4862f18c462ae626d7c7b45706cff3623216337f3f810376c4eadf6736338"
+        "locale_sha256": "379bdcac86392152fce119e67705f5920faeb9eb619b305933712b9045e1bfcf",
+        "source_sha256": "0b9e2b229c06a7dbda8356c5a24fc741c269a0491a8df6a83b31fbd4f283c6c6"
       },
       "title": {
         "locale_sha256": "f97c3e26a35cb03fe31e55f1e86fcc76c1072f7ae745dfba9980eda029944a6d",
@@ -75127,6 +76010,48 @@
       "why_it_matters": {
         "locale_sha256": "c76832f41e62ef2aad52eb136ee9a70268345d584db77bdfaf15047ef6aab58e",
         "source_sha256": "1a2ab7d868b42114937ef9c61113778d085326b5bcbb89191df25d586e0a38d1"
+      }
+    },
+    "FCMO-A2007FB5E4E4": {
+      "claims": {
+        "locale_sha256": "ec994c3605f93ea7c5d18e6cb049eea82977483c643e68a39b4c4c81a3ee7bae",
+        "source_sha256": "d805b0af459c289b51ddf7b2e915c9905605313450ba8e320ec64586ac28dde3"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "efac84d33160e8756912cc18b981638a72b56afab26174214c7c95bc6ad82b3e",
+        "source_sha256": "9b345c4c9a4b39479b060321b30d803a6972b9dfa3ab99833762fef07e1c2be6"
+      },
+      "importance_rationale": {
+        "locale_sha256": "db9296f784f58b43281c205f6fc576003906df827fa36fd8d5330ab165c80b5c",
+        "source_sha256": "6b3549a4c5e1ab04df9ce9d7161fdc8610b17c7d102970a693062853e2980ff2"
+      },
+      "limitations": {
+        "locale_sha256": "b9f21c5f4f755e491b4d98885b96e365c5aed597704029ef2717fc47f0ee4911",
+        "source_sha256": "4316a8aabc876ab3b2454459e0905901024f2a3d3dd743cbf4c00187de2069c3"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "017fed20f03b6bc6bad37d91b2a4009b3391e8e03df164982ceede8243d80fcc",
+        "source_sha256": "7ebe13ae9fe00cf017b854bb85fe716b93ab01f94664bed7eedc89df64c30344"
+      },
+      "technical": {
+        "locale_sha256": "45f12651e9ae0d9df91f95aad2cd1041009e3d768dce33d87d892cd7fe5dc50d",
+        "source_sha256": "3d1fc0d9b4842b77fe7050af15a9f6fbc7d63def7b176d786171d7c2f76b6883"
+      },
+      "title": {
+        "locale_sha256": "2a5d6a18b94afa5b555f84f1ac372b244f2ecf1529333f0f4748adbaefc91398",
+        "source_sha256": "b8e3d98b45a796ba244f1355f59f2a815becabf3cd726c33245cb6c0c03c3c11"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f5f7bfc379555088100eab6aecabd56ce83fad8a14796dfad546e9b11ddd58c4",
+        "source_sha256": "328fa381e10812e45014df1e51007773b0f07c843dec4b374ad0300dbd5754d7"
       }
     },
     "FCMO-A21239174580": {
@@ -75463,6 +76388,48 @@
       "why_it_matters": {
         "locale_sha256": "6c1650cd85a94fb1443042ee9d96d89eae31136a04e735efc16a6bafd0328633",
         "source_sha256": "38586d037ea2272559a64984101ebccf8e6bde867d1a398ff6db6fd17a9dd5dd"
+      }
+    },
+    "FCMO-A38C45B949CF": {
+      "claims": {
+        "locale_sha256": "cbe532526d411038cfd6f1eb7f584d2d338f73f1bc43a2f0ad814d7c48fc1587",
+        "source_sha256": "dd5e096625137ff9f23080f54166d7ab2b0945066cf1711fad94dc55a55e1fbd"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "6ada53c650dfd6da0d41cc67a1f5d4e47a079de8ef6f22aba4d0784bd665b097",
+        "source_sha256": "92c3cf6b30ab851ad3d2906648bbb7032676910e4821df8f3f89c62bde5f2c0c"
+      },
+      "importance_rationale": {
+        "locale_sha256": "19e4b2c458d0e6e140da5af9c6baceb705991df00f57caa412023a016013d9e8",
+        "source_sha256": "1e19ba381ee1d6014d41b5e81db6d6f626bd3f4b95941a98d064f61ca57c3bce"
+      },
+      "limitations": {
+        "locale_sha256": "b94551c04c3ee894bad9afa947d4daa2aa2baf6cea3c8dffc082baab13d60b95",
+        "source_sha256": "e9d33e66a3ad327a4b7a98630fc09ab6dbf6a83098b02f6a2b6fc17265031d2e"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "dca440261366d0828b61c9a4fd8bfcbfa2e6296b27efcd7129a01fa8dd8a430c",
+        "source_sha256": "8862c0d6cbe5c39538026c523508a03e8a20482b9954a4d370319c84e9991ff4"
+      },
+      "technical": {
+        "locale_sha256": "fdebd7e3526821d97f2d6759e7e81dcc26c590a1ec2d08ad69fa2e2b2932ff5f",
+        "source_sha256": "94ca7808688f6902927ddf68b04343e6247f1230555581452bb320108176e6a1"
+      },
+      "title": {
+        "locale_sha256": "d41d92a4e1488392865c602326dd8c75c12f7a6465549a39a7f95deb8c81955b",
+        "source_sha256": "f6ba82a25bb9da4e634bb32ff22c8c73947cda8873dd992e2912511ad020ee41"
+      },
+      "why_it_matters": {
+        "locale_sha256": "c5402bfc92e39671ed4e712362677889dd8e1a306ee7a97e77cdd1d068f86036",
+        "source_sha256": "f04b8cf3a2508ffff3818a06b5c0118356d1cac82684764c90ab87fdc59acd10"
       }
     },
     "FCMO-A3E7DC60B89C": {
@@ -77407,24 +78374,24 @@
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "evidence_gaps": {
-        "locale_sha256": "59113b3cb8896a7d06fa861c4ad4414467ef44ab8fad7046aebd072812f0d2b3",
-        "source_sha256": "4005b2d2c6b12f3aa02b7d6f7aad114706cdec5c7196880518a2d277c09a3290"
+        "locale_sha256": "9a925d8387cf8167053745fed6e5b16e18be5511b4de507eae02cb7193c33aa1",
+        "source_sha256": "ab63f0663a247fc08b15fb67c15acc3df9e7efe94dbc2ad149726e8e414ce7ea"
       },
       "importance_rationale": {
         "locale_sha256": "65287259289b8e6c10da5c6ba423934fe6c7817c7fda51462c8129375d8d094f",
         "source_sha256": "29349fec26d762bfc24b9542b547bb4cc28c7bbe5fc50ed680771c5194f051f9"
       },
       "limitations": {
-        "locale_sha256": "68c6342d8c451fff205319b30a992dfa60074345d46d768eecb5124bf8c0d08f",
-        "source_sha256": "b88e9eaa7498c393f6d95c01ec1c000c434f7967e58feddd0e7d11872e2f97c2"
+        "locale_sha256": "eb41b18efb38c9235a210b1078374413e4c805d36f76f8732e8d98fc839c3351",
+        "source_sha256": "45811312a2c4da9dc42c4e798578329089db07ec404a9ee0777c0b23377241ec"
       },
       "relationships": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
-        "locale_sha256": "aa9e5315ac8d4afd6f51637918c5cdf2527d2acaf353421f7ca3e65a50029244",
-        "source_sha256": "4abdf88c046d2096413315d41ac19646dfe5da34c39a93b99d3992fa7f35fa3c"
+        "locale_sha256": "5deaf29387bc0d93a834152cbbe27bcb36636d93a71d513f5cfad1b2ea98c286",
+        "source_sha256": "01e5cb882dbc23b195b9c1a43f55e5838fbc6bd5844c231c7a42b7dd4f7c0ae5"
       },
       "technical": {
         "locale_sha256": "ee4cfb71c0e16dd24ec39bccad7fb367ae5e4a4bb8992d216ab05ffa4ee0af04",
@@ -79775,6 +80742,48 @@
       "why_it_matters": {
         "locale_sha256": "db0c985922ca5eb5db9a4244fcb731035216944b2d74ca480d7c44c2b5f312c9",
         "source_sha256": "c68a4e205b7ac5771ab8dc4c5ee0077a65146a77de16c0911b394dbdadb40f58"
+      }
+    },
+    "FCMO-C448347FD9ED": {
+      "claims": {
+        "locale_sha256": "d7c46d450b56cdfd7c2587fe9dea06964689926fe25a193525ebaf6fdc2d93c0",
+        "source_sha256": "c33377a85c1a3374ff1f7026749e064ddf640e4456f813682727e9d0bdf83c8c"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "ede07e6a4aabdbbd80adca02f427fca49a9499549597e72992f1dfe9cd037c6e",
+        "source_sha256": "ecffe7f0d776f72985d5ef38cfd3277ea2a80490b05274d3a03d4e4cec9c8935"
+      },
+      "importance_rationale": {
+        "locale_sha256": "37ef1fad53eb9cdc2ce05e63efa23f9460bf4dd271797fb5f9485cd65ed3ff21",
+        "source_sha256": "11d0bec455072573e2c87fee97fbc2d232ccee471f8feb1a097adb9d94e24ea2"
+      },
+      "limitations": {
+        "locale_sha256": "7814c20f720532efd8b3576f9bfaff2c698d311c08f9c556e6d464f47e8d7643",
+        "source_sha256": "8c517bf7a1e528481cb957d8307b1bb2581a054f8624a905766ea00cbb8c3cb5"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "a515a4f358e538156618ae3d26a3541ed648ebcf26c0892ab524868cfbea220a",
+        "source_sha256": "afe1005bb40455a1e95fba8181927040925ef872a8437d0f9ccfaf297405471a"
+      },
+      "technical": {
+        "locale_sha256": "df59987d32312094fd3ac9392fe7478783a2ea7dab18484fa4b9018f088c38d2",
+        "source_sha256": "0ccb133cccf55758aa78a4baed03c573a94b7783245d7a6570ddfd08c704b046"
+      },
+      "title": {
+        "locale_sha256": "0fad8a8017aa8a509dd2778fb50bec02cd67b545ba2451209236ebfef6b49211",
+        "source_sha256": "5ec6efcd47a787ebf653d52f908613d5464a013327332d155f9d2b6416ad3640"
+      },
+      "why_it_matters": {
+        "locale_sha256": "d576312408b80be6f8ba679e5ba59dc8aa9dc5f995a749e526714b3f8de2fdf0",
+        "source_sha256": "e2142601a177453ecd5bd719e5d9aa953e130879b08e3bce0fe5374730b06ac0"
       }
     },
     "FCMO-C465AF4FE252": {
@@ -82801,6 +83810,48 @@
         "source_sha256": "fbdd64775ae3f925c8aae51573e97cb07574054598e980212bc99d9744d8427b"
       }
     },
+    "FCMO-D994790E0334": {
+      "claims": {
+        "locale_sha256": "8a28428d3d557dfdf184874f4ec3b26bf315a9b7e5250bf60eaaa8812cbf2055",
+        "source_sha256": "cc46e63e37ec70e32c45e594227d6ad263de216e51ce087b039db19e1ed669a3"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "6485b2a301f38ae0999c9ff960780de946cb71bd1ea71afe28d423d971c2915d",
+        "source_sha256": "77d2cf73532f23fd0383b0ee8a476ba3ee5b008d6b7ba9695d5bb9aba5fc459b"
+      },
+      "importance_rationale": {
+        "locale_sha256": "26c9d519f170312b65bff0f1e79f0bf0814848a9982aac5777e0e5dd21629377",
+        "source_sha256": "f796bd2154b3a37421431035905f35cdec30de9246c864cc6e26df9170c89733"
+      },
+      "limitations": {
+        "locale_sha256": "714ece0f425fcc6d3975bf4ba1cbeb0ad2ddf060a071e6a13fe027b538453f26",
+        "source_sha256": "824a1c40484582ef782b523c8f16df70caea7439c7ecf39cb6c93578ea66b3a9"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "23590402c03c16fa83861d7130824c9e7a230e83e4e7c352a196dc11ffcab23e",
+        "source_sha256": "bb71b423dff1abae11ae9e2d29cc465fa9d3a7bdaa29c8d12ea49bae0a195d61"
+      },
+      "technical": {
+        "locale_sha256": "683ca46827035203db4ecdeda3d2814b096c5a695dfca2bcbd5d4304a3780a56",
+        "source_sha256": "6433564f7b60b0ed96141ff4b346ef8eb5d402022a4bbff35e21837fb9854400"
+      },
+      "title": {
+        "locale_sha256": "238cda3c5e2b3d310211286f837371230ac585560232d5e99d377f0abc8ee90a",
+        "source_sha256": "21cf324c6e3595273fe7e391dc900dc03fb660ceb6705d9ee75f0579cbe3d4ea"
+      },
+      "why_it_matters": {
+        "locale_sha256": "0de26ac8fc20630d40939ed424be2dfb42bf200a21764f180f47acfff679018a",
+        "source_sha256": "972b868d1aaf8b8630f3b931039b7c42ec55aedb6cf3104647314ec618d22c9c"
+      }
+    },
     "FCMO-D9BBA3797A95": {
       "claims": {
         "locale_sha256": "03007ec745c60cdf6c1539faa6456fe5dbf2a32f4db3061b7154a4072df34695",
@@ -84367,6 +85418,48 @@
       "why_it_matters": {
         "locale_sha256": "e0ebad0e35ddc3fa9749a5186f7608091d20c6de9f32d4fcdd261ffaa4a9bda1",
         "source_sha256": "0f9d0f1917c35d977f672b52268206741da94c2a635f52ab1862a6cd878d270a"
+      }
+    },
+    "FCMO-E7E707BEE1CB": {
+      "claims": {
+        "locale_sha256": "f0d92293867e2fcbafbfc9a9f51a58ecb86abbf49ebc4807b72824c9c7c5e241",
+        "source_sha256": "58c5d85954b435791ea3191015dd7ce31a5a9c352ec4b5a1b618f1574ba6f962"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "0f052e5542aeb601d8a8571623149649b5b78fb4ef267e8532c23783a316e3e6",
+        "source_sha256": "b9b352c00c4ae64fe1b4c94cc0ce20b27fd869dcb08b30315d518fc5b47a0498"
+      },
+      "importance_rationale": {
+        "locale_sha256": "8a7cc1fb46d2a68dd529dafc84c18a28ffa3d364f02725f5f86c08353580ec59",
+        "source_sha256": "f54e2834c7363886682593b6ec09b339236533ca339833b22be87b70c128d033"
+      },
+      "limitations": {
+        "locale_sha256": "e346a7f9f8521a0f357a915b92aba3c37720f3f09f9bbaa05b96bdb1403ac3e8",
+        "source_sha256": "8c84beaf4cda0bb5be535aebee3883414e291a87e9a3c1c0844bf163e5a69171"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "7059643e898f5a9956a0b0e5ea21d03c165eeb184184928ce96e3b1e651c8b3c",
+        "source_sha256": "93f00d481a9e8583cff2591cf603a5f056c3bef30bbd28c2485bbd7dd2324544"
+      },
+      "technical": {
+        "locale_sha256": "673936c76b48bac577f6399b793b32bcc15f5e2c8e1698541295525fe271d2a6",
+        "source_sha256": "65a6546d53445a459a6984bad640c7abe9e88113e89178894a41fdacd58c45c1"
+      },
+      "title": {
+        "locale_sha256": "3136dcc9688311a85c47e84f4f8fef74fac868e5edbb671055c9d32fbf96e78d",
+        "source_sha256": "47760ec13fad3b630d6b1977c30d393d6b115e44be3a18fd228cd28304704c33"
+      },
+      "why_it_matters": {
+        "locale_sha256": "1947fd1fcb1ec7fae09f662b2cd7c40d0b2d6ac1ce6404491d7437381fb04f59",
+        "source_sha256": "a7a0151ba995abe457884489cd48db2c63e72741e6a9f7a163b4f6beff7b9181"
       }
     },
     "FCMO-E810FECD5CEF": {

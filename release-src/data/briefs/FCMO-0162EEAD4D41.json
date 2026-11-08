@@ -1,0 +1,128 @@
+{
+  "record": {
+    "id": "FCMO-0162EEAD4D41",
+    "title": "BlockLock paper reports reproducible batched LLM inference with fixed request geometry",
+    "desk": "Inference Systems",
+    "event_at": "2026-11-04T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "A 4 November 2026 preprint introduces BlockLock, which fixes the execution geometry of one protected request while retaining shared batched prefill for companion requests. The authors report bitwise-identical target outputs across companion changes under a fixed deployment contract. Across five dense models and NVIDIA A6000, A100 and H100 deployments, they report 53.5–55.0% lower latency and 115.2–122.2% higher throughput than vLLM Batch-Invariant at batch size 4 and 64 output tokens; reported overhead is 5.4–6.9% versus standard vLLM and 0.5–0.8% versus padded PyTorch. These are author-reported, configuration-specific results; no independent reproduction, MoE evaluation or queueing/tail-latency study is established.",
+    "topics": [
+      "LLM inference",
+      "batching",
+      "determinism",
+      "reproducibility",
+      "serving systems"
+    ],
+    "organizations": [
+      "University of Electronic Science and Technology of China",
+      "Universidad Politécnica de Madrid"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-0162EEAD4D41.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-0162EEAD4D41.json",
+    "citation": {
+      "id": "FCMO-0162EEAD4D41",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-0162EEAD4D41.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that BlockLock-Rows preserves the protected request’s generated tokens and full-vocabulary logits bitwise across changes in companion requests, under a fixed deployment configuration with repeat-stable kernels and collectives."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "Across five dense models on NVIDIA A6000, A100 and H100 deployments, the authors report that at batch size 4 and 64 output tokens BlockLock-Rows reduced latency by 53.5–55.0% and increased throughput by 115.2–122.2% versus vLLM Batch-Invariant; reported latency overhead was 5.4–6.9% versus standard vLLM and 0.5–0.8% versus padded PyTorch."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "Independent reproduction, transfer across deployment configurations, benefits under real arrival queues or tail-latency workloads, and performance on mixture-of-experts models are not established by the paper."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "efficiency",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-11-04"
+    ],
+    "event_at": "2026-11-04T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The paper-reported determinism and timing results have not been independently reproduced; no implementation link was visible in the checked arXiv record.",
+        "kind": "reproduction_missing",
+        "state": "open"
+      },
+      {
+        "description": "The formal determinism contract is per fixed deployment and assumes repeat-stable kernels and collectives; deployment changes and operational arrival queues/tail latency are outside the demonstrated scope.",
+        "kind": "other",
+        "state": "open"
+      },
+      {
+        "description": "The paper evaluates dense models only; mixture-of-experts token routing is left for future work.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-0162EEAD4D41",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the paper-reported results hold across more serving configurations, per-request fixed batch geometry could preserve reproducible inference while retaining batched prefill and avoiding the latency penalty of batch-invariant kernels. The current result is limited to five dense models and a small set of GPUs, so it is meaningful systems progress rather than a general serving-cost result.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-11-07T00:20:00Z",
+    "limitations": [
+      "Results are author-reported in a preprint and were not independently reproduced in this activation.",
+      "The determinism guarantee is conditional on a fixed hardware/software/precision/backend/batch-geometry configuration and repeat-stable kernels and collectives; changing deployments is outside the claim.",
+      "Only five dense models and three single-GPU deployment types are evaluated; MoE models are left to future work.",
+      "The benchmark comparison is controlled and fixed-group; queueing, arrival processes, TTFT/TPOT and tail latency are not measured.",
+      "At high companion-length variance, padding waste increases; the authors identify this as a limitation."
+    ],
+    "organizations": [
+      "University of Electronic Science and Technology of China",
+      "Universidad Politécnica de Madrid"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-11-07T00:20:00Z",
+    "regions": [
+      "Global"
+    ],
+    "relationships": [],
+    "source_languages": [],
+    "source_urls": [
+      "https://arxiv.org/abs/2611.06977"
+    ],
+    "status": "active",
+    "summary": "A 4 November 2026 preprint introduces BlockLock, which fixes the execution geometry of one protected request while retaining shared batched prefill for companion requests. The authors report bitwise-identical target outputs across companion changes under a fixed deployment contract. Across five dense models and NVIDIA A6000, A100 and H100 deployments, they report 53.5–55.0% lower latency and 115.2–122.2% higher throughput than vLLM Batch-Invariant at batch size 4 and 64 output tokens; reported overhead is 5.4–6.9% versus standard vLLM and 0.5–0.8% versus padded PyTorch. These are author-reported, configuration-specific results; no independent reproduction, MoE evaluation or queueing/tail-latency study is established.",
+    "technical": {
+      "claimed_result": "BlockLock-Rows keeps a protected request’s shape, positions and arithmetic path fixed across compatible companion batches; BlockLock-Pack isolates target KV state for target-only decode. Authors report bitwise identity and throughput/latency gains versus batch-invariant kernels.",
+      "compute_or_cost": "At batch size 4, 64 output tokens, reported BlockLock-Rows latency is 53.5–55.0% below vLLM Batch-Invariant; throughput is 115.2–122.2% higher. Relative to standard vLLM, reported geometric mean latency overhead is 5.4–6.9%; relative to padded PyTorch, reported overhead is 0.5–0.8%. Fixed group timing excludes queuing and tail latency.",
+      "demonstrated_result": "The preprint and its experimental tables are accessible; the reported numerical findings and bitwise agreement remain author-reported and were not independently reproduced here.",
+      "implementation_status": "The paper describes PyTorch and vLLM implementations and provides a formal design contract and experimental protocol in appendices. No public code link was visible in the inspected arXiv record; implementation availability elsewhere was not established.",
+      "mechanism": "BlockLock-Rows aligns protected prompts into fixed-width batch rows so companion lengths do not change target tensor geometry. BlockLock-Pack anchors the protected request at the end of a packed prefill and extracts its KV state for isolated decoding. Both depend on a fixed deployment configuration and repeat-stable kernels/collectives.",
+      "novelty": "The paper targets reproducibility for a protected request without forcing every request onto specialized deterministic kernels or removing all shared prefill batching. Its measured tradeoff is configuration-specific and remains unreplicated.",
+      "regime": "Five dense models (Qwen3-8B/14B, Llama-3.1-8B-Instruct, Gemma-3-4B/12B-IT) on single-GPU NVIDIA A6000, A100 and H100 deployments; the contract is per frozen deployment configuration. Timing uses fixed groups, primarily batch size 4 and 64 output tokens.",
+      "reproducibility": "The paper gives experimental and deployment details, but a code link was not visible on the checked arXiv page and the research desk did not run an implementation. The reported bitwise hashes and latency/throughput values therefore remain first-party claims.",
+      "strongest_baseline": "The paper compares BlockLock-Rows with standard vLLM, vLLM Batch-Invariant, padded PyTorch, and a CoRun-style isolated-prefill baseline. Equal-delivered-work comparisons use the same number of generated tokens for full-batch methods; BlockLock-Pack is target-only and not a same-work comparison."
+    },
+    "title": "BlockLock paper reports reproducible batched LLM inference with fixed request geometry",
+    "topics": [
+      "LLM inference",
+      "batching",
+      "determinism",
+      "reproducibility",
+      "serving systems"
+    ],
+    "why_it_matters": "Reliable reproduction matters for model evaluation, RL rollouts and tool-using systems. If these results generalize, fixed geometry for only the requests requiring reproducibility could reduce the latency cost of deterministic inference while retaining shared prefill batching. The paper does not establish production queueing or cost benefits."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
