@@ -99,7 +99,17 @@ class CorpusSweepTests(unittest.TestCase):
                 continue
             compared += 1
             shortened += old_truncate(text, limit) != " ".join(text.split())
+            normalized = " ".join(text.split())
             with self.subTest(story=story["id"], locale=locale, key=key, limit=limit):
+                if any(visual_width(char) == 2 for char in normalized[:limit]):
+                    # An English or Spanish text may quote Han script (a Chinese notice
+                    # number, a company name). Its prefix is cut by width, as the docstring
+                    # of truncate() promises, so the Latin oracle does not apply; it must
+                    # still fit and still be a prefix of the text.
+                    result = truncate(text, limit)
+                    self.assertLessEqual(visual_width(result), limit)
+                    self.assertTrue(normalized.startswith(result.rstrip("…")), result)
+                    continue
                 self.assertEqual(truncate(text, limit), old_truncate(text, limit))
         self.assertGreater(compared, 200)
         self.assertGreater(shortened, 20)
@@ -117,6 +127,24 @@ class CorpusSweepTests(unittest.TestCase):
                 self.assertFalse(result.endswith("，"), result)
                 self.assertFalse(result.endswith("，…"), result)
         self.assertGreater(cut, 0)
+
+
+class LatinTextQuotingHanTests(unittest.TestCase):
+    """2026-11-07: an English summary quoting a Chinese notice number blocked every refresh for 22 h."""
+
+    TEXT = ("China’s Ministry of Industry and Information Technology published notice 工信厅信管〔2026〕42号 "
+            "on 6 November; the notice is dated 24 October. It covers agents preinstalled on phones, "
+            "tablets and wearables. The original Chinese text calls for compatibility checks")
+
+    def test_quoted_han_is_cut_by_width_and_never_overflows(self):
+        for limit in LIMITS:
+            with self.subTest(limit=limit):
+                result = truncate(self.TEXT, limit)
+                self.assertLessEqual(visual_width(result), limit)
+                self.assertTrue(self.TEXT.startswith(result.rstrip("…")), result)
+
+    def test_the_old_character_rule_would_overflow_here(self):
+        self.assertGreater(visual_width(old_truncate(self.TEXT, 180)), 180)
 
 
 if __name__ == "__main__":
