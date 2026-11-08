@@ -451,6 +451,21 @@ class OracleInBrowserTests(unittest.TestCase):
                 self.assertFalse(desktop["tabbarVisible"])
 
 
+class DelayedBannerKeepsTheHeadlineTests(unittest.TestCase):
+    """2026-11-08: a DELAYED banner pushed the phone headline to 537px; the deploy gate then refused every
+    build, so the notice that the edition was late could never reach readers. The plate gives the room back."""
+
+    def test_a_visible_banner_shrinks_the_phone_plate(self):
+        css = (ROOT / "site-src/assets/css/d/d-front.css").read_text(encoding="utf-8")
+        rule = ".d-site:has(.status-stack>.status-banner:not([hidden])) .d-front .d-cover-plate{height:"
+        self.assertIn(rule, css)
+        start = css.index(rule)
+        self.assertGreater(start, css.rindex("@media(max-width:760px){", 0, start))
+        self.assertLess(start, css.index("\n}", start))
+        cap = int(re.search(r"(\d+)px\)\}", css[start:start + 160]).group(1))
+        self.assertLessEqual(cap, 160)
+
+
 class LongTokenDoesNotOverflowTests(unittest.TestCase):
     """A hash or URL with no spaces inside zh text must wrap, not scroll a 390px phone page sideways."""
 
