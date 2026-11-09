@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "08acb4602ddc0cd54659b93abfbea5c7a46e68ff51d98ce85b048d9453280cc4",
+  "canonical_source_sha256": "08256370b36c7d5bac0a9586dab8102830694f84bdaacd18ea53c3aa0f7f0f0f",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -34303,6 +34303,51 @@
       },
       "title": "PACT informa fallas de cumplimiento ante presión en un benchmark de 22 modelos de asistentes empresariales",
       "why_it_matters": "Los equipos empresariales suelen evaluar si un asistente puede expresar una regla, pero no siempre si la mantiene cuando una persona solicita una excepción por conveniencia o insiste después de una respuesta correcta. PACT ofrece un benchmark multidominio para medir estas presiones. Su utilidad para decisiones de despliegue depende de verificaciones independientes del puntaje y de evidencia de que los escenarios representan flujos de trabajo reales."
+    },
+    "FCMO-A2A624115206": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El artículo y el repositorio público enlazado describen y proporcionan 20 cadenas de cuatro niveles en 10 dominios, con 80 reglas ocultas, tareas de práctica y tareas de prueba. El benchmark utiliza agrupaciones ocultas certificadas mediante pruebas y diagnósticos de miembros omitidos y exclusiones falsas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el benchmark de los autores, seis métodos de autoevolución muestran una generalización limitada a partir de retroalimentación solamente con GPT-6-Luna; una lección fija sobre agrupaciones nombradas mejora las puntuaciones de algunos métodos, mientras que ACE y Dynamic Cheatsheet obtienen mejores resultados con GPT-6-Sol. Los resultados varían según el modelo y el método de actualización."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El estudio no establece que los resultados del benchmark predigan el aprendizaje a partir de retroalimentación en despliegues de agentes abiertos y reales, y sus comparaciones reportadas no se han reproducido de forma independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las comparaciones reportadas entre modelos y métodos de actualización no se han reproducido de forma independiente en CLR-Bench ni en distribuciones de tareas más amplias.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-11-09T00:16:03Z"
+        }
+      ],
+      "importance_rationale": "Si se adopta, un benchmark que distingue la inducción de reglas de la memorización de excepciones podría cambiar la evaluación de agentes con estado persistente. Su consecuencia actual está acotada por 20 cadenas construidas, dos modelos base evaluados y la falta de uso independiente establecido.",
+      "limitations": [
+        "El benchmark incluye 20 cadenas construidas en 10 dominios, con solo dos cadenas por dominio.",
+        "El artículo informa una ejecución por condición en las 20 cadenas; en esta revisión no se encontró reproducción independiente ni evaluación externa.",
+        "Los resultados dependen de los modelos evaluados, los prompts y métodos de actualización, y de la convención del benchmark de que las etiquetas ocultas representan agrupaciones nombradas; no establecen directamente resultados con retroalimentación abierta del mundo real.",
+        "El repositorio enlazado es público, pero indica que la licencia está por decidir; aquí no se ejecutó ni adoptó código o datos."
+      ],
+      "relationships": [],
+      "summary": "El preprint de arXiv del 29 de octubre presenta CLR-Bench, un benchmark de 20 cadenas curriculares de cuatro niveles en 10 dominios construidos. Evalúa si seis métodos de autoevolución infieren agrupaciones nombradas ocultas a partir de retroalimentación escasa y las aplican a valores no vistos, en lugar de guardar cada corrección como una excepción. Los autores informan una generalización limitada con GPT-6-Luna cuando solo se usa retroalimentación, una mejora con una lección fija y resultados mucho más sólidos para algunos métodos con GPT-6-Sol. Son resultados reportados por los autores en un benchmark pequeño y construido; no establecen aprendizaje general de agentes ni transferencia operativa.",
+      "technical": {
+        "claimed_result": "Los autores informan que los métodos con GPT-6-Luna suelen guardar las correcciones como excepciones y mejoran alrededor de cinco puntos como máximo frente al agente congelado; una lección fija mejora varios resultados. ACE y Dynamic Cheatsheet obtienen resultados sustancialmente mejores con GPT-6-Sol. Los resultados dependen mucho del modelo base y del método de actualización.",
+        "demonstrated_result": "El artículo accesible documenta el diseño del benchmark y el repositorio público contiene datos, componentes de puntuación y un arnés. Su presencia no valida de forma independiente las puntuaciones reportadas; no se ejecutó código ni se reprodujeron resultados.",
+        "mechanism": "Cada cadena añade una regla de agrupación nombrada oculta a una tarea persistente. La retroalimentación de práctica revela un miembro y un no miembro; las tareas de prueba separadas miden si el agente aplica la agrupación a miembros no vistos y conserva los no miembros. Los autores usan pruebas para comprobar el conocimiento previo y la identificabilidad, y luego puntúan por separado la generalización insuficiente y excesiva.",
+        "novelty": "Evalúa qué aprendieron los agentes con estado persistente al medir la transferencia a miembros no vistos de agrupaciones ocultas, en lugar de depender de aumentos en la puntuación agregada.",
+        "regime": "20 cadenas de cuatro niveles en 10 dominios construidos; seis métodos de autoevolución; condiciones con GPT-6-Luna y algunas con GPT-6-Sol, ambas con alto esfuerzo de razonamiento; 80 reglas ocultas con tareas diferenciadas de práctica y prueba.",
+        "reproducibility": "El artículo enlaza código y datos; el repositorio documenta la puntuación local y las ejecuciones que dependen del modelo. La licencia del repositorio figura como pendiente de decisión. No se ejecutó código ni se hizo una reproducción independiente.",
+        "strongest_baseline": "Agente congelado, referencia con el historial de práctica sin procesar y condición con una lección fija en las mismas 20 cadenas; las comparaciones son reportadas por los autores y se ejecutan una vez por condición en cada cadena."
+      },
+      "title": "CLR-Bench evalúa si los agentes autoevolutivos infieren reglas ocultas a partir de la retroalimentación",
+      "why_it_matters": "Se espera con frecuencia que el estado persistente de un agente convierta la retroalimentación en conocimiento reutilizable. CLR-Bench aísla un modo de fallo concreto —guardar correcciones individuales en vez de inferir una regla— y lo distingue de la generalización excesiva mediante diagnósticos por valor. Si el benchmark resulta útil más allá de sus tareas iniciales, podría mejorar la evaluación de agentes autoevolutivos; los resultados actuales siguen siendo acotados y no se han reproducido de forma independiente."
     },
     "FCMO-A2E27CF321FE": {
       "claims": [
@@ -76281,6 +76326,48 @@
       "why_it_matters": {
         "locale_sha256": "8b7660f9673552772c139145626b411b27f2db40dc17fa219379188bbfc9b37b",
         "source_sha256": "06f803430e3dde7a845f44887bd9124636db4828c1ae8838f1cff419f0a0f476"
+      }
+    },
+    "FCMO-A2A624115206": {
+      "claims": {
+        "locale_sha256": "ba055c3cc42182c03c2b466a92dea450d94264f951a51b24e9860c72d8e2af7e",
+        "source_sha256": "703e707fb36b3a1f16d4431651374284749db3e6b415c51b50fe8051bd91c194"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "07dbdfbc6c43e7283395d920bb73831cc53c5d863e9ad352c050df17e72fd888",
+        "source_sha256": "57fd4182de3c4382d968894b566112193cb2922fe0616029da1bd11e4baa8854"
+      },
+      "importance_rationale": {
+        "locale_sha256": "6ef8c99a3aa405fc0ed564f516dfc13cac257ff8efb441356eb1a64b479c68ed",
+        "source_sha256": "c01044b53b8daadc770c9eb961191ec92014d28df7dd4c53f1f6ea9606aeecf4"
+      },
+      "limitations": {
+        "locale_sha256": "8540acc715235a6dfe2431c9e198cdaf48f4e355054063a86b15af511e6fdebb",
+        "source_sha256": "5fc4c5a767f6ad512235b1ccd6863e6b9238657ca6990f75055f8aea8f9c86ba"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "457a4bbbc0a751fecdf6e6e7e7c0fd65f2bc8b39f012f6acd5a36de75a3097b4",
+        "source_sha256": "5a96663d52367fcdde42a6604ddac690e2f26571ed9a156a0c1b4c5015fe23dc"
+      },
+      "technical": {
+        "locale_sha256": "5b3f5fe2b0d1ae082ab0e3e498df02e636a2c9df676b22ec8d487fbf3f01d7b4",
+        "source_sha256": "f6b91cb71ac784bcec687f1be77658d179afdecc6832ec1abd00842da229a18b"
+      },
+      "title": {
+        "locale_sha256": "db9710a4f3f23eadc597e086d3bf23d3b1b03eae062dabfaf072ecc7baeaaaff",
+        "source_sha256": "e29b8b56c8bd823661d3fb085b94b817fff5bc43925e5dc9a9e9ddc9d8182d52"
+      },
+      "why_it_matters": {
+        "locale_sha256": "496fe0520feff80fc94dd465b7d1593446a53e4e84238419f5e4c65e84f03212",
+        "source_sha256": "c21ceb7ff00355a0c5ede92b60ea597a6f2eecb363b4558a6ec610a59189940b"
       }
     },
     "FCMO-A2E27CF321FE": {
