@@ -12204,6 +12204,65 @@
       "title": "Un artículo sobre incendios forestales en Canadá informa un sustituto de IA rápido para la cartografía BurnP3+",
       "why_it_matters": "Si se confirma de forma independiente en más regiones y con datos de incendios observados, un emulador de IA podría permitir a quienes investigan incendios forestales explorar más escenarios regionales con mucho menos cómputo que las simulaciones Monte Carlo repetidas. La evidencia actual solo respalda una emulación del simulador reportada en un artículo: no muestra pronósticos mejores ni planificación de emergencias más segura, y no recupera la clase de peligro más extrema."
     },
+    "FCMO-3980687F8898": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Una versión del artículo titulado Test-Time Compute Scales Better with Parallel Agent Teams se presentó en arXiv el 2026-11-06."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 12 tareas de largo horizonte con verificador, los autores informan que, con Qwen3.8-27B y un presupuesto de 100 agentes, el mejor de diez equipos colaborativos de diez supera al mejor de 100 agentes independientes en 10 tareas, y a un equipo único de 100 en las cuatro tareas donde hicieron esa comparación."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En las 12 tareas, los autores informan ganancias promedio de 10% frente a agentes independientes con un presupuesto de 10 agentes y de 27% con 100 agentes; cada comparación usa ejecuciones de 12 horas por tarea."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que los equipos paralelos mejoren resultados con otras familias de modelos, arneses, dominios de tareas o presupuestos, ni en tareas sin un verificador confiable; esta revisión no reprodujo los resultados de manera independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró ni realizó una réplica independiente de las ganancias por tarea o promedio; algunas comparaciones con equipos grandes solo cuentan con una a cinco ejecuciones.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo usa Qwen3.8-27B, un solo arnés Codex, 12 tareas seleccionadas y sesiones de 12 horas; se desconoce si el resultado se transfiere a otros modelos, arneses o familias de tareas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La selección Best-of-N requiere un verificador capaz de puntuar y ordenar los intentos; no se prueba el método cuando ese verificador no está disponible o no es confiable.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce de forma independiente, muestrear varios equipos colaborativos en vez de agentes individuales o un único equipo grande podría cambiar la asignación de cómputo de inferencia para tareas de búsqueda de largo horizonte con verificador; la evidencia actual proviene de los autores y se limita a un modelo, un arnés y tareas seleccionadas.",
+      "limitations": [
+        "Los autores reportan todos los resultados de rendimiento; no se reprodujeron de manera independiente.",
+        "El artículo informa cerca de 100 ejecuciones independientes y entre 10 y 11 ejecuciones de equipos por tarea, pero solo una a cinco ejecuciones por tamaño de equipo grande; ese número limita la precisión de dichas comparaciones.",
+        "Los experimentos usan una familia de modelos y un arnés de agentes, con tareas seleccionadas que cuentan con verificador y sesiones de 12 horas.",
+        "El enlace al código en GitHub devolvió 404 durante esta revisión; no se auditaron de forma independiente el código, los registros de ejecución ni el costo total.",
+        "Los resultados no establecen que la selección Best-of-N funcione cuando no hay un verificador confiable."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 6 de noviembre estudia tareas de largo horizonte con verificador usando agentes Qwen3.8-27B en el arnés Codex. Los autores informan que, con un presupuesto de 100 agentes, el mejor de diez equipos colaborativos de diez obtiene una puntuación superior a la del mejor de 100 agentes independientes en 10 de 12 tareas y a la de un equipo único de 100 en las cuatro tareas probadas a ese tamaño. En promedio, el artículo informa puntuaciones 10% mayores con un presupuesto de 10 agentes y 27% mayores con 100. El método combina el intercambio de información dentro de cada equipo, mediante un foro compartido y sin jerarquía, con la selección Best-of-N entre equipos independientes. Son resultados reportados por los autores: las ejecuciones con equipos grandes solo tuvieron entre una y cinco repeticiones, y el estudio usa una familia de modelos y un solo arnés. El enlace al código devuelve 404. El estudio abarca 12 tareas en total. La réplica independiente y la transferencia a otros entornos siguen sin establecerse.",
+      "technical": {
+        "claimed_result": "En 12 tareas con verificador usando Qwen3.8-27B, los autores informan que equipos paralelos de diez superan al mejor de 100 agentes independientes en 10 tareas y a un equipo único de 100 en las cuatro tareas probadas con ese tamaño; informan ganancias promedio de 10% con 10 agentes y 27% con 100.",
+        "compute_or_cost": "El presupuesto se cuenta como agentes que trabajan durante el mismo periodo de 12 horas; un equipo de k agentes consume k horas-agente por hora. En las comparaciones de costo equivalente, se compara el tiempo de GPU de Qwen con tokens de GPT-5.6-sol. No se evaluaron otros costos generales de energía, infraestructura o despliegue.",
+        "demonstrated_result": "El registro de arXiv y la versión inicial del artículo establecen que el estudio se publicó y describen su protocolo y resultados reportados; no verifican de manera independiente las mejoras de rendimiento.",
+        "mechanism": "Se ejecutan varios equipos pequeños y autónomos que comparten hallazgos en un foro entre pares; después se selecciona el mejor resultado verificado de cada equipo. Así se combina una media más alta dentro de cada equipo con variación entre equipos. Los agentes independientes parten de resultados individuales más bajos, mientras que un solo equipo grande genera una única muestra.",
+        "regime": "Qwen3.8-27B en un solo arnés basado en Codex; 12 tareas de largo horizonte de seis benchmarks y nueve dominios; cada tarea se ejecuta durante 12 horas. Los autores usan cerca de 100 ejecuciones independientes y 10–11 ejecuciones de equipo por tarea; los equipos de más de diez se prueban en cuatro tareas con una a cinco ejecuciones por tamaño.",
+        "reproducibility": "El artículo HTML describe las tareas, el protocolo y sus limitaciones, pero el repositorio de GitHub enlazado devolvió 404. esta revisión no inspeccionó registros originales ni ejecutó los experimentos de manera independiente.",
+        "strongest_baseline": "Con el mismo presupuesto total de agentes, se compara el mejor resultado de 100 agentes Qwen3.8-27B independientes y, para cuatro tareas, un único equipo de 100. El artículo también compara GPT-5.6-sol a igual costo en dólares en ocho tareas."
+      },
+      "title": "Preprint informa mejor escalamiento de cómputo de inferencia con equipos paralelos de agentes",
+      "why_it_matters": "El cómputo de inferencia suele destinarse a muchos intentos independientes o a un solo equipo grande que colabora. Si el resultado se generaliza, usar varios equipos pequeños que colaboran podría mejorar la búsqueda de largo horizonte cuando un verificador puntúa los resultados, al combinar colaboración con variación entre ejecuciones. Esto podría cambiar cómo se distribuye el cómputo entre agentes, pero la evidencia se limita a Qwen3.8-27B, un arnés y tareas seleccionadas; no demuestra mejoras cuando no hay un verificador confiable."
+    },
     "FCMO-3A16714B7377": {
       "claims": [
         {
@@ -49949,6 +50008,55 @@
       "summary": "LayerRoute amplía políticas visión-lenguaje-acción con una mezcla condicionada por acciones sobre estados intermedios VLM cacheados, más Action-State Reread. En las evaluaciones comparables de los autores mejora dos arquitecturas VLA en LIBERO, SimplerEnv, RoboCasa-GR1, cuatro backbones VLM y 150 pruebas con robots físicos, con un crecimiento modesto de parámetros pero una penalización medible de latencia de inferencia.",
       "title": "LayerRoute: enrutamiento de capas intermedias condicionado por acciones para políticas VLA",
       "why_it_matters": "Si el efecto se generaliza, los sistemas VLA no necesitan tratar la última capa VLM como la única interfaz de control útil: el estado de acción puede seleccionar adaptativamente la profundidad semántica durante la ejecución. Eso cambia una decisión arquitectónica concreta para políticas corporizadas de largo horizonte, aunque las ganancias actuales permanecen acotadas y no reinician el campo."
+    },
+    "FCMO-F676C4FBA031": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El 9 de noviembre de 2026, el Ministerio de Comercio de China y la Administración General de Aduanas emitieron el Anuncio 2026 n.º 58, que dispone continuar la suspensión de seis anuncios de control de exportaciones de 2025 del 11 de noviembre de 2026 al 10 de enero de 2027."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El índice oficial de anuncios de 2025 del Ministerio identifica esos instrumentos como controles relativos a materiales superduros, equipos e insumos de tierras raras, tierras raras medianas y pesadas, baterías de litio y ánodos de grafito artificial, ciertos artículos de tierras raras fabricados en el extranjero y tecnología de tierras raras."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los avisos oficiales revisados no establecen cambios efectivos en envíos o licencias, efectos en precios ni un impacto directo sobre hardware de IA, producción de semiconductores o disponibilidad de cómputo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se revisaron volúmenes de exportación, licencias aprobadas, precios, inventarios ni respuestas de proveedores para las seis categorías.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Las fuentes actuales no identifican un vínculo directo entre las categorías cubiertas y una restricción observada en el suministro de hardware de IA, semiconductores o cómputo.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se aplica como se anunció, la prórroga modifica a corto plazo las condiciones comerciales para varias categorías de materiales y equipos relevantes para la tecnología. Su consecuencia es notable para las cadenas de suministro de hardware, pero no se informa un efecto medido sobre el cómputo de IA.",
+      "limitations": [
+        "El aviso especifica el periodo de suspensión, pero no aporta datos de implementación ni aclara si se mantienen otros requisitos de licencia fuera de estas seis medidas.",
+        "La medida es pertinente para cadenas amplias de suministro de materiales tecnológicos; no se ha establecido un efecto directo en el sector de IA.",
+        "La revisión abarcó el aviso oficial y el índice de anuncios del Ministerio, pero no registros de envíos ni los seis avisos originales completos."
+      ],
+      "relationships": [],
+      "summary": "El Ministerio de Comercio de China y la Administración General de Aduanas anunciaron el 9 de noviembre de 2026 que continuará, del 11 de noviembre de 2026 al 10 de enero de 2027, la suspensión de seis anuncios de control de exportaciones emitidos en 2025. El índice oficial de anuncios del Ministerio identifica medidas de control de 2025 sobre materiales superduros; equipos e insumos de tierras raras; tierras raras medianas y pesadas; baterías de litio y materiales de ánodo de grafito artificial; ciertos artículos de tierras raras fabricados en el extranjero; y tecnología de tierras raras. El aviso documenta un cambio temporal en la vigencia de esas medidas. No muestra volúmenes de envíos, resultados de licencias, precios ni efectos sobre el suministro de hardware o cómputo de IA.",
+      "technical": {
+        "claimed_result": "No se presenta una afirmación separada sobre rendimiento técnico. La posible relevancia corresponde a las condiciones de suministro de materiales tecnológicos, no a una capacidad de IA ni a un efecto medido sobre el cómputo.",
+        "compute_or_cost": "El aviso revisado no informa precios de cómputo, costos de infraestructura de IA ni datos de envíos.",
+        "demonstrated_result": "El aviso oficial del 9 de noviembre señala que la suspensión de los seis instrumentos continúa del 11 de noviembre de 2026 al 10 de enero de 2027.",
+        "implementation_status": "Anunciado oficialmente; no se revisaron flujos comerciales ni resultados de licencias por caso.",
+        "mechanism": "Una suspensión por tiempo limitado cambia si se aplican seis avisos de control de exportaciones emitidos en 2025 durante el periodo señalado. El anuncio no describe el proceso operativo de licencias ni otros controles.",
+        "regime": "Seis avisos chinos de control de exportaciones de 2025 sobre materiales superduros, artículos y tecnología de tierras raras, baterías de litio y ánodos de grafito artificial; periodo anunciado: del 11 de noviembre de 2026 al 10 de enero de 2027.",
+        "reproducibility": "No corresponde a un aviso de política; los resultados de implementación requieren datos comerciales y de licencias posteriores.",
+        "strongest_baseline": "La suspensión oficial anterior, Anuncio 2025 n.º 70, estaba vigente hasta el 10 de noviembre de 2026. El Anuncio 2026 n.º 58, del 9 de noviembre, la extiende del 11 de noviembre al 10 de enero de 2027."
+      },
+      "title": "China prorroga la suspensión de seis controles de exportación sobre tierras raras, baterías y grafito",
+      "why_it_matters": "Las condiciones de control de exportaciones para insumos de tierras raras, materiales de baterías, ánodos de grafito y equipos relacionados pueden afectar las cadenas de suministro tecnológico. El aviso oficial documenta una prórroga de dos meses para seis medidas específicas, pero no demuestra que haya cambiado el suministro de hardware o cómputo de IA."
     },
     "FCMO-F698D0B28A20": {
       "claims": [
