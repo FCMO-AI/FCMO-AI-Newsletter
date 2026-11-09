@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-11-09T11:36:34Z",
-  "release_id": "newswire-df405a5f53f391e8d3774a38",
+  "generated_at": "2026-11-09T13:38:37Z",
+  "release_id": "newswire-68114dd77dc2a462bb0131f6",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -64,6 +64,466 @@
     "2026-11-08"
   ],
   "stories": [
+    {
+      "id": "FCMO-E3444414CD0E",
+      "slug": "aspect-wise-pairwise-tournaments-report-improved-test-time-selection",
+      "url_date": "2026-11-09",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "Aspect-wise Pairwise Tournaments report improved test-time selection across five domains",
+      "headline": "Aspect-wise Pairwise Tournaments report improved test-time selection across five domains",
+      "dek": "Guan and Du introduce Aspect-wise Pairwise Tournaments (APT), a training-free method that generates candidate solutions and selects a winner through single-elimination matchups.",
+      "summary": "Guan and Du introduce Aspect-wise Pairwise Tournaments (APT), a training-free method that generates candidate solutions and selects a winner through single-elimination matchups. In each matchup, multiple prompted verifiers compare the two candidates along distinct aspects and vote; position-swapped judgments are used to reduce order bias. The authors report that APT produced the best score in 14 of 15 generator-domain pairs across five tasks and three generators at eight candidates, outperforming self-consistency, reward-model selection and binary aspect approval in most comparisons. Their matched-budget and component ablations also favor the combination of pairwise comparison and aspect-specific voting. These are preprint-reported results, not independent replications. The evaluation does not cover coding or long-form writing, and the tournament can cost up to about four times the input tokens of binary multi-aspect approval and adds sequential latency.",
+      "why_it_matters": "If the reported results transfer, explicit aspect-based comparisons could improve test-time selection without training a new verifier, especially when output quality is graded rather than binary. The paper reports promising benchmark evidence but leaves external replication, coding and long-form transfer, cross-family verifier evaluation and inference-cost tradeoffs unresolved.",
+      "importance_rationale": "If the reported test-time selection gains transfer, this training-free method could improve candidate quality across several reasoning tasks and let users specify selection preferences at inference time. Its matched-budget ablations make the mechanism relevant to inference-time evaluation design, while external reproduction and transfer beyond the tested tasks remain open.",
+      "technical": {
+        "claimed_result": "At n=8, the authors report APT scored highest in 14/15 generator-domain pairs across AIME, HMMT, HLE, chess validity and chess optimality using Gemini-3.1-Pro, GPT-5.2 and Qwen3-8B. The paper also reports favorable matched-budget ablations and preference steering.",
+        "compute_or_cost": "The authors estimate approximately 2(n−1)k verifier calls per problem with position-swapped judgments and say input tokens can be up to about four times binary multi-aspect approval when candidate text dominates. Sequential tournament rounds add latency.",
+        "demonstrated_result": "The inspected primary source establishes that the authors published an arXiv v1 paper describing the method and its evaluation protocol. Its performance findings remain claims reported by the authors; no independent reproduction was performed.",
+        "mechanism": "Generate n candidate solutions, then run a single-elimination tournament. For each matchup, multiple prompted verifiers judge the candidates pairwise along separate aspects; the prompt order is reversed and only an order-consistent judgment is kept, with disagreements randomized. Verifier preferences determine which candidate advances. A weighted aspect can encode a user preference.",
+        "novelty": "Combines prompted aspect-specific verification with pairwise single-elimination selection; the paper compares separately against binary aspect approval and generic pairwise judging at matched verifier-call budget.",
+        "regime": "Author-reported offline evaluations using three generators (Gemini-3.1-Pro, GPT-5.2, Qwen3-8B), eight sampled candidates per main comparison, five tasks across math, multiple-choice knowledge and chess, with same-family verifier models for Gemini and GPT and GPT-5-mini as the verifier for Qwen3-8B.",
+        "reproducibility": "The full arXiv HTML contains experiment descriptions, tables and prompts in appendices. The paper’s benchmark results were not independently reproduced in this activation.",
+        "strongest_baseline": "The closest component baselines use the same n=8 candidate pools: BoN-MAV selects by binary aspect-verifier approvals, while PV-5 uses five generic pairwise judgments per matchup to match APT’s verifier-call budget. At n=8 the paper reports APT above both PV-1 and PV-5 on every listed dataset for Gemini-3.1-Pro and GPT-5.2; statistical significance testing against BoN-MAV excludes zero for only a subset of results and was not reported for Qwen3-8B."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-11-05T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-11-09T13:38:01Z",
+      "updated_at": "2026-11-09T13:38:01Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "The arXiv v1 paper introduces APT, which uses multiple aspect-specific pairwise verifiers in a single-elimination tournament to select among generated candidate solutions."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that at n=8 APT achieved the highest score in 14 of 15 generator-domain pairs across five evaluated domains and three generators, compared with self-consistency, reward-model verification and binary multi-aspect approval."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "In the paper’s component ablations, the authors report that APT outperformed both a single generic pairwise judge and five budget-matched generic judgments across the tested domains for the two closed-source generators."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper reports that adding a weighted preference aspect changed selected outputs toward shorter math solutions and more aggressive chess moves; accuracy on AIME and HMMT fell by at most three problems in the tested settings."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "Independent replication, generalization to coding or long-form writing, and broad transfer across external verifier families are not established by the inspected paper."
+          }
+        ],
+        "limitations": [
+          "Results are author-reported preprint claims and were not independently reproduced.",
+          "The evaluation covers five benchmark domains, three generators and n=8 main comparisons; the paper does not evaluate coding or long-form writing.",
+          "All principal verifiers are from the generator’s model family; Qwen3-8B with GPT-5-mini verifiers is a partial cross-family check, not a systematic family swap.",
+          "The paper estimates APT can use up to about four times the input tokens of binary multi-aspect approval and adds sequential tournament latency.",
+          "The arXiv listing surfaced on Nov 9, but v1 was submitted Nov 5; the event date is the submission date, not the cross-listing date."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the reported benchmark results or matched-budget ablations was inspected."
+          },
+          {
+            "kind": "other",
+            "description": "The authors explicitly do not evaluate coding, long-form writing or cross-family verifier swaps; most tasks have verifiable answers."
+          },
+          {
+            "kind": "other",
+            "description": "The paper estimates higher input-token use and sequential-round latency versus binary multi-aspect approval; practical cost/performance tradeoffs are not externally measured."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.08640",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Harvard University"
+      ],
+      "topics": [
+        "test-time-compute",
+        "llm-verification",
+        "pairwise-selection",
+        "aspect-based-evaluation"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-E3444414CD0E.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Aspect-wise Pairwise Tournaments report improved test-time selection across five domains"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Los torneos por pares y aspectos mejoran, según un preprint, la selección durante la inferencia en cinco dominios",
+            "summary": "Guan y Du presentan Aspect-wise Pairwise Tournaments (APT), un método sin entrenamiento que genera soluciones candidatas y selecciona una ganadora mediante enfrentamientos de eliminación directa. En cada enfrentamiento, varios verificadores con instrucciones específicas comparan las dos candidatas según distintos aspectos y votan; el orden de presentación se invierte para reducir el sesgo de posición. Los autores informan que APT obtuvo la mejor puntuación en 14 de 15 pares de generador y dominio, entre cinco tareas y tres generadores, con ocho candidatas. En la mayoría de las comparaciones superó a la consistencia propia, la selección por modelo de recompensa y la aprobación binaria de varios aspectos. Las ablaciones con presupuesto equiparado y por componentes también favorecen combinar comparación por pares con votación por aspectos. Son resultados informados en un preprint, sin replicación independiente. La evaluación no incluye programación ni escritura extensa; el torneo puede costar hasta cerca de cuatro veces más tokens de entrada que la aprobación binaria de varios aspectos y añade latencia secuencial.",
+            "importance_rationale": "Si los aumentos de rendimiento informados se transfieren, este método sin entrenamiento podría mejorar la calidad de selección entre varias tareas de razonamiento y permitir que las personas indiquen preferencias durante la inferencia. Las ablaciones con presupuesto equiparado hacen que el mecanismo sea pertinente para diseñar evaluaciones en tiempo de inferencia; siguen pendientes la replicación externa y la transferencia a tareas no evaluadas.",
+            "why_it_matters": "Si los resultados informados se transfieren, las comparaciones explícitas por aspecto podrían mejorar la selección durante la inferencia sin entrenar un verificador nuevo, en especial cuando la calidad de las respuestas es gradual y no binaria. El preprint ofrece resultados prometedores, pero deja pendientes la replicación externa, la transferencia a programación y escritura extensa, el uso de verificadores de otras familias y los costos prácticos de inferencia.",
+            "technical": {
+              "claimed_result": "Con n=8, los autores informan que APT obtuvo la mayor puntuación en 14 de 15 pares de generador-dominio entre AIME, HMMT, HLE, validez de ajedrez y calidad estratégica en ajedrez, usando Gemini-3.1-Pro, GPT-5.2 y Qwen3-8B. El artículo también informa resultados favorables en ablaciones con presupuesto equiparado y en orientación por preferencias.",
+              "compute_or_cost": "Los autores estiman aproximadamente 2(n−1)k verificaciones por problema con juicios intercambiando el orden de presentación; cuando el texto de las soluciones domina la instrucción, estiman que los tokens de entrada pueden llegar a cerca de cuatro veces los de la aprobación binaria de varios aspectos. Las rondas secuenciales añaden latencia.",
+              "demonstrated_result": "La fuente primaria revisada confirma que los autores publicaron un artículo v1 de arXiv que describe el método y su protocolo de evaluación. Los resultados de rendimiento son afirmaciones de los autores; en esta activación no se hizo una reproducción independiente.",
+              "mechanism": "Se generan n soluciones candidatas y luego se ejecuta un torneo de eliminación directa. En cada enfrentamiento, varios verificadores con instrucciones comparan ambas soluciones según aspectos distintos; se invierte el orden de presentación y se conserva el juicio solo si no depende de ese orden, mientras que los desacuerdos se resuelven al azar. Las preferencias de los verificadores determinan qué solución avanza. Un aspecto ponderado puede representar una preferencia de quien usa el sistema.",
+              "novelty": "Combina verificación guiada por aspectos con selección por pares en un torneo de eliminación directa. El artículo compara por separado con aprobación binaria por aspectos y con juicios genéricos por pares que igualan el presupuesto de consultas a verificadores.",
+              "regime": "Evaluaciones fuera de línea informadas por los autores con tres generadores (Gemini-3.1-Pro, GPT-5.2 y Qwen3-8B), ocho soluciones candidatas por comparación principal y cinco tareas de matemáticas, conocimiento de opción múltiple y ajedrez. Los verificadores de Gemini y GPT pertenecen a sus respectivas familias; Qwen3-8B usa GPT-5-mini como verificador.",
+              "reproducibility": "El HTML completo de arXiv incluye descripciones de los experimentos, tablas e instrucciones en los apéndices. Los resultados de referencia del artículo no se reprodujeron de manera independiente durante esta activación.",
+              "strongest_baseline": "Las comparaciones de componentes más cercanas usan los mismos grupos de n=8 candidatas: BoN-MAV elige según aprobaciones binarias de verificadores por aspecto, mientras PV-5 usa cinco juicios genéricos por pares en cada enfrentamiento para igualar las consultas a verificadores de APT. Con n=8, los autores informan que APT superó a PV-1 y PV-5 en todos los conjuntos de datos enumerados para Gemini-3.1-Pro y GPT-5.2. Las pruebas de significancia frente a BoN-MAV excluyen cero solo para algunos resultados, y no se informó ese análisis para Qwen3-8B."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "El artículo v1 de arXiv presenta APT, que usa varios verificadores por pares y especializados por aspecto en un torneo de eliminación directa para elegir entre soluciones candidatas generadas."
+                },
+                {
+                  "text": "Los autores informan que, con n=8, APT obtuvo la puntuación más alta en 14 de 15 pares generador-dominio en cinco dominios evaluados y con tres generadores, frente a consistencia propia, selección por modelo de recompensa y aprobación binaria de varios aspectos."
+                },
+                {
+                  "text": "En las ablaciones del artículo, los autores informan que APT superó tanto a un único juez genérico por pares como a cinco juicios genéricos con presupuesto equiparado, en los dominios probados con los dos generadores de código cerrado."
+                },
+                {
+                  "text": "El artículo informa que añadir un aspecto de preferencia ponderado orientó las selecciones hacia soluciones matemáticas más breves y jugadas de ajedrez más agresivas; en las condiciones probadas, la exactitud en AIME y HMMT disminuyó como máximo en tres problemas."
+                },
+                {
+                  "text": "El artículo revisado no establece una reproducción independiente, la generalización a programación o escritura extensa, ni una transferencia amplia entre familias externas de verificadores."
+                }
+              ],
+              "limitations": [
+                "Los resultados son afirmaciones de un preprint informadas por sus autores y no se reprodujeron de manera independiente.",
+                "La evaluación cubre cinco dominios de referencia, tres generadores y comparaciones principales con n=8; el artículo no evalúa programación ni escritura extensa.",
+                "Los verificadores principales pertenecen a la misma familia de modelos que el generador. Qwen3-8B con GPT-5-mini ofrece una comprobación parcial entre familias, no un intercambio sistemático de familias.",
+                "Los autores estiman que APT puede usar hasta cerca de cuatro veces los tokens de entrada de la aprobación binaria de varios aspectos y añadir latencia por rondas secuenciales del torneo.",
+                "El artículo apareció en el listado de arXiv el 9 de noviembre, pero la versión v1 se envió el 5 de noviembre; esa fecha de envío es la fecha del evento, no la del listado cruzado."
+              ],
+              "gaps": [
+                {
+                  "description": "No se revisó ninguna reproducción independiente de los resultados de referencia ni de las ablaciones con presupuesto equiparado."
+                },
+                {
+                  "description": "Los autores indican expresamente que no evaluaron programación, escritura extensa ni el intercambio de familias de verificadores; la mayoría de las tareas tiene respuestas verificables."
+                },
+                {
+                  "description": "El artículo estima un mayor uso de tokens de entrada y latencia por rondas secuenciales frente a la aprobación binaria de varios aspectos; no se midieron externamente los costos y beneficios prácticos."
+                }
+              ]
+            },
+            "dek": "Guan y Du presentan Aspect-wise Pairwise Tournaments (APT), un método sin entrenamiento que genera soluciones candidatas y selecciona una ganadora mediante enfrentamientos de eliminación directa."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "预印本报告称，按维度进行成对淘汰可提升五个领域的测试时筛选",
+            "summary": "Guan和Du提出Aspect-wise Pairwise Tournaments（APT），这是一种无需训练的方法：先生成多个候选解，再通过单败淘汰赛选出优胜者。每场对决由多个带有特定评估维度提示的验证器比较双方并投票；交换候选顺序后再次评判，以降低位置偏差。作者报告称，在五项任务、三个生成模型和每题八个候选解的设置下，APT在15组模型—领域组合中有14组取得最高分；多数比较中，它优于自洽投票、奖励模型筛选和多维度二元审批。预算匹配和组件消融也支持将成对比较与按维度投票结合。以上是预印本报告的结果，尚无独立复现。论文没有评测代码生成或长篇写作；与多维度二元审批相比，锦标赛的输入词元成本最高可接近四倍，并增加逐轮延迟。",
+            "importance_rationale": "如果论文报告的测试时筛选收益能够迁移，这种无需训练的方法可能提升多个推理任务中的候选质量，并允许用户在推理时指定偏好。预算匹配消融使其机制对推理时评测设计具有参考意义；外部复现以及向未测任务的迁移仍待验证。",
+            "why_it_matters": "如果报告的结果能够迁移，按明确维度进行比较可能无需训练新验证器，就能改善测试时筛选；当输出质量是程度差异而非简单对错时，这一机制尤其值得关注。论文提供了有希望的基准结果，但外部复现、代码与长篇写作任务迁移、跨模型家族验证器评测以及推理成本权衡仍未解决。",
+            "technical": {
+              "claimed_result": "在n=8时，作者报告称APT在AIME、HMMT、HLE、国际象棋着法合法性和棋局策略评估这五项任务中，以Gemini-3.1-Pro、GPT-5.2和Qwen3-8B为生成模型时，在15组模型—领域组合中有14组取得最高分。论文还报告了预算匹配消融和偏好引导结果。",
+              "compute_or_cost": "作者估算，使用交换顺序的评判时，每个问题约需2(n−1)k次验证调用；当候选解文本长度相对提示词占主导时，输入词元用量最高可达多维度二元审批的约四倍。逐轮锦标赛还会增加延迟。",
+              "demonstrated_result": "审阅的第一方来源证明，作者发布了一篇介绍该方法及评测方案的arXiv v1论文。其性能发现仍属于作者报告的结果，本次激活未进行独立复现。",
+              "mechanism": "先生成n个候选解，再运行单败淘汰赛。每场对决中，多个提示式验证器从不同维度对两个候选解进行成对比较；交换展示顺序后再评判，只保留不受顺序影响的判断，意见不一致时随机处理。验证器偏好决定哪一个候选解晋级。用户也可通过加权维度表达偏好。",
+              "novelty": "将按维度提示的验证与成对单败淘汰筛选结合。论文分别与按维度二元审批、以及在验证器调用预算上匹配的通用成对判断进行了比较。",
+              "regime": "作者报告的离线评测使用三个生成模型（Gemini-3.1-Pro、GPT-5.2、Qwen3-8B），主要比较每题抽取八个候选解，覆盖数学、多项选择知识题和国际象棋五项任务。Gemini和GPT使用各自模型家族的验证器；Qwen3-8B使用GPT-5-mini验证器。",
+              "reproducibility": "arXiv完整HTML包含实验说明、结果表和附录中的提示词。本次激活未独立复现论文的基准结果。",
+              "strongest_baseline": "最接近的组件基线使用相同的n=8候选集：BoN-MAV按各维度验证器的二元审批数选择；PV-5则在每场对决中使用五次通用成对判断，使验证器调用预算与APT相当。在n=8设置下，作者报告称，对Gemini-3.1-Pro和GPT-5.2，APT在所列每个数据集上都高于PV-1和PV-5。相较BoN-MAV的显著性区间仅在部分结果中排除零；Qwen3-8B未报告这一检验。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "arXiv v1论文介绍了APT：它在单败淘汰赛中使用多个按评估维度区分的成对验证器，从生成的候选答案中选出一个。"
+                },
+                {
+                  "text": "作者报告称，在n=8时，APT在五个评测领域与三个生成模型形成的15组“模型—领域”组合中有14组取得最高分；比较方法包括自洽投票、奖励模型筛选和多维度二元审批。"
+                },
+                {
+                  "text": "论文的组件消融实验中，作者报告称，在所测领域和两个闭源生成模型上，APT同时优于单个通用成对评判器，以及五次与其预算相匹配的通用评判。"
+                },
+                {
+                  "text": "论文报告称，加入加权偏好维度后，所选数学解答更短、所选棋步更具进攻性；在所测设置中，AIME和HMMT的准确题数最多减少三题。"
+                },
+                {
+                  "text": "本次审阅的论文并未确立独立复现结果、向代码生成或长篇写作的泛化能力，也未确立在外部验证器模型家族之间的广泛迁移。"
+                }
+              ],
+              "limitations": [
+                "这些结果是作者在预印本中报告的主张，尚无独立复现。",
+                "评测覆盖五个基准领域、三个生成模型，主要比较使用n=8；论文没有评测代码生成或长篇写作。",
+                "主要验证器与生成模型来自同一模型家族。Qwen3-8B搭配GPT-5-mini提供了有限的跨家族检查，但没有系统更换模型家族。",
+                "作者估算，与多维度二元审批相比，APT的输入词元用量最高约为四倍，并增加逐轮锦标赛延迟。",
+                "该论文于十一月9日出现在arXiv分类列表中，但v1版本于十一月5日提交；事件日期采用提交日，而非交叉分类显示日。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次未审阅到对论文基准结果或预算匹配消融的独立复现。"
+                },
+                {
+                  "description": "作者明确表示未评估代码生成、长篇写作或更换验证器模型家族；多数任务具有可核验答案。"
+                },
+                {
+                  "description": "与多维度二元审批相比，论文估算该方法会增加输入词元用量并产生逐轮延迟；实际成本收益尚无外部测量。"
+                }
+              ]
+            },
+            "headline": "预印本报告称，按维度进行成对淘汰可提升五个领域的测试时筛选"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-A4EC3F3429ED",
+      "slug": "chinas-cac-launches-a-unified-filing-system-for-internet-technology",
+      "url_date": "2026-11-09",
+      "kind": "development",
+      "status": "live",
+      "beat": "policy",
+      "desk": "policy_geopolitics",
+      "title": "China’s CAC launches a unified filing system for internet technology services",
+      "headline": "China’s CAC launches a unified filing system for internet technology services",
+      "dek": "On 2026-11-09, China’s Cyberspace Administration said its new Internet New Technology and Application Information Service Filing System had entered operation.",
+      "summary": "On 2026-11-09, China’s Cyberspace Administration said its new Internet New Technology and Application Information Service Filing System had entered operation. The notice says the system integrates filings for generative AI, algorithms, deep-synthesis services and blockchain, and that the former algorithm-filing and blockchain-service filing systems stopped operating. This records the regulator’s launch announcement; the portal opened without readable page text during this review, so actual workflows and filings were not independently inspected.",
+      "why_it_matters": "The announcement marks an administrative transition across several technology-service filing categories. A unified route may change how covered services submit and retrieve filings, but the notice does not establish changes in compliance, enforcement or governance outcomes.",
+      "importance_rationale": "If implemented as described, the announced unified filing route changes the administrative interface for several internet-service filing regimes, including generative AI and deep synthesis. The notice establishes a procedural system transition, not improved compliance or measured governance outcomes.",
+      "technical": {
+        "claimed_result": "CAC says the unified filing system began operation on 2026-11-09 and covers generative AI, algorithms, deep-synthesis services and blockchain filings.",
+        "compute_or_cost": "No system operating cost, filing fee or resource commitment is stated in the inspected notice.",
+        "demonstrated_result": "Direct inspection of the official Chinese notice establishes that CAC announced the system launch, described its category scope and said the two former systems stopped operating. The portal’s operation and outcomes were not independently tested.",
+        "mechanism": "The notice describes consolidating multiple technology-service filing categories into one CAC system and discontinuing the prior algorithm and blockchain systems. No technical architecture or portal workflow is provided in the notice.",
+        "regime": "China’s national administrative filing process for specified internet technology and application services, as described in a CAC notice dated 2026-11-09.",
+        "reproducibility": "The publication and stated scope can be checked against the official notice. The announced portal returned no readable page text, so system functionality was not reproduced.",
+        "strongest_baseline": "The CAC notice identifies the former algorithm-filing and blockchain information-service systems as the prior route, but supplies no before/after workflow or outcome comparison."
+      },
+      "importance_tier": "Meaningful",
+      "development_type": "policy_action",
+      "event_at": "2026-11-09T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-11-09T13:38:01Z",
+      "updated_at": "2026-11-09T13:38:01Z",
+      "importance": 4,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "China’s Cyberspace Administration published a notice dated 2026-11-09 stating that its Internet New Technology and Application Information Service Filing System had formally entered operation that day."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The notice says the unified system covers filings for generative artificial intelligence, algorithms, deep-synthesis services and blockchain, and that the previous internet-service algorithm filing system and blockchain information-service filing system stopped operating at the same time."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The inspected announcement does not establish that the portal’s workflows were independently exercised, that filing access or compliance improved, or that enforcement or governance outcomes changed."
+          }
+        ],
+        "limitations": [
+          "The public claim is limited to the launch, stated scope and legacy-system transition described in the CAC notice. The portal itself returned no readable content, so no filing workflow, user access, item-level registration or implementation outcome was verified."
+        ],
+        "gaps": [
+          {
+            "kind": "other",
+            "description": "The announced portal root returned no readable page content, so its public query functions, filing steps and item-level records were not inspected."
+          },
+          {
+            "kind": "other",
+            "description": "No evidence was reviewed about actual filing volume, transitions from legacy systems, compliance changes or enforcement outcomes after launch."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://www.cac.gov.cn/2026-11/09/c_1795978604463007.htm",
+          "domain": "cac.gov.cn",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Cyberspace Administration of China"
+      ],
+      "topics": [
+        "ai-governance",
+        "algorithm-filing",
+        "deep-synthesis",
+        "regulatory-infrastructure"
+      ],
+      "regions": [
+        "CN"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-A4EC3F3429ED.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: China’s CAC launches a unified filing system for internet technology services"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "La CAC de China pone en marcha un sistema unificado de registro para servicios de tecnología en internet",
+            "summary": "El 2026-11-09, la Administración del Ciberespacio de China informó que había entrado en funcionamiento el nuevo Sistema de Registro de Servicios de Información sobre Nuevas Tecnologías y Aplicaciones de Internet. El aviso dice que integra los trámites para inteligencia artificial generativa, algoritmos, servicios de síntesis profunda y cadenas de bloques, y que dejaron de operar los antiguos sistemas de registro de algoritmos y de servicios de información sobre cadenas de bloques. Este registro describe el anuncio del regulador; durante esta revisión, el portal abrió sin texto legible, por lo que no se inspeccionaron de forma independiente sus flujos de trabajo ni los registros presentados.",
+            "importance_rationale": "Si se implementa según lo descrito, la ruta unificada anunciada cambia la interfaz administrativa de varios regímenes de registro de servicios de internet, incluidos los de inteligencia artificial generativa y síntesis profunda. El aviso establece una transición procedimental del sistema, no un mayor cumplimiento ni resultados de gobernanza medidos.",
+            "why_it_matters": "El anuncio marca una transición administrativa en varias categorías de registro de servicios tecnológicos. Una ruta unificada podría cambiar la forma en que los servicios cubiertos presentan y consultan sus registros, pero el aviso no demuestra cambios en cumplimiento, aplicación de la normativa ni resultados de gobernanza.",
+            "technical": {
+              "claimed_result": "La CAC afirma que el sistema unificado de registro comenzó a operar el 2026-11-09 y abarca trámites de inteligencia artificial generativa, algoritmos, servicios de síntesis profunda y cadenas de bloques.",
+              "compute_or_cost": "El aviso consultado no indica costos operativos del sistema, tarifas de registro ni compromisos de recursos.",
+              "demonstrated_result": "La inspección directa del aviso oficial en chino confirma que la CAC anunció el lanzamiento, describió las categorías cubiertas e indicó que dejaron de operar los dos sistemas anteriores. No se probaron de manera independiente el portal ni sus resultados.",
+              "mechanism": "El aviso describe la consolidación de varias categorías de registro de servicios tecnológicos en un sistema de la CAC y la interrupción de los sistemas anteriores para algoritmos y cadenas de bloques. No presenta la arquitectura técnica ni el flujo de trabajo del portal.",
+              "regime": "Proceso administrativo nacional de China para determinadas tecnologías y servicios de aplicaciones en internet, según un aviso de la CAC fechado el 2026-11-09.",
+              "reproducibility": "El aviso oficial permite comprobar la publicación y el alcance declarado. El portal anunciado abrió sin texto legible, así que no se reprodujo su funcionamiento.",
+              "strongest_baseline": "El aviso de la CAC identifica los antiguos sistemas de registro de algoritmos y de servicios de información sobre cadenas de bloques como las rutas previas, pero no ofrece una comparación de procesos o resultados antes y después."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "La Administración del Ciberespacio de China publicó un aviso fechado el 2026-11-09 que indica que ese día entró formalmente en funcionamiento su Sistema de Registro de Servicios de Información sobre Nuevas Tecnologías y Aplicaciones de Internet."
+                },
+                {
+                  "text": "El aviso señala que el sistema unificado abarca registros de inteligencia artificial generativa, algoritmos, servicios de síntesis profunda y cadenas de bloques, y que al mismo tiempo dejaron de operar el sistema anterior de registro de algoritmos para servicios de internet y el sistema de registro de servicios de información sobre cadenas de bloques."
+                },
+                {
+                  "text": "El anuncio consultado no demuestra que se hayan probado de forma independiente los flujos del portal, que haya mejorado el acceso a los registros o el cumplimiento, ni que hayan cambiado la aplicación normativa o los resultados de gobernanza."
+                }
+              ],
+              "limitations": [
+                "La afirmación pública se limita al lanzamiento, el alcance declarado y la transición desde los sistemas anteriores que describe el aviso de la CAC. El portal no mostró contenido legible, por lo que no se verificaron los trámites, el acceso de usuarios, los registros individuales ni los resultados de implementación."
+              ],
+              "gaps": [
+                {
+                  "description": "La página principal del portal anunciado no devolvió contenido legible; no se inspeccionaron sus consultas públicas, pasos de registro ni datos individuales."
+                },
+                {
+                  "description": "No se revisaron datos sobre el volumen real de registros, la transición desde los sistemas anteriores, cambios de cumplimiento ni resultados de aplicación normativa después del lanzamiento."
+                }
+              ]
+            },
+            "dek": "El 2026-11-09, la Administración del Ciberespacio de China informó que había entrado en funcionamiento el nuevo Sistema de Registro de Servicios de Información sobre Nuevas Tecnologías y Aplicaciones de Internet."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "中国网信办启用互联网新技术新应用服务统一备案系统",
+            "summary": "2026-11-09，中国国家互联网信息办公室称，新的互联网新技术新应用信息服务备案系统已正式上线运行。公告称，该系统整合生成式人工智能、算法、深度合成服务和区块链备案，并同步停用原有的算法备案系统和区块链信息服务备案管理系统。本记录仅描述监管机构发布的上线公告；本次检查打开门户首页时未获得可读页面内容，因此没有独立检查实际办理流程或备案记录。",
+            "importance_rationale": "如果按公告所述实施，新的统一备案渠道将改变多个互联网服务备案类别的行政入口，包括生成式人工智能和深度合成服务。公告证明的是程序系统切换，并未证明合规水平提高或治理成效得到测量。",
+            "why_it_matters": "该公告标志着多个技术服务备案类别的行政办理渠道发生变化。统一入口可能改变相关服务提交和查询备案的方式，但公告没有证明合规情况、执法活动或治理成效发生变化。",
+            "technical": {
+              "claimed_result": "CAC 称，统一备案系统于2026-11-09开始运行，覆盖生成式人工智能、算法、深度合成服务和区块链备案。",
+              "compute_or_cost": "所检查的公告没有说明系统运行成本、备案费用或资源投入。",
+              "demonstrated_result": "直接检查 CAC 官方中文公告可以确认其宣布系统上线、说明覆盖类别，并称原有两个系统停止使用。本次没有独立测试门户的运行情况或结果。",
+              "mechanism": "公告称，多个技术服务备案类别将整合到 CAC 的一个系统中，同时停用原算法备案和区块链备案系统。公告没有描述技术架构或门户办理流程。",
+              "regime": "中国对公告所列互联网新技术和应用服务实行的国家级行政备案流程；依据为 CAC 于2026-11-09发布的公告。",
+              "reproducibility": "可通过官方公告核对发布事件和所述范围。门户首页没有返回可读内容，因此未复现系统功能。",
+              "strongest_baseline": "CAC 公告将原算法备案系统和区块链信息服务备案系统列为此前渠道，但没有提供切换前后的流程或结果对比。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "中国国家互联网信息办公室发布了一则日期为2026-11-09的公告，称其互联网新技术新应用信息服务备案系统于当天正式上线运行。"
+                },
+                {
+                  "text": "公告称，统一系统涵盖生成式人工智能、算法、深度合成服务和区块链备案；原互联网信息服务算法备案系统和区块链信息服务备案管理系统同时停止使用。"
+                },
+                {
+                  "text": "所检查的公告没有证明门户办理流程经过独立测试、备案访问或合规情况得到改善，也没有证明执法或治理结果发生变化。"
+                }
+              ],
+              "limitations": [
+                "公开陈述仅限于 CAC 公告所述的上线、覆盖范围和原系统切换。门户首页未显示可读内容，因此没有核实办理流程、用户访问、具体备案记录或实施结果。"
+              ],
+              "gaps": [
+                {
+                  "description": "公告所指门户首页未返回可读内容，因此尚未检查公开查询功能、备案步骤或具体备案记录。"
+                },
+                {
+                  "description": "尚未查阅系统上线后的实际备案量、从旧系统迁移情况、合规变化或执法结果。"
+                }
+              ]
+            },
+            "headline": "中国网信办启用互联网新技术新应用服务统一备案系统",
+            "dek": "2026-11-09，中国国家互联网信息办公室称，新的互联网新技术新应用信息服务备案系统已正式上线运行。公告称，该系统整合生成式人工智能、算法、深度合成服务和区块链备案，并同步停用原有的算法备案系统和区块链信息服务备案管理系统。本记录仅描述监管机构发布的上线公告；本次检查打开门户首页时未获得可读页面内容，因此没有独立检查实际办理流程或备案记录。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-A2A624115206",
       "slug": "clr-bench-tests-whether-self-evolving-agents-infer-hidden-rules-from",
