@@ -38151,6 +38151,61 @@
       "title": "Los lotes de respuestas en RLVR intercambian eficiencia muestral por estabilidad de entrenamiento",
       "why_it_matters": "Los lotes grandes pueden aumentar el rendimiento del entrenamiento RLVR, pero este artículo informa que la eficiencia muestral puede empeorar por encima de un tamaño crítico mientras la inestabilidad sigue las muestras consumidas. Si el patrón se generaliza, al elegir el tamaño del lote y el calendario de entrenamiento habría que considerar ambos relojes; el artículo no mide ahorro de tiempo real ni de cómputo."
     },
+    "FCMO-B3C96DB6A4B7": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El registro de arXiv muestra que HiVe-Mem se envió el 2026-11-09 y ofrece un artículo v1 con métodos, tablas de benchmarks, detalles de apéndices y un repositorio de código enlazado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que HiVe-Mem mejora las puntuaciones promedio de tareas en tres benchmarks de memoria multimodal y usa 89.8–91.6% menos tokens que las referencias multimodales de menor consumo en su evaluación con dos modelos."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece una reproducción independiente, el rendimiento en escenarios adversariales, la transferencia más allá de los benchmarks y los dos modelos base evaluados, ni mejores resultados en agentes de larga duración desplegados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados informados para los benchmarks y la reducción de tokens no se han reproducido de forma independiente con el repositorio enlazado.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-11-10T13:18:01Z"
+        },
+        {
+          "description": "La evaluación no incluye casos adversariales, familias más amplias de modelos, toda la cobertura de WorldMemArena ni cargas reales de agentes de larga duración.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-11-10T13:18:01Z"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, la recuperación adaptativa por consulta y la selección de evidencia que mejoran los benchmarks de memoria multimodal mientras reducen los tokens de inferencia podrían cambiar decisiones sobre arquitectura de memoria y evaluación de agentes. Por ahora es un resultado significativo y acotado de un preprint, no evidencia de impacto a escala de despliegue.",
+      "limitations": [
+        "Todos los resultados de rendimiento son informados por los autores en un preprint; equipo de investigación no los reprodujo de forma independiente.",
+        "El apéndice excluye escenarios adversariales y evalúa solo el subconjunto Lifelong de WorldMemArena, no la suite completa.",
+        "El selector se entrena únicamente con Qwen3-VL-4B-Instruct; GPT-5-mini se usa para una evaluación de transferencia sin reentrenamiento, por lo que se desconoce la transferencia a otras familias y escalas.",
+        "GPT-4o-mini proporciona las puntuaciones de evaluación por modelo de lenguaje; no se informa una réplica independiente con jueces humanos en las secciones revisadas.",
+        "La reducción de tokens no mide el costo total: no se establecen el cómputo de preparación/entrenamiento, la latencia, la energía ni los costos de despliegue.",
+        "El repositorio está disponible y su código tiene licencia MIT, pero en esta activación no se instaló ni ejecutó ni se reprodujeron artefactos; los datos y modelos conservan sus propias condiciones de uso."
+      ],
+      "relationships": [],
+      "summary": "Zhang y sus coautores presentan HiVe-Mem: amplía episodios de interacción recuperados semánticamente mediante un grafo de afinidad textual y visual y luego usa un selector entrenado con PPO para elegir qué formas de evidencia aporta cada episodio. En un preprint, informan puntuaciones F1 y de evaluación por modelo de lenguaje superiores a las de los sistemas comparados en Mem-Gallery, el subconjunto Lifelong de WorldMemArena y H2HMem, con un uso promedio de tokens 89.8–91.6% menor que el de las referencias multimodales más eficientes en tokens. Son resultados informados por los autores; el artículo excluye escenarios adversariales, usa GPT-4o-mini para la evaluación por modelo de lenguaje y todavía no cuenta con reproducción independiente. El repositorio enlazado ofrece la implementación y las instrucciones experimentales, pero equipo de investigación no lo ejecutó.",
+      "technical": {
+        "claimed_result": "Los autores informan puntuaciones F1 y de evaluación con GPT-4o-mini superiores a las de las referencias en Mem-Gallery, WorldMemArena Lifelong y H2HMem, con Qwen3-VL-4B-Instruct y GPT-5-mini. Informan reducciones promedio de tokens de 91.6% y 89.8% frente a las referencias multimodales más eficientes para esos modelos, respectivamente.",
+        "compute_or_cost": "La medida de eficiencia informada combina el consumo de tokens de entrada y salida. El artículo no establece costo total de preparación/entrenamiento, energía, latencia ni economía del despliegue.",
+        "demonstrated_result": "La presentación de arXiv del 9 de noviembre y los métodos/resultados informados pueden consultarse directamente. El repositorio público enlazado contiene código, configuraciones, scripts y licencia MIT. equipo de investigación no ejecutó el repositorio ni reprodujo las mediciones.",
+        "implementation_status": "Un repositorio público de GitHub ofrece implementación, adaptadores de benchmarks, configuraciones, scripts e instrucciones; el README identifica una licencia MIT para el código y aclara que los datos/modelos tienen términos separados. La página mostraba tres commits al revisarla. En esta activación no se instaló ni ejecutó el código ni se verificaron resultados.",
+        "mechanism": "HiVe-Mem representa cada episodio de interacción de texto e imagen con resúmenes, anclas según modalidad y varias formas de evidencia. Un grafo disperso de afinidad amplía las semillas recuperadas semánticamente mediante anclas compartidas pertinentes a la consulta; un selector por episodio entrenado con PPO elige qué resumen, texto original, pie de imagen, imagen original o vista visual fundamentada exponer.",
+        "novelty": "Combina la ampliación de recuperación mediante afinidad entre episodios con la selección adaptativa por consulta y memoria entre formas de evidencia textual y visual, entrenada mediante PPO con una recompensa que equilibra calidad de respuesta y costo en tokens.",
+        "regime": "Tres suites de benchmarks: Mem-Gallery, H2HMem y el subconjunto Lifelong de WorldMemArena; partición de entrenamiento/validación/prueba 6:2:2 y exclusión de escenarios adversariales. El selector se entrena con Qwen3-VL-4B-Instruct y se transfiere sin reentrenamiento para la evaluación con GPT-5-mini. GPT-4o-mini se utiliza como juez.",
+        "reproducibility": "El preprint describe métodos y evaluación y enlaza un repositorio público. No se verificó una ejecución independiente. El apéndice excluye escenarios adversariales y presenta solo dos modelos base; la cobertura de WorldMemArena se limita al subconjunto Lifelong.",
+        "strongest_baseline": "Entre las referencias multimodales de la Tabla 1, MemVerse tiene el menor consumo promedio de tokens: Qwen3-VL-4B-Instruct (7.812M) y GPT-5-mini (7.350M). HiVe-Mem informa 0.658M y 0.748M, respectivamente. La tabla indica F1 y puntuaciones de juez promedio superiores para HiVe-Mem, pero todas las cifras son informadas por los autores."
+      },
+      "title": "HiVe-Mem informa recuperación adaptativa de memoria multimodal con menor uso de tokens",
+      "why_it_matters": "La recuperación adaptativa podría ayudar a agentes multimodales de larga duración a recuperar más episodios y limitar la evidencia que se pasa a cada respuesta. Si se reproduce la relación entre calidad y costo informada, podría cambiar el diseño de memoria y la evaluación del costo de inferencia. La evidencia actual se limita a tres escenarios de benchmark y dos modelos base; siguen sin evaluarse cargas reales, consultas adversariales y resultados independientes."
+    },
     "FCMO-B526C545993A": {
       "claims": [
         {
