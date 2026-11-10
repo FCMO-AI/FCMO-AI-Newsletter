@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "694c5b39c744998c509176d27f40e3e939b23dc30cd3601d486d6327242f09b2",
+  "canonical_source_sha256": "f7a7e4ae9f328cc18673e810b85197f135e9f0ed64a6089f47afa2dc3c2cf2f5",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -23128,6 +23128,64 @@
       },
       "title": "Un artículo establece un límite formal para integrar ediciones de agentes en paralelo",
       "why_it_matters": "Varios agentes pueden mejorar componentes por separado y aun así dañar la solución común cuando se combinan sus cambios. El artículo ofrece una forma formal de razonar sobre la integración segura y el costo de coordinarla; sus supuestos y la comparación con métodos adaptativos delimitan dónde podrían generalizarse las mejoras reportadas."
+    },
+    "FCMO-6B70FF34625E": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron arXiv:2611.12675v1, enviado el 9 de noviembre de 2026, donde describen experimentos sobre la transferencia de herramientas de interpretabilidad entre modelos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 110 pares ordenados de 11 modelos de pesos abiertos ajustados para seguir instrucciones y pertenecientes a cinco familias, los autores reportan la transferencia de dirección de rechazo, puntuación de corrección y una sonda de sentimiento mediante mapas ajustados con representaciones de indicaciones sin etiquetas. Para dirigir rechazos, un mapa entrenado con preguntas generales recuperó en promedio el 54% del efecto nativo de cada modelo objetivo; al añadir 16 indicaciones dañinas y 16 inocuas por objetivo, la recuperación media llegó al 102%, mientras que las direcciones de control aleatorias recuperaron como máximo el 1%."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que la transferencia depende de que las indicaciones de entrenamiento del mapa cubran la región que usa la herramienta: las indicaciones sin etiquetas y específicas de la tarea mejoran la transferencia, mientras que un mapa entrenado solo con GSM8K transfiere poco a otras herramientas y tareas evaluadas. Su explicación basada en mapas lineales se deriva bajo supuestos explícitos sobre correspondencia y ruido."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece que las herramientas de interpretabilidad se transfieran en general entre familias de modelos, mecanismos internos, modelos de frontera cerrados, tareas o entornos de despliegue; tampoco se reprodujeron de forma independiente los resultados reportados en esta revisión."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se localizó en el artículo ni en el registro de arXiv una implementación pública o una reproducción independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Solo se evalúan tres herramientas y 11 modelos seleccionados de pesos abiertos; se desconoce si la transferencia aplica a otros mecanismos interpretables, modelos de frontera cerrados, familias adicionales o usos operativos.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Algunas condiciones de ablación y mapeo usan una sola semilla, y el experimento principal conserva conjuntos de evaluación fijos pese a volver a muestrear las indicaciones definitorias, las de mapeo y los controles.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se replica con más herramientas y modelos, los mapas con cobertura de tarea podrían reducir el trabajo necesario para reutilizar algunas herramientas de interpretabilidad entre modelos y cambiar cómo se evalúa la transferencia de sondas. El estudio no establece una transferencia general entre mecanismos ni en sistemas propietarios.",
+      "limitations": [
+        "Se trata de un solo preprint con resultados reportados por sus autores; no se localizó una reproducción independiente.",
+        "Los experimentos abarcan tres herramientas y 11 modelos ajustados para seguir instrucciones, de cinco familias de pesos abiertos; no incluyen modelos de frontera cerrados ni sistemas desplegados.",
+        "La transferencia varía con la cobertura de las indicaciones: el mapa de preguntas generales es débil para algunas tareas de corrección y sentimiento, y un mapa estrecho basado en GSM8K transfiere poco.",
+        "Los 110 pares de modelos no equivalen a 110 réplicas independientes: los mismos modelos aparecen en varios pares, y por ello los autores usan intervalos bootstrap a nivel de modelo.",
+        "Los experimentos principales emplean cinco semillas, pero algunas ablaciones y condiciones de mapeo usan una sola; las indicaciones de evaluación permanecen fijas."
+      ],
+      "relationships": [],
+      "summary": "En arXiv:2611.12675v1, enviado el 9 de noviembre, los autores reportan la transferencia de tres herramientas de interpretabilidad entre 110 pares ordenados de 11 modelos ajustados para seguir instrucciones y con pesos abiertos. Un mapa entrenado con preguntas generales recuperó, según el artículo, el 54% del efecto nativo de dirección de rechazo del modelo objetivo; añadir 16 indicaciones dañinas y 16 inocuas por objetivo elevó la recuperación reportada al 102%, mientras que los controles recuperaron como máximo el 1%. El artículo sostiene que la transferencia depende de que las indicaciones del mapa cubran la región de uso de la herramienta. Los experimentos principales usan cinco semillas, pero los resultados no se han reproducido de forma independiente y se limitan a tres herramientas y este conjunto específico de modelos abiertos.",
+      "technical": {
+        "claimed_result": "Los autores reportan que tres herramientas se transfieren entre 110 pares ordenados de 11 modelos de pesos abiertos y que las indicaciones sin etiquetas ajustadas a la tarea mejoran la transferencia de rechazo, corrección y sentimiento frente a datos generales o estrechos para entrenar el mapa.",
+        "demonstrated_result": "Se pueden inspeccionar el preprint, el diseño experimental, las tablas reportadas y los apéndices. No se realizó una reproducción independiente, por lo que los resultados de rendimiento siguen siendo CLAIMED.",
+        "mechanism": "Los autores ajustan un mapa de regresión ridge entre las representaciones del flujo residual de modelos de origen y destino usando indicaciones emparejadas sin etiquetas. Después trasladan una herramienta del modelo de origen mediante ese mapa. La puntuación de cobertura propuesta estima qué tanto los datos de mapeo representan la dirección usada por la herramienta; los experimentos reportan mayor transferencia cuando las indicaciones incluyen ejemplos de la región operativa de esa herramienta.",
+        "regime": "Once modelos ajustados para seguir instrucciones, de cinco familias de pesos abiertos y entre 1B y 72B parámetros; tres herramientas (dirección de rechazo, puntuación de corrección y sonda de sentimiento); 110 pares ordenados. Los experimentos principales usan cinco semillas, mientras que algunas ablaciones y mapas usan una. Los dos modelos más grandes corren con precisión de 4 bits.",
+        "reproducibility": "El artículo detalla las indicaciones, modelos, controles, procedimiento de semillas y apéndices. El registro de arXiv y el artículo inspeccionados no identifican un repositorio de implementación, y no se localizó una ejecución independiente.",
+        "strongest_baseline": "Cada herramienta transferida se compara con la herramienta propia del modelo objetivo y con controles aleatorios, ortogonales y aleatorios mapeados; para puntuar corrección, también se compara con la selección de respuestas de referencia sin dirección."
+      },
+      "title": "Un artículo reporta transferencia de herramientas de interpretabilidad entre modelos cuando las indicaciones del mapa cubren su región operativa",
+      "why_it_matters": "Si el resultado se sostiene más allá de las herramientas y modelos evaluados, los mapas con indicaciones de la tarea podrían permitir reutilizar algunas herramientas de interpretabilidad entre modelos sin etiquetas del modelo objetivo, reduciendo la duplicación al construir sondas. El artículo también identifica un modo concreto de falla: los datos generales del mapa pueden omitir la región de indicaciones que utiliza una herramienta. La evidencia proviene de un solo artículo y se limita a tres herramientas y 11 modelos de pesos abiertos; no establece una transferencia más amplia."
     },
     "FCMO-6C123F93AEFB": {
       "claims": [
@@ -68906,6 +68964,48 @@
       "why_it_matters": {
         "locale_sha256": "ec688bed3b9ab271c8d3e32fd7b58d4f19e40f899c73e6d4ccce034d608aaa2f",
         "source_sha256": "38acdc7f27e9ab6d963c7d757136c5b84792efa22983997a6f242d8831042e78"
+      }
+    },
+    "FCMO-6B70FF34625E": {
+      "claims": {
+        "locale_sha256": "a60c1ecc752da88d03d57aa4f6eaac5786c3bb9e0c636f44514222e265ced1e3",
+        "source_sha256": "99f5dbdb39b6113def6ea013767cbfff25949ae76ffc7e1b2d1967d6d5aa00b6"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "911124cb57045c9ecd77efb6d767235619f9f49a384c4e2fd3954e16fb8295cf",
+        "source_sha256": "c4f3f3a1c344c5ae1e4a9fb1ecba11dbd07a288b787f9e9f08cbfbd11aa574ef"
+      },
+      "importance_rationale": {
+        "locale_sha256": "d5bb67d0320f308a2f421a01ee86fb7657f1e034e7cb109d63e3e1a87c8f3c87",
+        "source_sha256": "86e76e5f9823c5060f6b7a57af10834224572de2f829bd75128600c152879cb1"
+      },
+      "limitations": {
+        "locale_sha256": "36453926318d6169c59f96713970aaeb7b9c2cd24180693ee667daa32d0b4654",
+        "source_sha256": "2c10324c9281d48d5e6d074e43e93cf55c6b4d64e1d7a930720c740437ea8ff1"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "f4ad110003902c5ed87df052376a545632fd007afa46dd6e865b79508a6c8340",
+        "source_sha256": "c5fd273c50d339ae0b6e0139275d4f9d30f58c085bdd5cf98d1652febac10615"
+      },
+      "technical": {
+        "locale_sha256": "fe80064a825f845e8e679fe791b1ba43e2ccc557813bc57119f64075298ce2ee",
+        "source_sha256": "44f95bf628633486e3c8c38aadfa09380f73e8e1f5841ee0262e1c6c042d6498"
+      },
+      "title": {
+        "locale_sha256": "a92447357ecb9de48ba3430d9098a93ab8da59033fb69eea8127fb9b222ad9c3",
+        "source_sha256": "efcffbaa7f458fe28ea2c3dace17353f02e493b104f334e9bfef66ee8a60934f"
+      },
+      "why_it_matters": {
+        "locale_sha256": "defb6a087eae819f291ca9801b67ef30b0e60be20c6a462f0564e373a17ed42c",
+        "source_sha256": "7be88de94f079b11b17359f65fb3002ffed3d62cda45822ce71246631845e830"
       }
     },
     "FCMO-6C123F93AEFB": {
