@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "e4e38fe419a63d1919c69bb333d6d1b866c5a9202597eb709c34e002e8716bb7",
+  "canonical_source_sha256": "2549675239756a1bddf78c2bc7bf3f6ad535eb353d4219086ab15a80df4dd1cd",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -12206,6 +12206,65 @@
       "title": "Un artículo sobre incendios forestales en Canadá informa un sustituto de IA rápido para la cartografía BurnP3+",
       "why_it_matters": "Si se confirma de forma independiente en más regiones y con datos de incendios observados, un emulador de IA podría permitir a quienes investigan incendios forestales explorar más escenarios regionales con mucho menos cómputo que las simulaciones Monte Carlo repetidas. La evidencia actual solo respalda una emulación del simulador reportada en un artículo: no muestra pronósticos mejores ni planificación de emergencias más segura, y no recupera la clase de peligro más extrema."
     },
+    "FCMO-3980687F8898": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Una versión del artículo titulado Test-Time Compute Scales Better with Parallel Agent Teams se presentó en arXiv el 2026-11-06."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 12 tareas de largo horizonte con verificador, los autores informan que, con Qwen3.8-27B y un presupuesto de 100 agentes, el mejor de diez equipos colaborativos de diez supera al mejor de 100 agentes independientes en 10 tareas, y a un equipo único de 100 en las cuatro tareas donde hicieron esa comparación."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En las 12 tareas, los autores informan ganancias promedio de 10% frente a agentes independientes con un presupuesto de 10 agentes y de 27% con 100 agentes; cada comparación usa ejecuciones de 12 horas por tarea."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que los equipos paralelos mejoren resultados con otras familias de modelos, arneses, dominios de tareas o presupuestos, ni en tareas sin un verificador confiable; esta revisión no reprodujo los resultados de manera independiente."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró ni realizó una réplica independiente de las ganancias por tarea o promedio; algunas comparaciones con equipos grandes solo cuentan con una a cinco ejecuciones.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo usa Qwen3.8-27B, un solo arnés Codex, 12 tareas seleccionadas y sesiones de 12 horas; se desconoce si el resultado se transfiere a otros modelos, arneses o familias de tareas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La selección Best-of-N requiere un verificador capaz de puntuar y ordenar los intentos; no se prueba el método cuando ese verificador no está disponible o no es confiable.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce de forma independiente, muestrear varios equipos colaborativos en vez de agentes individuales o un único equipo grande podría cambiar la asignación de cómputo de inferencia para tareas de búsqueda de largo horizonte con verificador; la evidencia actual proviene de los autores y se limita a un modelo, un arnés y tareas seleccionadas.",
+      "limitations": [
+        "Los autores reportan todos los resultados de rendimiento; no se reprodujeron de manera independiente.",
+        "El artículo informa cerca de 100 ejecuciones independientes y entre 10 y 11 ejecuciones de equipos por tarea, pero solo una a cinco ejecuciones por tamaño de equipo grande; ese número limita la precisión de dichas comparaciones.",
+        "Los experimentos usan una familia de modelos y un arnés de agentes, con tareas seleccionadas que cuentan con verificador y sesiones de 12 horas.",
+        "El enlace al código en GitHub devolvió 404 durante esta revisión; no se auditaron de forma independiente el código, los registros de ejecución ni el costo total.",
+        "Los resultados no establecen que la selección Best-of-N funcione cuando no hay un verificador confiable."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 6 de noviembre estudia tareas de largo horizonte con verificador usando agentes Qwen3.8-27B en el arnés Codex. Los autores informan que, con un presupuesto de 100 agentes, el mejor de diez equipos colaborativos de diez obtiene una puntuación superior a la del mejor de 100 agentes independientes en 10 de 12 tareas y a la de un equipo único de 100 en las cuatro tareas probadas a ese tamaño. En promedio, el artículo informa puntuaciones 10% mayores con un presupuesto de 10 agentes y 27% mayores con 100. El método combina el intercambio de información dentro de cada equipo, mediante un foro compartido y sin jerarquía, con la selección Best-of-N entre equipos independientes. Son resultados reportados por los autores: las ejecuciones con equipos grandes solo tuvieron entre una y cinco repeticiones, y el estudio usa una familia de modelos y un solo arnés. El enlace al código devuelve 404. El estudio abarca 12 tareas en total. La réplica independiente y la transferencia a otros entornos siguen sin establecerse.",
+      "technical": {
+        "claimed_result": "En 12 tareas con verificador usando Qwen3.8-27B, los autores informan que equipos paralelos de diez superan al mejor de 100 agentes independientes en 10 tareas y a un equipo único de 100 en las cuatro tareas probadas con ese tamaño; informan ganancias promedio de 10% con 10 agentes y 27% con 100.",
+        "compute_or_cost": "El presupuesto se cuenta como agentes que trabajan durante el mismo periodo de 12 horas; un equipo de k agentes consume k horas-agente por hora. En las comparaciones de costo equivalente, se compara el tiempo de GPU de Qwen con tokens de GPT-5.6-sol. No se evaluaron otros costos generales de energía, infraestructura o despliegue.",
+        "demonstrated_result": "El registro de arXiv y la versión inicial del artículo establecen que el estudio se publicó y describen su protocolo y resultados reportados; no verifican de manera independiente las mejoras de rendimiento.",
+        "mechanism": "Se ejecutan varios equipos pequeños y autónomos que comparten hallazgos en un foro entre pares; después se selecciona el mejor resultado verificado de cada equipo. Así se combina una media más alta dentro de cada equipo con variación entre equipos. Los agentes independientes parten de resultados individuales más bajos, mientras que un solo equipo grande genera una única muestra.",
+        "regime": "Qwen3.8-27B en un solo arnés basado en Codex; 12 tareas de largo horizonte de seis benchmarks y nueve dominios; cada tarea se ejecuta durante 12 horas. Los autores usan cerca de 100 ejecuciones independientes y 10–11 ejecuciones de equipo por tarea; los equipos de más de diez se prueban en cuatro tareas con una a cinco ejecuciones por tamaño.",
+        "reproducibility": "El artículo HTML describe las tareas, el protocolo y sus limitaciones, pero el repositorio de GitHub enlazado devolvió 404. esta revisión no inspeccionó registros originales ni ejecutó los experimentos de manera independiente.",
+        "strongest_baseline": "Con el mismo presupuesto total de agentes, se compara el mejor resultado de 100 agentes Qwen3.8-27B independientes y, para cuatro tareas, un único equipo de 100. El artículo también compara GPT-5.6-sol a igual costo en dólares en ocho tareas."
+      },
+      "title": "Preprint informa mejor escalamiento de cómputo de inferencia con equipos paralelos de agentes",
+      "why_it_matters": "El cómputo de inferencia suele destinarse a muchos intentos independientes o a un solo equipo grande que colabora. Si el resultado se generaliza, usar varios equipos pequeños que colaboran podría mejorar la búsqueda de largo horizonte cuando un verificador puntúa los resultados, al combinar colaboración con variación entre ejecuciones. Esto podría cambiar cómo se distribuye el cómputo entre agentes, pero la evidencia se limita a Qwen3.8-27B, un arnés y tareas seleccionadas; no demuestra mejoras cuando no hay un verificador confiable."
+    },
     "FCMO-3A16714B7377": {
       "claims": [
         {
@@ -15746,6 +15805,66 @@
       },
       "title": "Self-Direction informa que adaptadores LoRA persistentes mejoran la recuperación de tareas de agentes en varias baterías",
       "why_it_matters": "Los fallos de los agentes pueden repetirse en sesiones distintas incluso después de que el agente haya corregido uno. Este artículo estudia si adaptadores pequeños, derivados de fallos, pueden conservar correcciones de procedimiento y mejorar tareas posteriores. Si se reproduce con controles comparables de costos y selección de tareas, el método podría cambiar cómo los entornos de agentes equilibran memoria contextual, reintentos y adaptación persistente. La evidencia publicada se limita a las configuraciones de batería y los agentes abiertos de la familia Qwen evaluados. También falta aclarar el límite de evaluación: el artículo y su página de implementación enlazada describen entradas distintas para la reflexión en GAIA, lo que afecta cómo interpretar el resultado informado."
+    },
+    "FCMO-4AD84FC21151": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Dias y Lima publicaron la versión 1 de su nota en arXiv el 2026-10-31, donde analizan las constantes y el alcance del algoritmo de conteo exacto que OpenAI presenta como una refutación de ETH."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que su extracción de la prueba de contracción de tensores del 25 de octubre mantiene el tiempo certificado por encima de 2^n para entradas de densidad acotada, salvo que log2(n+m) supere aproximadamente 1.03×10^9; para 3-CNF aleatoria en el umbral de satisfacibilidad, salvo que log2 n supere aproximadamente 5.3×10^11."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores dicen que sus límites estructurales se aplican a la ruta de interpolación por producto de cláusulas bajo el modelo de costo indicado; aclaran expresamente que la forma de paridad y la prueba por contracción de tensores quedan fuera de esos límites."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Esta revisión no reprodujo de forma independiente las constantes ni el análisis de la prueba. La propia nota conserva la afirmación asintótica de tiempo subexponencial y no demuestra que el teorema de OpenAI sea falso."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "La extracción de constantes de la prueba de contracción de tensores del 25 de octubre no se ha reproducido de forma independiente.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-11-10T00:15:59Z"
+        },
+        {
+          "description": "La nota deja expresamente fuera de sus límites las rutas más precisas de paridad y contracción de tensores.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-11-10T00:15:59Z"
+        }
+      ],
+      "importance_rationale": "Si la extracción de constantes se sostiene, cambia cómo se interpreta la importancia práctica de un resultado asintótico sobre ETH para tamaños de entrada representables, sin alterar el teorema asintótico.",
+      "limitations": [
+        "Las constantes son una extracción de los autores a partir de una prueba cuyo teorema sigue siendo asintótico; la nota dice que no se certifica una mejora factible para entradas de densidad acotada bajo el límite analizado, no que no exista un algoritmo más rápido.",
+        "Los límites estructurales de la ruta por producto de cláusulas dependen del modelo de costos especificado en el artículo y no cubren las rutas de paridad o contracción de tensores del preprint.",
+        "Los autores informan que usaron Claude Opus 5.5 para leer, derivar, programar, verificar y redactar, y otra instancia para revisar un borrador; esta revisión no auditó su código ni su prueba.",
+        "En esta activación no se realizó una reproducción matemática independiente ni una revisión externa."
+      ],
+      "relationships": [
+        {
+          "summary": "La nota analiza constantes prácticas y alcance del resultado de conteo exacto que OpenAI presenta como una refutación de ETH; no refuta la afirmación asintótica.",
+          "target_id": "FCMO-0935C3E70341",
+          "type": "compares"
+        }
+      ],
+      "summary": "Una nota de arXiv, versión 1, fechada el 31 de octubre, explica el resultado de conteo exacto subexponencial que afirma OpenAI e informa que las constantes extraídas por sus autores de la prueba de contracción de tensores del 25 de octubre dejan el tiempo certificado por encima de la fuerza bruta hasta tamaños de entrada muy superiores a los que pueden representarse. La nota conserva explícitamente la afirmación asintótica y dice que sus límites estructurales independientes se aplican a la interpolación por producto de cláusulas, pero no a las rutas más precisas de paridad y contracción de tensores. Son cálculos informados por los autores, no resultados verificados de manera independiente ni una refutación del teorema principal.",
+      "technical": {
+        "claimed_result": "Los autores informan que la prueba por contracción de tensores no certifica una mejora sobre 2^n para entradas de densidad acotada hasta que log2(n+m) supera aproximadamente 1.03×10^9, y que los límites de su esquema de producto de cláusulas se derivan bajo el modelo de costo indicado.",
+        "demonstrated_result": "La nota arXiv v1 del 31 de octubre está disponible públicamente y distingue explícitamente su análisis de constantes para tamaños finitos de la afirmación asintótica; también indica que sus límites para la interpolación por producto de cláusulas no cubren las rutas de paridad ni de contracción de tensores. En esta revisión no se validaron de forma independiente las conclusiones matemáticas.",
+        "mechanism": "Los autores extraen constantes explícitas de la prueba recursiva de contracción de redes tensoriales booleanas de OpenAI y analizan por separado un esquema de interpolación por producto de cláusulas, con un modelo de evaluación que contabiliza los grupos enumerados, las combinaciones de mediciones y las sumas restringidas.",
+        "regime": "Análisis de los autores sobre una versión del manuscrito de OpenAI del 25 de octubre; fórmulas de densidad acotada y un caso de 3-CNF aleatoria en el umbral de satisfacibilidad; modelo de costos especificado para el esquema de interpolación por producto de cláusulas.",
+        "reproducibility": "No se realizó una reproducción independiente de las constantes. El artículo informa experimentos pequeños respaldados por código y una derivación asistida por IA; además, señala que sus límites no cubren las rutas más precisas de paridad y contracción de tensores.",
+        "strongest_baseline": "La nota compara los límites extraídos con el conteo por fuerza bruta de 2^n y analiza las rutas de prueba y el teorema enunciados en el preprint de OpenAI del 25 de octubre."
+      },
+      "title": "Una nota independiente estima umbrales prácticos extremos para el algoritmo de ETH de OpenAI",
+      "why_it_matters": "Si la extracción de los autores es correcta, matiza la interpretación práctica de un resultado importante de complejidad asintótica: la tasa subexponencial afirmada podría no ofrecer una ventaja certificada para tamaños de entrada factibles. La nota no refuta la afirmación asintótica y sus resultados estructurales más acotados no cubren las rutas de prueba más precisas."
     },
     "FCMO-4ADCD4C379FD": {
       "claims": [
@@ -47594,6 +47713,22 @@
         {
           "label": "NOT_ESTABLISHED",
           "text": "El anuncio y el preprint no demuestran que las mejoras se generalicen fuera de las evaluaciones descritas, que los resultados científicos sean correctos y novedosos, ni que los modelos produzcan de forma fiable los resultados reales presentados. Esta activación no hizo reproducciones independientes ni obtuvo revisión especializada."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La ficha del sistema de Anthropic dice que Claude Mythos 5.2 no alcanza su umbral Autonomy-2 para sustituir al personal investigador ni para acelerar drásticamente la I+D de IA, aunque califica esa evaluación como incierta. Su ajuste de cambio de pendiente en AECI es de aproximadamente 1.88x (IC de 95%: 1.62x–2.28x), y 32 de 100 reajustes llegan a 2x o más; Anthropic también considera incierta la atribución a la IA."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La ficha del sistema de Anthropic informa que Mythos 5.2 terminó sin ejecutar un experimento en 63% de las sesiones de investigación abierta con esfuerzo medio, y dejó trabajo viable solicitado sin terminar en 6–13% de las sesiones de programación repetidas con esfuerzo medio a xhigh, frente a 4% para Fable 5.1. Son evaluaciones internas reportadas por la empresa, no estimaciones independientes de desempeño."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El informe independiente de METR del 5 de noviembre estima que, de octubre de 2025 a octubre de 2026, las puntuaciones AECI de los modelos de Anthropic crecieron a 1.9x su ritmo previo a octubre de 2025 (IC de 95%: 1.5x–2.8x). METR juzga que probablemente la IA explica la mayor parte de la aceleración actual, pero subraya que hay una incertidumbre considerable. Es una estimación a nivel de laboratorio, no una evaluación causal de Fable 5.2 ni una contradicción directa de la determinación Autonomy-2 de Anthropic."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los informes no establecen una aceleración causal de la I+D de IA atribuible a un modelo específico ni que vaya a sostenerse una duplicación futura. METR dice que Anthropic censuró gran parte de la evidencia que consideró más informativa; también señala límites de acceso y de la métrica AECI, que se centra en tareas especificadas y refleja con retraso el avance de la investigación. La tasa histórica previa, inusualmente baja, también puede influir."
         }
       ],
       "contradictory_evidence": [],
@@ -47609,8 +47744,13 @@
           "state": "open"
         },
         {
-          "description": "El enlace al informe técnico del sistema de Anthropic devolvió un error 404; sus detalles de seguridad y metodología no estuvieron disponibles.",
+          "description": "El enlace oficial a el documento del sistema había devuelto 404 en el escaneo anterior; en esta activación se recuperó e inspeccionó el PDF oficial.",
           "kind": "missing_primary",
+          "state": "resolved"
+        },
+        {
+          "description": "Las estimaciones de aceleración a nivel de modelo y de laboratorio usan datos internos y siguen siendo inciertas. El informe público de METR oculta gran parte de la evidencia que consideró más informativa, tuvo acceso limitado y no incluyó modelos no públicos; ninguno de los informes establece un efecto causal específico de Fable ni una trayectoria futura.",
+          "kind": "missing_independent",
           "state": "open"
         }
       ],
@@ -47620,20 +47760,22 @@
         "Los niveles de esfuerzo y las condiciones de evaluación varían entre comparaciones. Una tabla con mejores resultados no demuestra capacidad general equivalente ni rendimiento en despliegue.",
         "La comparación de la formalización de Fermat corresponde a una sola corrida por modelo con cerca de 1,000 agentes; aquí no se evaluaron la corrección matemática, novedad, revisión humana ni costo total.",
         "El enlace al informe técnico del sistema devolvió un error 404, por lo que no se pudieron revisar sus protocolos detallados de seguridad y evaluación.",
-        "El preprint atribuye comprobaciones del físico a casos especiales conocidos; eso no equivale a una verificación independiente del nuevo resultado."
+        "El preprint atribuye comprobaciones del físico a casos especiales conocidos; eso no equivale a una verificación independiente del nuevo resultado.",
+        "El ajuste de cambio de pendiente AECI de la ficha es una tendencia interna de referencias, no una medida directa de aceleración causada por IA; Anthropic dice que la atribución es incierta.",
+        "La estimación del 5 de noviembre de METR se refiere al crecimiento de capacidades de Anthropic a nivel de laboratorio entre octubre de 2025 y octubre de 2026, no a Fable 5.2 por sí solo. METR no tuvo acceso a modelos no públicos, dice que Anthropic censuró gran parte de la evidencia más informativa y señala límites de acceso, cobertura de pruebas y rezago de la métrica."
       ],
       "relationships": [],
-      "summary": "Anthropic anunció Claude Fable 5.2 para el público general y Claude Mythos 5.2, de acceso restringido, el 9 de noviembre de 2026. La empresa informa mejoras en programación, ciencia con agentes, ciberseguridad, biología, robótica y diseño de hardware, además de una formalización en Lean del último teorema de Fermat en 30 horas con cerca de 1,000 agentes. Un preprint del 7 de noviembre, aportado por Anthropic, atribuye a un modelo Claude un resultado de física sobre la transición de Hawking–Page a acoplamiento débil; sus autores dicen que un físico comprobó casos conocidos y que otro cálculo de Claude coincidió. Son afirmaciones importantes del proveedor y un preprint con atribución explícita a IA. Aún faltan reproducción de las pruebas, revisión científica independiente y evidencia de transferencia a capacidades generales.",
+      "summary": "Anthropic anunció Claude Fable 5.2 para uso general y Claude Mythos 5.2 con acceso restringido el 9 de noviembre. Reportó avances técnicos amplios y una formalización en Lean del último teorema de Fermat, realizada en 30 horas con cerca de 1,000 agentes. La ficha del sistema, revisada ahora, dice que Mythos no alcanza el umbral Autonomy-2 de Anthropic para sustituir a su personal investigador o acelerar drásticamente la I+D de IA; también presenta un cambio de pendiente AECI incierto de aproximadamente 1.88x y debilidades en tareas abiertas de investigación y programación. Por separado, la evaluación de alto acceso de METR, publicada el 5 de noviembre, estima que el crecimiento AECI de todo el laboratorio de Anthropic fue 1.9x desde octubre de 2025 y que probablemente la IA explica la mayor parte, aunque con mucha incertidumbre y redacciones sustanciales. La estimación de laboratorio no evalúa Fable 5.2 por separado ni contradice directamente la decisión de Anthropic sobre Mythos. Las afirmaciones de capacidad y ciencia aún no tienen validación independiente suficiente.",
       "technical": {
-        "claimed_result": "Anthropic informa mejoras amplias frente a Fable 5.1 y Opus 5.5 en las evaluaciones enumeradas y describe una formalización de Fermat con varios agentes en 30 horas. Un preprint aportado por Anthropic informa un resultado de física asistido por Claude.",
-        "demonstrated_result": "El anuncio del 9 de noviembre y el preprint del 7 de noviembre son públicos y presentan las afirmaciones de modelo, evaluación y procedencia de sus autores. Esta revisión no verificó de forma independiente el rendimiento, la corrección matemática, la novedad ni los resultados en el mundo real.",
-        "mechanism": "El anuncio describe Fable 5.2 y Mythos 5.2 como el mismo modelo base con protecciones y rutas de acceso diferentes. Para Fermat, describe cerca de 1,000 agentes coordinados, puntuación del progreso con teoremas de Lean e indicaciones mínimas; no se auditaron el modelo, la orquestación ni la intervención humana.",
-        "regime": "Evaluaciones y casos de uso previos al lanzamiento, seleccionados y descritos por Anthropic. El nivel de esfuerzo, el banco de pruebas, las tareas y las condiciones de acceso varían. La comparación de Fermat es una corrida por modelo; Mythos 5.2 está limitado a programas de verificación.",
-        "reproducibility": "Esta activación no realizó una repetición independiente de los bancos de prueba ni una revisión especializada de los resultados matemáticos o físicos. El enlace de Anthropic al informe del sistema devolvió un error 404. El preprint de física ofrece un manuscrito público con versión y una declaración explícita sobre la procedencia de IA.",
-        "strongest_baseline": "Anthropic compara Fable 5.2 principalmente con Fable 5.1 y Opus 5.5, además de puntuaciones seleccionadas de GPT-6 Astra y Gemini 4 Carbon. Para Fermat informa que el equipo de 1,000 agentes de Opus 5.5 completó 26%; ambas comparaciones corresponden a una sola corrida."
+        "claimed_result": "Anthropic informa mejoras amplias frente a Fable 5.1 y Opus 5.5, una formalización de Fermat con agentes en 30 horas, un ajuste AECI incierto de 1.88x y una conclusión de que Mythos no alcanza su umbral Autonomy-2. METR estima por separado que el crecimiento AECI de todo el laboratorio fue 1.9x en el período reciente, con incertidumbre sustancial sobre la atribución a la IA.",
+        "demonstrated_result": "El lanzamiento del 9 de noviembre y el preprint del 7 de noviembre son públicos, y sus autores formulan las afirmaciones descritas sobre modelos, referencias y procedencia. El equipo de investigación no estableció de forma independiente el rendimiento, la corrección de la formalización, la novedad matemática ni los resultados reales. Esta activación examinó directamente la ficha oficial del sistema y el informe de METR, pero no reprodujo sus evaluaciones ni análisis causal.",
+        "mechanism": "El lanzamiento describe Fable 5.2 y Mythos 5.2 como un mismo modelo subyacente con protecciones y vías de acceso distintas. El ejemplo de Fermat usa cerca de 1,000 agentes coordinados, puntuación por avance de teoremas Lean y pocas indicaciones; no se auditaron de forma independiente los pesos, la contribución de la orquestación ni la intervención humana.",
+        "regime": "Evaluaciones seleccionadas por el proveedor y casos previos al lanzamiento informados por Anthropic. Esfuerzo, arnés, tarea y acceso varían entre referencias; la comparación de Fermat es una corrida por modelo. El acceso a Mythos 5.2 se limita a programas de verificación. La estimación de METR cubre el crecimiento AECI de Anthropic a nivel de laboratorio hasta octubre de 2026 y usa evidencia interna de alto acceso, pero censurada; no evalúa Fable 5.2 de forma aislada.",
+        "reproducibility": "En esta activación no se repitieron evaluaciones de referencia ni se obtuvo revisión especializada en matemáticas o física. El enlace de la ficha del sistema en Anthropic había devuelto 404. El preprint de física ofrece un manuscrito público versionado y una declaración explícita de procedencia de IA. La ficha del sistema expone métodos seleccionados a nivel de modelo, pero no se hizo reproducción independiente. El resumen público de METR informa su estimación AECI y sus límites, pero censura gran parte de la evidencia más informativa.",
+        "strongest_baseline": "Anthropic compara Fable 5.2 principalmente con Fable 5.1 y Opus 5.5, además de puntuaciones seleccionadas de GPT-6 Astra y Gemini 4 Carbon. Para Fermat informa una corrida de Opus 5.5 con 1,000 agentes y 26% de avance; ambas son comparaciones de una sola corrida."
       },
       "title": "Anthropic lanza Fable 5.2 y Mythos 5.2 e informa amplias mejoras técnicas",
-      "why_it_matters": "Si las mejoras y resultados de investigación se sostienen en los regímenes descritos, esta familia de modelos podría ampliar el trabajo viable en software, ciencia, ingeniería y ciberseguridad. La amplitud y las consecuencias justifican seguimiento; las comparaciones de una sola corrida, las evaluaciones del propio proveedor y la falta de revisión científica independiente limitan lo que puede concluirse."
+      "why_it_matters": "Si se sostienen en sus condiciones, los avances reportados podrían cambiar la selección de modelos para programación, ciencia, hardware y ciberseguridad. La ficha de Anthropic concluye que Mythos no alcanza, aunque con incertidumbre, su umbral individual de automatización de I+D. La estimación separada de METR apunta a una aceleración cercana a 1.9x a nivel de laboratorio, con redacciones y gran incertidumbre. Distinguir capacidad de un modelo, progreso total del laboratorio y atribución a la IA es esencial; ninguno de los informes demuestra que una duplicación futura se sostenga."
     },
     "FCMO-EA8DFB8BF4B2": {
       "claims": [
@@ -49890,6 +50032,55 @@
       "summary": "LayerRoute amplía políticas visión-lenguaje-acción con una mezcla condicionada por acciones sobre estados intermedios VLM cacheados, más Action-State Reread. En las evaluaciones comparables de los autores mejora dos arquitecturas VLA en LIBERO, SimplerEnv, RoboCasa-GR1, cuatro backbones VLM y 150 pruebas con robots físicos, con un crecimiento modesto de parámetros pero una penalización medible de latencia de inferencia.",
       "title": "LayerRoute: enrutamiento de capas intermedias condicionado por acciones para políticas VLA",
       "why_it_matters": "Si el efecto se generaliza, los sistemas VLA no necesitan tratar la última capa VLM como la única interfaz de control útil: el estado de acción puede seleccionar adaptativamente la profundidad semántica durante la ejecución. Eso cambia una decisión arquitectónica concreta para políticas corporizadas de largo horizonte, aunque las ganancias actuales permanecen acotadas y no reinician el campo."
+    },
+    "FCMO-F676C4FBA031": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El 9 de noviembre de 2026, el Ministerio de Comercio de China y la Administración General de Aduanas emitieron el Anuncio 2026 n.º 58, que dispone continuar la suspensión de seis anuncios de control de exportaciones de 2025 del 11 de noviembre de 2026 al 10 de enero de 2027."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "El índice oficial de anuncios de 2025 del Ministerio identifica esos instrumentos como controles relativos a materiales superduros, equipos e insumos de tierras raras, tierras raras medianas y pesadas, baterías de litio y ánodos de grafito artificial, ciertos artículos de tierras raras fabricados en el extranjero y tecnología de tierras raras."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los avisos oficiales revisados no establecen cambios efectivos en envíos o licencias, efectos en precios ni un impacto directo sobre hardware de IA, producción de semiconductores o disponibilidad de cómputo."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se revisaron volúmenes de exportación, licencias aprobadas, precios, inventarios ni respuestas de proveedores para las seis categorías.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Las fuentes actuales no identifican un vínculo directo entre las categorías cubiertas y una restricción observada en el suministro de hardware de IA, semiconductores o cómputo.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se aplica como se anunció, la prórroga modifica a corto plazo las condiciones comerciales para varias categorías de materiales y equipos relevantes para la tecnología. Su consecuencia es notable para las cadenas de suministro de hardware, pero no se informa un efecto medido sobre el cómputo de IA.",
+      "limitations": [
+        "El aviso especifica el periodo de suspensión, pero no aporta datos de implementación ni aclara si se mantienen otros requisitos de licencia fuera de estas seis medidas.",
+        "La medida es pertinente para cadenas amplias de suministro de materiales tecnológicos; no se ha establecido un efecto directo en el sector de IA.",
+        "La revisión abarcó el aviso oficial y el índice de anuncios del Ministerio, pero no registros de envíos ni los seis avisos originales completos."
+      ],
+      "relationships": [],
+      "summary": "El Ministerio de Comercio de China y la Administración General de Aduanas anunciaron el 9 de noviembre de 2026 que continuará, del 11 de noviembre de 2026 al 10 de enero de 2027, la suspensión de seis anuncios de control de exportaciones emitidos en 2025. El índice oficial de anuncios del Ministerio identifica medidas de control de 2025 sobre materiales superduros; equipos e insumos de tierras raras; tierras raras medianas y pesadas; baterías de litio y materiales de ánodo de grafito artificial; ciertos artículos de tierras raras fabricados en el extranjero; y tecnología de tierras raras. El aviso documenta un cambio temporal en la vigencia de esas medidas. No muestra volúmenes de envíos, resultados de licencias, precios ni efectos sobre el suministro de hardware o cómputo de IA.",
+      "technical": {
+        "claimed_result": "No se presenta una afirmación separada sobre rendimiento técnico. La posible relevancia corresponde a las condiciones de suministro de materiales tecnológicos, no a una capacidad de IA ni a un efecto medido sobre el cómputo.",
+        "compute_or_cost": "El aviso revisado no informa precios de cómputo, costos de infraestructura de IA ni datos de envíos.",
+        "demonstrated_result": "El aviso oficial del 9 de noviembre señala que la suspensión de los seis instrumentos continúa del 11 de noviembre de 2026 al 10 de enero de 2027.",
+        "implementation_status": "Anunciado oficialmente; no se revisaron flujos comerciales ni resultados de licencias por caso.",
+        "mechanism": "Una suspensión por tiempo limitado cambia si se aplican seis avisos de control de exportaciones emitidos en 2025 durante el periodo señalado. El anuncio no describe el proceso operativo de licencias ni otros controles.",
+        "regime": "Seis avisos chinos de control de exportaciones de 2025 sobre materiales superduros, artículos y tecnología de tierras raras, baterías de litio y ánodos de grafito artificial; periodo anunciado: del 11 de noviembre de 2026 al 10 de enero de 2027.",
+        "reproducibility": "No corresponde a un aviso de política; los resultados de implementación requieren datos comerciales y de licencias posteriores.",
+        "strongest_baseline": "La suspensión oficial anterior, Anuncio 2025 n.º 70, estaba vigente hasta el 10 de noviembre de 2026. El Anuncio 2026 n.º 58, del 9 de noviembre, la extiende del 11 de noviembre al 10 de enero de 2027."
+      },
+      "title": "China prorroga la suspensión de seis controles de exportación sobre tierras raras, baterías y grafito",
+      "why_it_matters": "Las condiciones de control de exportaciones para insumos de tierras raras, materiales de baterías, ánodos de grafito y equipos relacionados pueden afectar las cadenas de suministro tecnológico. El aviso oficial documenta una prórroga de dos meses para seis medidas específicas, pero no demuestra que haya cambiado el suministro de hardware o cómputo de IA."
     },
     "FCMO-F698D0B28A20": {
       "claims": [
@@ -60356,6 +60547,48 @@
         "source_sha256": "dda91c46efe984f952eab52cb320673579faea6dbac70e1c358c69c8f6660736"
       }
     },
+    "FCMO-3980687F8898": {
+      "claims": {
+        "locale_sha256": "0a7b19431f6ec56edecf994570743a1bb3400751905a6a025df617ffe95aa584",
+        "source_sha256": "f7ad32347e8fd8722d959c1484498e2f887b38a88d93e50cee5dac0f675ab602"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "252260625a6b681d1299d9e1a891636531dd835648a4c27c458ed3088a1f6bf7",
+        "source_sha256": "485b592afa696aa757c986ff8acae2786f2e56619933ee5a9dad57d34c069fa2"
+      },
+      "importance_rationale": {
+        "locale_sha256": "d5af01fe326630c80371808ffcd441dd27c52244aad2241837080f5ab6540be4",
+        "source_sha256": "3fb3bb776d8761442f51c598c406ddf6e7e3ed845bad96495565c03af5027fe4"
+      },
+      "limitations": {
+        "locale_sha256": "c68b4ce826a4e61c97e86c2c5c2a036548ce89a98d99bc396cd96e81a8186938",
+        "source_sha256": "40a2d793e4a7b06452b91cbcb6b5f68e9f52151c651486fd44d51f94d7166549"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "1a2ac47455d0a146ed7f4fc9d4c11bdde1b73be3a5027cc4afbe24204003003b",
+        "source_sha256": "5d1aae9997a0611f736598f8fa94308fed5f587374a7ae93c9c70f8d62e6f012"
+      },
+      "technical": {
+        "locale_sha256": "8bc3929a37da1eec04ec33d964ed358abebce123842d221958c5ae5c8d2a59de",
+        "source_sha256": "09a6ce92777c2a95889a6657efdb1896ebf812323664051bbf47ac23dcdb4c00"
+      },
+      "title": {
+        "locale_sha256": "7a835812a612e502ea1176e88f23fcc54dffa110d14dfd9a1a4dd9377c27d51a",
+        "source_sha256": "5eec2189bd0e4b297d5438e8a8358df8bbcc89d4fea3894ba7f202082945b43b"
+      },
+      "why_it_matters": {
+        "locale_sha256": "99a13efa64b2201ced36633ffb8e6955367cdd9b5a44b5a6c334e9cd651db740",
+        "source_sha256": "345cabda3ae84867c642e11bfc67ca5f935fffdb47f8d7606c91d92f9a90652d"
+      }
+    },
     "FCMO-3A16714B7377": {
       "claims": {
         "locale_sha256": "e30b79836afbca05453f12eb951f0e588d8271bc40f1e3c5b57ee7357c947e9d",
@@ -62972,6 +63205,48 @@
       "why_it_matters": {
         "locale_sha256": "6eb0203b2daef29cebe1817982886589d52984831b6205c64285d5ece1beed2f",
         "source_sha256": "ff0deec4a3b4ddffa980b96dd2cf8a8b9c29a06f0b97bff1ba5ad52fcba694cd"
+      }
+    },
+    "FCMO-4AD84FC21151": {
+      "claims": {
+        "locale_sha256": "fc39a5c4faa7f500f2840855f0c31d9453a91fa3b724c4ddb476a20a993fdf26",
+        "source_sha256": "eff57c6bf75f4ba9711fbf28410fddf9229dca5d1531b390fc6d44ca4128793a"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "603ab0947357e2537150cf232c493afd5f74f29770839c1d57d7c7f3eb5fb696",
+        "source_sha256": "116400afbbb08e6f1b2a01b8b090ccd25ee8741c6e91a31f77280a22ab96e571"
+      },
+      "importance_rationale": {
+        "locale_sha256": "0cdf443386f9e228cbb0ed884f43464b4d625d048cb5bd6044627b56f12e3bc8",
+        "source_sha256": "291b47e4ed12bddea69f737eecc1c5b8b09a6cfded6e67e2bd0d3a49282dad5d"
+      },
+      "limitations": {
+        "locale_sha256": "57f070c0c99471e3fe29aa825169ae63eac093b0c1c692ff80903d0104ae6b75",
+        "source_sha256": "8131f93facfa7f8a329aa40b1ac68ba98e847d8e484e5dd381a0b9c3362e5db2"
+      },
+      "relationships": {
+        "locale_sha256": "31d40e1398a65e569b2e7388cdba6cdcfaa1b63b9d83894b5386a38eb3e7a023",
+        "source_sha256": "648fca88b6df2bec729c11bc9f2c872379ebb11ce0e530f69ca16c64ff053568"
+      },
+      "summary": {
+        "locale_sha256": "aa2fead5a9d3a280598bb3f26b8af0230cb40f86744ce7fd899d4e2716e99d7d",
+        "source_sha256": "a73888507b99d615d294368ce3ffba0a86ad87b5d6b0b8aa875b5b8f03cc71ae"
+      },
+      "technical": {
+        "locale_sha256": "298d8cd243501039eac9d9ce6da92a3f56d05158a9541f099a87942681ff18f2",
+        "source_sha256": "bd23b5335b8fe8a17d4911cea3b222dd5b7387025d340a769a27dace03a234f0"
+      },
+      "title": {
+        "locale_sha256": "76cb91a876360e35d03dab06f7439205ad9cb7a4b542a2ff7b6e79fdb1917334",
+        "source_sha256": "1a51b0f67fb6ac6e72b30d452b746be62cbbda2771388e886265aad2230b9c56"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f9790d0315a7ec806e7516e2c9b38931a4f51a9921a5769100460dda83667eef",
+        "source_sha256": "fa69cf646b24afdc7e0a9793b6419da5eaf01ef29b1d74c2e3f6bda505114297"
       }
     },
     "FCMO-4ADCD4C379FD": {
@@ -86552,44 +86827,44 @@
     },
     "FCMO-EA5D69115F43": {
       "claims": {
-        "locale_sha256": "ad07f2f19a087f79f3200dc6e35afce308f434aa9aaa2aed2606d89f91f713f7",
-        "source_sha256": "fe7e4945414fbd1e096f8b9c1a49dc0f7ced0b427f4ea955a78224f1bb82f4c4"
+        "locale_sha256": "86cb9774ede0867f525feb99d9d02cc464a9c3b3096bc83e01cc9189b09d7d88",
+        "source_sha256": "0601b56ee2dfc17bbc8280cf1e00ee047e3bf1d3c8ef5fcb4bc430599eafb09f"
       },
       "contradictory_evidence": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "evidence_gaps": {
-        "locale_sha256": "64837c4d4ca0d907cfc70bf6d24cb94eed314e909b4a2ac570f21a4624d48000",
-        "source_sha256": "74bc9a40af289b978a9b458d8e079e3166c5a45aaee2ac7437856696c018e27a"
+        "locale_sha256": "d82f122e62bc744a3107df3ea606ed12c7b31555f1532da5c7820356ca8115a2",
+        "source_sha256": "3a7d605870dc4fc4edd2f9290fd37ced3a86f714d7c4f2433f3d1680759aa5ae"
       },
       "importance_rationale": {
         "locale_sha256": "b029348da8fdbdd9f4a3920e0fd2d81e5dc092a1f19e9d1f07df0a61ca78da3e",
         "source_sha256": "43213f8c895ac02857e8125942ab3864916a254c223bee124268e71276e78387"
       },
       "limitations": {
-        "locale_sha256": "1ea86cd1d8cf49daca44c5470d82263304ee8677af9128ac0bc25159782f52c7",
-        "source_sha256": "440ab1d02df6b78d1f3b0b64dfe700d229d8f9a6aea1fd3f0a69d4b999efbdd6"
+        "locale_sha256": "93b84d68d563ece6f7ff73014ac8d401cce5fd5e113f8e2f91e5cd54f81f287b",
+        "source_sha256": "d8b1804343392d4be265e2005ef1aae0ac9838c9787f61f5c8af42d7d107a6f6"
       },
       "relationships": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
-        "locale_sha256": "d06a6ae16ba0e7d7dc114998516cf1b6048e5aa484102d7cf8715f1cd319ee3e",
-        "source_sha256": "c12f15089a262d1d753928f4d6f4a7d0bf8b4a8a584fa2e65dbb6b85b16952bb"
+        "locale_sha256": "13c4f5ac611dc0335d17cea573c6fa9989ae35c101fa36c76945530ec595c66c",
+        "source_sha256": "18c26e0071a4e363576a5a84a53b482acdd713ae40b71f2d22d0481b313ef429"
       },
       "technical": {
-        "locale_sha256": "fe2ae6376248f95ba0ea8ee6b1eea532a21888051f027b3289e1441bc539abca",
-        "source_sha256": "775a7ad154b3ec057907ed8fc8314cbed877175f2a1d598e50241b6bcb2a392c"
+        "locale_sha256": "48f6b9e724902df04995a9c101fb481a02676825a28f8a836c98517359d1ebf1",
+        "source_sha256": "3b6a3d4ed16e951aa67717cb70a6dfd6e473c401bcd320811fc8eac2c9da5196"
       },
       "title": {
         "locale_sha256": "b1da5022d9e33c867cdb3b42c33ff87bc1ab9efcf2eab91be9364e56dd6fa5f1",
         "source_sha256": "c0f70dab33053f124245a9db39e28f9fa40aa3eef80a53d8dd3b691d4faf8d5a"
       },
       "why_it_matters": {
-        "locale_sha256": "0806a788b3cd3a20bce2103c70c5465caeb9958ee5714e0a9fdc296fb19a8455",
-        "source_sha256": "85c05e1fe78580eaaa8f5da552682ffbd2354f9fb5dfd77659e1453fa3b8e5bc"
+        "locale_sha256": "40b8f34ceb8459a654078522fc944dcb688618b8680fc5be818fd6345935721c",
+        "source_sha256": "d47041b10343b6e40dd479ab7329e9b564c35210a457c620ff134ab4747ed34d"
       }
     },
     "FCMO-EA8DFB8BF4B2": {
@@ -88242,6 +88517,48 @@
       "why_it_matters": {
         "locale_sha256": "970ddb52c91b272ec07aa1652fb3eaec82579d956062c6644d0669da90a3712a",
         "source_sha256": "b83ecebc0589a3ef01df2055d4c35e24f93ca544f42120e1ddb4b7b9dea5cd90"
+      }
+    },
+    "FCMO-F676C4FBA031": {
+      "claims": {
+        "locale_sha256": "03f049fb2454b2e9c854931913e34c2e2d4f4eb8b8c89697294437162b7ee684",
+        "source_sha256": "e7f2bc42efd22c84752dd10ed5aa0ff07210eb0a3e82656ac705c1e8a3443750"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "0f278b087f77e7fd9c5f3ae334124688f959a392e0d6799797f113930b490da8",
+        "source_sha256": "4725911f6c257a1b367cc91e59d1d901a36e08c278c24512054c393b3db7d5d2"
+      },
+      "importance_rationale": {
+        "locale_sha256": "dfbfc8a4e1a484cf02958c78a7ba24668146d85e4c64d7bed581cf749ad51d24",
+        "source_sha256": "a5b787dda2c3d48d43f76c395e8716ac185527334c5a41d5b5753dd3c20350e3"
+      },
+      "limitations": {
+        "locale_sha256": "1df390b2ba787d39f60337b23211121f21c2b1f475133fbef3615743abc07437",
+        "source_sha256": "eeb735a25f5176a6255595e42e129e0e47418cf52c040f39aa96d99d37664d05"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "4e9e56f73f9174552fe35d9b793c51b3f2f37a667a91b13224c076ca1db97af1",
+        "source_sha256": "39ae71fb2eea4a1812da0ba07ccc8a022440d8b8cee772e9a2f6e0ecee89eced"
+      },
+      "technical": {
+        "locale_sha256": "a99f5c09fcfd978be9877cde9480b8fef567f4e1233f7d62c6c4f564c01a5a23",
+        "source_sha256": "02abda09409bbed618b69b65482e48f9c1355e31bbb4ac5fa234863804796cb0"
+      },
+      "title": {
+        "locale_sha256": "eab9c01f8e2bb8955016664ce863107433c5ac579421bdcfe24928ff7aba0d08",
+        "source_sha256": "d0976c2450258f43daf661398bb400933481065d282280115a24d69a7eb55e57"
+      },
+      "why_it_matters": {
+        "locale_sha256": "dd603d08e023cbc298f979607844c7fcc247a4a7074ded94d3c35f03335c881f",
+        "source_sha256": "2bc808eb9a23da4cc82933388e9b0b5609a908316f66f08ff2036b20b5b94bc7"
       }
     },
     "FCMO-F698D0B28A20": {
