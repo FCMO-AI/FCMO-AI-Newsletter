@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "c4f15787602a2ac95c838e7111a02c77ec8e48a8fcf4a021597820d1029b7973",
+  "canonical_source_sha256": "c069154dc56256fa2351a4b5ea5910c46c04b54a6aaa48acf2b7a550cb69f1da",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -8003,6 +8003,67 @@
       },
       "title": "EnSIMem enlaza índices estructurados de memoria con evidencia conversacional original",
       "why_it_matters": "El diseño trata el índice como una dirección a diálogos preservados, no como un sustituto con pérdida de la evidencia original. Combina coincidencia de entidades y propiedades con planificación de cobertura específica para cada consulta, y recupera los turnos originales antes de generar una respuesta. Si se reproduce, podría orientar sistemas de memoria que requieren recuperación temporal, composicional o de varios hechos; en la medición informada, el manejo explícito de evidencia tiene como costo una latencia en línea mayor."
+    },
+    "FCMO-226ECD710534": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Lee, Choi, Baek y Hwang presentaron la v1 de arXiv:2611.14320 el 2026-11-10; el artículo y el repositorio de código enlazado son de acceso público."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En ocho conjuntos de cinco benchmarks de agentes, los autores reportan que WikiTrace obtuvo un promedio de 90.2, frente a 79.5 sin memoria y 87.0 con una línea base que recibió las mismas ideas, pero no las trayectorias de origen. La ventaja reportada frente a esa comparación equivalente es de 3.2 puntos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan una tasa de regresión atribuida a la memoria de 4.5% para WikiTrace, 6.5% para Insights Only y 9.7% para una línea base de repetición; según el artículo, el intervalo de confianza de WikiTrace queda por debajo de toda la banda de repetición."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "WikiTrace guarda cada lección con enlaces a un diagnóstico y a la trayectoria de origen, que el agente puede inspeccionar si faltan detalles, si hay conflicto con otra lección o si la experiencia previa terminó en fracaso. El protocolo principal usa tres pruebas por conjunto y un agente de terminal Pi basado en DeepSeek V4 Flash; los autores también reportan una evaluación más pequeña con GLM-5.3-flash."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La investigación no reprodujo los experimentos de forma independiente. Estos resultados de benchmarks reportados por los autores no establecen el desempeño de agentes en producción ni en el mundo físico. Los autores señalan que un enlace permite revisar una lección, pero no la valida; también advierten que incluir todas las ideas puede no escalar cuando la memoria crece."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente de los resultados por conjunto, las tasas de regresión ni los intervalos de confianza reportados.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "La mayoría de los entornos evaluados son simulados; el artículo no establece el desempeño en agentes de producción ni físicos.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "El artículo incluye todas las ideas de memoria en el primer mensaje y reconoce que el crecimiento del prompt puede impedir escalar a memorias demasiado grandes.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el efecto reportado se mantiene fuera de estos regímenes de prueba, conservar las trayectorias de origen junto a la memoria del agente podría reducir la reutilización dañina de lecciones incorrectas o fuera de contexto y cambiar el diseño de sistemas de memoria. El resultado es relevante para agentes que usan herramientas, pero sigue siendo un informe de los autores y se probó principalmente en entornos simulados.",
+      "limitations": [
+        "El resultado fue reportado por los autores, enviado a ACL Rolling Review y no reproducido de forma independiente por el equipo de investigación.",
+        "La evaluación principal utiliza ocho conjuntos de cinco benchmarks y un agente Pi con DeepSeek V4 Flash, no agentes de producción.",
+        "El enlace permite inspeccionar una idea, pero no la verifica; el artículo señala que memorias grandes podrían requerir una estrategia de recuperación aún no resuelta.",
+        "La comparación de +3.2 puntos corresponde a las mismas ideas sin acceso a las fuentes; la diferencia de +10.7 puntos frente a no usar memoria no debe interpretarse como efecto aislado de enlazar las fuentes."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo artículo de arXiv presenta WikiTrace, que vincula cada lección de memoria de un agente con un diagnóstico y la trayectoria original de la que surgió, para que el agente pueda consultar la fuente cuando una lección sea incierta o entre en conflicto con otra. En ocho conjuntos de pruebas de cinco benchmarks, los autores reportan un promedio de 90.2, frente a 79.5 sin memoria y 87.0 con una línea base que recibe las mismas ideas, pero no sus trayectorias de origen. La regresión atribuida a la memoria fue de 4.5% frente a 6.5% en esa línea base. Son resultados de los autores, aún bajo revisión, no una reproducción independiente; la mayoría de las pruebas usa entornos simulados y el artículo advierte que enlazar una fuente no verifica por sí mismo una lección.",
+      "technical": {
+        "claimed_result": "Los autores reportan un promedio de 90.2 para WikiTrace, 87.0 para Insights Only y 79.5 sin memoria en ocho conjuntos; las tasas de regresión son 4.5%, 6.5% y 9.7% para WikiTrace, Insights Only y la comparación de repetición, respectivamente.",
+        "demonstrated_result": "El artículo v1 público de arXiv especifica la arquitectura, las condiciones de comparación, el protocolo de tres pruebas, las tablas de benchmarks, los análisis y las limitaciones. En esta activación no se reprodujeron los resultados de forma independiente.",
+        "mechanism": "Un compilador produce hasta tres ideas breves por trayectoria de éxito o fracaso y vincula cada idea a un diagnóstico y a la ejecución original conservada. Durante una tarea, el agente consulta la fuente cuando una recomendación es imprecisa, contradice otra o procede de una ejecución fallida.",
+        "regime": "Cinco benchmarks de agentes y ocho conjuntos: ALFWorld, ScienceWorld, PlanCraft, AppWorld y τ³-bench Retail. El protocolo principal usa un agente de terminal Pi con DeepSeek V4 Flash, tres pruebas por conjunto y una memoria construida con las mismas ejecuciones de entrenamiento sin memoria; también se probaron algunos conjuntos con GLM-5.3-flash.",
+        "reproducibility": "El repositorio público bajo Apache-2.0 ofrece instrucciones para instalar los entornos, obtener los benchmarks y ejecutar los análisis. El equipo revisó el README, pero no instaló dependencias, no descargó datos ni ejecutó el protocolo. Los resultados del artículo siguen siendo informes de los autores.",
+        "strongest_baseline": "Insights Only recibe las mismas ideas extraídas, pero no compilaciones ni ejecuciones de origen y omite la instrucción de consultarlas. Los métodos comparten las ejecuciones de referencia y tareas de prueba. También se comparan con ausencia de memoria y otros métodos de memoria."
+      },
+      "title": "La memoria vinculada a evidencias reduce los fallos por memoria en pruebas de agentes reportadas",
+      "why_it_matters": "La memoria puede perjudicar a los agentes cuando una lección breve es incorrecta o se aplica fuera de su alcance. Si los resultados reportados se generalizan, vincular una recomendación con la experiencia que la originó permite que el agente examine esa evidencia antes de actuar. En los conjuntos probados por el artículo, los autores miden una ventaja promedio de 3.2 puntos frente a una línea base con las mismas ideas."
     },
     "FCMO-22E1B6702680": {
       "claims": [
@@ -27690,6 +27751,64 @@
       "title": "Una construcción criptográfica ilustra un límite de las auditorías de capacidades basadas en elicitar conductas",
       "why_it_matters": "La construcción identifica un límite condicional para las auditorías que dependen de elicitar conductas no deseadas, incluso con acceso de caja blanca, cuando un adversario puede diseñar deliberadamente los pesos del modelo. Es un resultado de seguridad bajo supuestos criptográficos y con una prueba de concepto pequeña; no demuestra que los modelos de frontera desplegados contengan actualmente capacidades peligrosas ocultas."
     },
+    "FCMO-7D46BFE549A7": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa una evaluación en cuatro entornos simulados con recursos compartidos y 77 escenarios. Se probaron hasta cinco modelos de frontera, con cobertura variable por entorno. La regla general fue 20 episodios por escenario y formación, con excepciones descritas en el apéndice."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que un agente coordinador obtuvo mejores resultados grupales que los equipos de agentes separados en los cuatro entornos. En el entorno de asistentes personales, atendió solicitudes específicas de usuarios aproximadamente el doble de veces que los equipos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores analizan demoras al crecer los equipos, acciones que anulan las de otros usuarios y afirmaciones sin sustento. Algunos comportamientos los juzga otro modelo; el artículo aclara que esos análisis no demuestran que las anulaciones o afirmaciones causen la brecha de resultados. Las mitigaciones dependen del entorno."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Anthropic publicó un artículo de investigación fechado el 11 de noviembre de 2026; el preprint enlazado en arXiv se envió el 30 de septiembre de 2026."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Las fuentes revisadas no demuestran que las diferencias de resultados o las tasas de fallas se generalicen a despliegues reales, poblaciones de usuarios u otros entornos simulados. El repositorio de código enlazado no estuvo disponible durante esta revisión."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se reprodujeron de forma independiente las comparaciones reportadas y el código enlazado no estuvo disponible durante esta revisión.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce cómo se trasladan estas fallas a usuarios reales, plataformas desplegadas, tareas prolongadas o arreglos distintos de recursos y gobernanza.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el patrón reportado se generaliza, cambiaría cómo se coordinan agentes multiusuario que comparten presupuestos, calendarios y flujos de trabajo. La evidencia proviene de una evaluación acotada en cuatro entornos simulados, no de despliegues reales.",
+      "limitations": [
+        "Los resultados provienen de usuarios y tareas simulados; el artículo no establece frecuencia ni efectos causales en despliegues reales.",
+        "Se comparan formaciones específicas de coordinación y equipos bajo los escenarios del artículo; no se demuestra que un coordinador central siempre sea mejor.",
+        "El artículo y el preprint son fuentes primarias para sus métodos y resultados reportados. esta revisión no reprodujo los experimentos ni auditó la construcción de escenarios y la puntuación.",
+        "El preprint indica que el código se publicará tras la revisión; el enlace al repositorio no estuvo disponible durante esta revisión.",
+        "La cobertura de modelos y los ajustes de razonamiento varían por entorno; los 77 escenarios no implican que cada modelo se probara en todos ellos. La regla de 20 episodios tiene excepciones y los intervalos reportados están condicionados al conjunto de escenarios evaluado.",
+        "Los autores indican que los análisis de anulaciones y afirmaciones no demuestran causalidad sobre la brecha de resultados; algunas etiquetas de comportamiento dependen de jueces basados en modelos."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de Anthropic Fellows estudia agentes que actúan para usuarios distintos y comparten presupuestos, calendarios, pedidos o flujos de software. En cuatro entornos simulados y 77 escenarios, los autores reportan que un agente coordinador logró mejores resultados grupales que agentes separados en cada entorno. Evaluaron hasta cinco modelos, con cobertura variable según el entorno; el protocolo usa 20 episodios por escenario y formación como regla, con excepciones. El estudio identifica demoras al crecer los equipos, acciones que anulan las de otras personas y afirmaciones sin sustento, además de mitigaciones específicas para cada entorno. Son resultados reportados en simulaciones: faltan la réplica independiente y la validación en uso real.",
+      "technical": {
+        "claimed_result": "Los autores reportan ventajas del coordinador en los cuatro entornos simulados, patrones de falla distintos según el contexto y mitigaciones específicas, a partir de cinco modelos y 77 escenarios.",
+        "demonstrated_result": "El artículo fechado y el preprint están disponibles públicamente. En esta activación no se reprodujo ningún resultado del estudio de manera independiente.",
+        "mechanism": "El estudio compara un agente que sirve a un grupo con agentes individuales para cada usuario, con o sin comunicación entre ellos, mientras comparten recursos limitados y persiguen objetivos propios. Analiza resultados grupales y conductas como demoras, anulaciones y afirmaciones sin sustento.",
+        "regime": "Cuatro entornos simulados con recursos compartidos y 77 escenarios; hasta cinco modelos de frontera, con cobertura y ajustes de razonamiento variables por entorno. La regla general fue 20 episodios por escenario y formación, con excepciones documentadas. Los autores prevén publicar tres entornos y 74 escenarios como referencia; no se evalúa ningún despliegue real.",
+        "reproducibility": "El registro de arXiv indica que el código se publicará tras revisión. El enlace de GitHub del artículo devolvió 404 en el lector disponible. No se ejecutaron ni inspeccionaron código o datos localmente.",
+        "strongest_baseline": "Comparaciones internas del artículo entre un coordinador y distintas formaciones de agentes por usuario en escenarios equivalentes. Las métricas de resultado cambian según el entorno; los intervalos reportados están condicionados al conjunto de escenarios evaluado. Los intervalos de confianza del 95% dependen del conjunto de escenarios evaluado. No es una auditoría independiente."
+      },
+      "title": "Anthropic Fellows reportan fallas de coordinación en equipos de agentes que comparten recursos entre usuarios",
+      "why_it_matters": "Los sistemas de agentes empiezan a compartir recursos mientras representan a personas con objetivos distintos. El estudio sugiere que la coordinación y los conflictos entre objetivos pueden reducir los resultados del grupo y perjudicar a usuarios individuales. También plantea medir tanto los resultados colectivos como las acciones que afectan a otras personas. Las simulaciones delimitadas ofrecen preguntas comprobables, pero no demuestran que centralizar la coordinación sea siempre mejor en sistemas desplegados."
+    },
     "FCMO-7D5FC02D5B08": {
       "claims": [
         {
@@ -33421,6 +33540,72 @@
       "title": "Una prepublicación mide los límites de las defensas genéricas del sistema operativo para el estado persistente de agentes autónomos",
       "why_it_matters": "Los agentes alojados en el equipo del usuario pueden modificar archivos que condicionan su comportamiento futuro. Tras comprometerse un agente, los permisos y registros de archivos habituales quizá no distingan una actualización autorizada de memoria de una escritura maliciosa. Si estas mediciones acotadas se sostienen en más contextos, las defensas necesitarían una frontera de actualización contextual además del aislamiento y las copias de recuperación protegidas."
     },
+    "FCMO-988362008277": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Google DeepMind anunció AlphaGenome 2 el 2026-11-11 y enlazó un manuscrito completo que describe el modelo y sus evaluaciones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con 90% de precisión en la tarea de causalidad de eQTL de célula única TenK10K, los autores reportan una recuperación de 30% para AlphaGenome 2 frente a 16% para AlphaGenome 1 ajustado con datos de célula única (AG1-sc); el AUPRC general reportado es 0.76, frente a 0.72 para AG1-sc y 0.69 para Scooby."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el mismo benchmark, los autores reportan para AlphaGenome 2 una recuperación de 43% para predecir el sentido del efecto en eQTL celulares de TenK10K, frente a 23% para AG1-sc, con 90% de exactitud; el AUC general es 0.85 frente a 0.79 y 0.77, respectivamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo describe un modelo que condiciona una secuencia de ADN humana o de ratón de 1-Mb al tejido, tipo celular o estado celular de destino. Informa entrenamiento con conjuntos de datos masivos y de célula única, incluidos 107 millones de perfiles humanos de secuenciación de ARN de célula única, y señala que la API está disponible para investigación no comercial; el código fuente y los pesos se publicarán junto con la versión final del artículo."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los resultados no se reprodujeron de forma independiente en esta activación. El artículo informa que no se hicieron nuevos experimentos de laboratorio, que la recuperación de alta precisión sigue abarcando solo una minoría de eQTL finamente mapeados y variantes GWAS posiblemente causales, y que AlphaGenome 2 no está validado ni aprobado para uso clínico o diagnóstico."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las métricas de TenK10K y otras evaluaciones reportadas no se reprodujeron de forma independiente en esta activación.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El manuscrito enlazado indica que el código fuente y los pesos se publicarán tras la publicación final; esta activación no probó la API no comercial.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "Los resultados son benchmarks computacionales con conjuntos de datos existentes; no demuestran efectos biológicos causales, validez clínica ni resultados en pacientes.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "Los autores reportan que la recuperación de alta precisión sigue siendo baja para eQTL finamente mapeados y variantes GWAS posiblemente causales, y que los estados celulares transitorios, estimulados y patológicos están subrepresentados.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras reportadas para predecir efectos de variantes por tipo celular se generalizan, investigadores podrían priorizar variantes reguladoras candidatas y los estados celulares relevantes con mayor eficacia en estudios de genética humana. La consecuencia es notable para la genómica computacional; el artículo no reporta nuevos experimentos de laboratorio ni afirma validación clínica.",
+      "limitations": [
+        "Las cifras de desempeño provienen del manuscrito de los autores y el equipo de investigación no las reprodujo de forma independiente.",
+        "El estudio no informa nuevos experimentos de laboratorio; sus predicciones celulares son análisis computacionales de conjuntos de datos recopilados previamente.",
+        "Los autores indican que, con alta precisión, el modelo recupera solo una minoría de eQTL finamente mapeados y variantes GWAS posiblemente causales; los resultados pueden ser menores fuera de la cromatina accesible y para mecanismos postranscripcionales.",
+        "Los estados transitorios, estimulados y de enfermedad están subrepresentados; las representaciones de estado observacionales codifican correlaciones, no relaciones causales.",
+        "La API se ofrece para investigación no comercial. El código fuente y los pesos del modelo se prevén para la publicación final. Los autores indican que el modelo no está validado ni aprobado para uso clínico o diagnóstico."
+      ],
+      "relationships": [],
+      "summary": "Google DeepMind anunció AlphaGenome 2, un modelo de secuencias genómicas que condiciona sus predicciones al tejido, tipo celular o estado celular de interés. En el manuscrito enlazado, los autores reportan que en la prueba de causalidad de eQTL de célula única TenK10K alcanzó 30% de recuperación con 90% de precisión, frente a 16% de AlphaGenome 1 ajustado con datos de célula única; el AUPRC general reportado fue 0.76, frente a 0.72 para esa línea base y 0.69 para Scooby. Los autores también reportan mayor recuperación al predecir el sentido del efecto en eQTL celulares. Son resultados computacionales de primera parte sobre conjuntos de datos existentes, sin reproducción independiente ni nueva validación experimental. La API se ofrece para investigación no comercial; el código fuente y los pesos del modelo se prevén para la publicación final. Los autores indican que el sistema no está validado para uso clínico ni diagnóstico.",
+      "technical": {
+        "claimed_result": "En causalidad de eQTL celulares de TenK10K, los autores reportan 30% de recuperación frente a 16% para AG1-sc con 90% de precisión, y AUPRC general de 0.76 frente a 0.72 para AG1-sc y 0.69 para Scooby. En predicción del sentido del efecto reportan 43% frente a 23% para AG1-sc con 90% de exactitud, y AUC general de 0.85 frente a 0.79 y 0.77.",
+        "demonstrated_result": "Google DeepMind publicó un anuncio y enlazó un manuscrito completo que especifica la arquitectura, los datos de entrenamiento, conjuntos de evaluación, líneas base, métricas reportadas y limitaciones. El equipo de investigación no reprodujo los resultados de manera independiente.",
+        "mechanism": "AlphaGenome 2 recibe una secuencia de ADN de 1-Mb y una condición que describe un tejido, tipo celular o estado. Modula las representaciones de secuencia usando esa condición y puede inferir una representación condicional a partir de expresión génica de célula única para predecir en conjuntos de datos o estados no vistos.",
+        "regime": "El modelo acepta una secuencia de ADN humana o de ratón de 1-Mb y una condición biológica. El benchmark TenK10K cubre eQTL de expresión de célula única en 28 tipos celulares de sangre periférica y QTL de accesibilidad de cromatina de célula única en 24 tipos celulares. Las comparaciones incluyen AlphaGenome 1 ajustado con datos de célula única (AG1-sc) y Scooby.",
+        "strongest_baseline": "Para la comparación de recuperación citada en TenK10K, AG1-sc es la comparación interna más cercana: AlphaGenome 1 ajustado con datos de célula única. El artículo también compara con Scooby, un modelo especializado de secuencia a función. Los resultados son del manuscrito de los autores y no fueron replicados de forma independiente aquí."
+      },
+      "title": "AlphaGenome 2 reporta mayor recuperación de variantes por tipo celular en benchmarks genómicos",
+      "why_it_matters": "Las variantes reguladoras pueden actuar de manera distinta según el tipo celular, pero los mapas de célula única suelen incluir pocos donantes para probar directamente las asociaciones de variantes. Si las mejoras reportadas se confirman, condicionar el modelo al estado celular podría ayudar a priorizar variantes candidatas y elegir dónde estudiarlas. Los resultados computacionales del artículo no demuestran causalidad biológica, utilidad clínica ni mejoras en la salud de pacientes."
+    },
     "FCMO-996A9DA8F42A": {
       "claims": [
         {
@@ -37730,6 +37915,10 @@
         {
           "label": "NOT_ESTABLISHED",
           "text": "El artículo no establece una reproducción independiente, el desempeño con otros agentes base o en programas de investigación reales, ni que las preguntas resueltas sean descubrimientos científicos validados externamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan una auditoría entre proveedores de los conjuntos de explicaciones: un evaluador externo basado en Claude Sonnet calificó 87.0% como estructuralmente MECE (91.4% con ponderación de diseño), frente a 96.9% (98.4% ponderado) con el evaluador GPT-4o del mismo proveedor. En una prueba deliberada de omisión sobre 163 conjuntos resueltos correctamente con anterioridad, retirar la explicación respaldada produjo una resolución segura pero errónea en 53.4% de los casos; añadir una opción de abstención redujo las resoluciones erróneas a 0.6%. Son auditorías reportadas por los autores y la prueba de omisión no estima la frecuencia de omisiones en condiciones naturales."
         }
       ],
       "contradictory_evidence": [],
@@ -37745,7 +37934,7 @@
           "state": "open"
         },
         {
-          "description": "Los conjuntos de explicaciones generados pueden omitir la explicación respaldada por la evidencia; el artículo describe una opción de abstención, pero informa que no se incluyó en los experimentos principales.",
+          "description": "Los conjuntos generados pueden omitir la explicación respaldada por la evidencia. En una prueba de estrés de los autores que retiró deliberadamente esa explicación de 163 conjuntos resueltos correctamente con anterioridad, 53.4% produjo una resolución segura pero errónea sin opción de abstención; esto no estima la frecuencia de omisiones naturales.",
           "kind": "other",
           "state": "open"
         }
@@ -37756,10 +37945,11 @@
         "Los agentes de descubrimiento y elicitación de creencias usan GPT-4o; no se ha probado la transferencia a otras familias de modelos.",
         "Cada uno de los dos conjuntos de datos de mayor costo tiene una sola corrida.",
         "Un conjunto de explicaciones puede omitir una explicación respaldada por la evidencia; la opción de abstención no se usó en los experimentos principales.",
-        "La coincidencia de expertos mide acuerdo con la explicación seleccionada, no verdad de referencia ni validación científica posterior."
+        "La coincidencia de expertos mide acuerdo con la explicación seleccionada, no verdad de referencia ni validación científica posterior.",
+        "Una auditoría reportada por los autores encontró menor integridad estructural MECE con un evaluador externo basado en Claude Sonnet que con el evaluador GPT-4o del mismo proveedor (87.0% frente a 96.9% sin ponderar). En una prueba deliberada de omisión, retirar una explicación respaldada conocida causó resoluciones seguras pero erróneas en 53.4% de 163 casos seleccionados sin abstención; esto no representa la tasa natural de omisión."
       ],
       "relationships": [],
-      "summary": "Los autores presentan Contrastive Discovery, un método para que los agentes de descubrimiento científico evalúen una pregunta frente a varias explicaciones rivales, en vez de una hipótesis central y su negación sin estructura. En seis conjuntos de datos científicos y sociales, informan 161.9 preguntas resueltas con top-K 200, frente a 97.2 con sorpresa puntual (+67%), bajo el mismo presupuesto de 200 validaciones experimentales. En un estudio ciego con 38 expertos, informan coincidencia en 78% de las preguntas resueltas. Los resultados son de los autores y usan agentes de descubrimiento y de elicitación de creencias basados en GPT-4o; cada uno de los dos conjuntos de datos de mayor costo tuvo una sola corrida, aquí no se hizo una reproducción independiente y el método puede omitir la explicación mejor respaldada por la evidencia. El artículo no establece generalidad externa ni descubrimientos científicos validados.",
+      "summary": "Los autores presentan Contrastive Discovery, un método para que los agentes de descubrimiento científico evalúen una pregunta frente a varias explicaciones rivales, en vez de una hipótesis central y su negación sin estructura. En seis conjuntos de datos científicos y sociales, informan 161.9 preguntas resueltas con top-K 200, frente a 97.2 con sorpresa puntual (+67%), bajo el mismo presupuesto de 200 validaciones experimentales. En un estudio ciego con 38 expertos, informan coincidencia en 78% de las preguntas resueltas. Los resultados son de los autores y usan agentes de descubrimiento y de elicitación de creencias basados en GPT-4o; cada uno de los dos conjuntos de datos de mayor costo tuvo una sola corrida, aquí no se hizo una reproducción independiente y el método puede omitir la explicación mejor respaldada por la evidencia. El artículo no establece generalidad externa ni descubrimientos científicos validados. Los autores también informan que una auditoría con evaluador externo encontró menos conjuntos estructuralmente completos que el evaluador del mismo proveedor; al omitir deliberadamente explicaciones respaldadas hubo muchas resoluciones erróneas sin abstención, pero esa prueba no estima la tasa natural de omisión.",
       "technical": {
         "claimed_result": "Los autores informan 161.9 preguntas resueltas con top-K 200, frente a 97.2 con sorpresa puntual (+67%), en seis conjuntos de datos bajo un presupuesto equivalente de 200 validaciones experimentales, además de 78% de coincidencia entre 38 expertos a ciegas sobre las explicaciones resueltas.",
         "demonstrated_result": "El artículo primario inspeccionado permite confirmar que los autores propusieron el método y reportan estos resultados experimentales. No se realizó una reproducción independiente ni una validación externa de las preguntas resueltas.",
@@ -58861,6 +59051,48 @@
         "source_sha256": "ac495ae38a6a5b517b220dbd63daa93eee32c506bd5a0f69f41ee7b53b3b94c0"
       }
     },
+    "FCMO-226ECD710534": {
+      "claims": {
+        "locale_sha256": "d1039dc3ce40c256b73d1c80b94e7933fa65f6a5981e401c366b63ae004ae298",
+        "source_sha256": "7b47ae6e0ff629a496adb4dce43efbcd24b5636c0fe8bfe8813a9c5b28321ee5"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "f43fc0ddea2880ed14f4853ffc43151ac436e3073a91b9b118b1266a057cc770",
+        "source_sha256": "bb0a7a1e13e1e8b91b765508029c21c788bbf63d3a9ceb9e589f71e9ab92e5ad"
+      },
+      "importance_rationale": {
+        "locale_sha256": "db352885cdf5c0e771380301bc233d228f818c10fefe3ee329f06ab831ae57aa",
+        "source_sha256": "0d9d48862c424179ceed32e11a960e489ce7998aad50d5c147b8aa8e4d6da4c1"
+      },
+      "limitations": {
+        "locale_sha256": "f16fc595bd4fe860e715de584215c568ab621a95f81695f87af3a0818f673cb7",
+        "source_sha256": "4c06ddd013b18cdbd81951698df6c14fd30e3dba6bc42c08e6ae985b7d3eb684"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "35db136c0a481cb8c76450cdf81d257cb6792bb7d46e82da426314ed090d148d",
+        "source_sha256": "ec051a44f816521cdda8124d3a3db6554354cf7d1131caa41ef624fefc9fedc4"
+      },
+      "technical": {
+        "locale_sha256": "084dae27998055e5919349377b02a335d501d55312c02e882965c20b9b11d08a",
+        "source_sha256": "0173f51bd57a122bb74350a3f7bc27ac8e982e31ad4fcb7bb7bb7f3f13964231"
+      },
+      "title": {
+        "locale_sha256": "f47e635b215d4bfb412c2649282e14cec6f2be4434b7fd4936b5629a33418b84",
+        "source_sha256": "fdf28f7f86e6782dd1641c32fc6039721af2954103e30cd1bf711f3c5ca227d1"
+      },
+      "why_it_matters": {
+        "locale_sha256": "ef2694bbc878258af38934d6d93c0ebf1144807ff402fb02a63eba9643b104fb",
+        "source_sha256": "21add0a70b6ded2a6e41c63462d5664299da3526e2ccc3dc9a2ff73f2f8b6bfa"
+      }
+    },
     "FCMO-22E1B6702680": {
       "claims": {
         "locale_sha256": "c27a14e3ec621cfeabb3e52df550b281bfa752ad2f373dc0aedf99d23589c27e",
@@ -73561,6 +73793,48 @@
         "source_sha256": "120b683469dd99e73d3515350fcb47250d7e1cad778d0ae687207611374d5794"
       }
     },
+    "FCMO-7D46BFE549A7": {
+      "claims": {
+        "locale_sha256": "f8d95a1b675d785834618e1b76163ffc9454ecc6f613d5f480bdccebd16c3d6a",
+        "source_sha256": "130fb306c90f3217143e8a65f9d92933fed014f2741b0e15bd58528d31234294"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "44afee8f0d6879f00db2bcb04943292ac108e8094caa32d136665c2057554d21",
+        "source_sha256": "9adf8d2d81c30bc0a67f406ee93828803ecd77eadcfc6cef772e51e6797c7da4"
+      },
+      "importance_rationale": {
+        "locale_sha256": "86cfbd30287a262840a4ec7bc77753689d43daaab64c21c01bb94e76f1cf7b76",
+        "source_sha256": "c5a21b6d61adbe6c6a67e2a16161e6eae6defa1a4758f63f6e2f51c2a7723c79"
+      },
+      "limitations": {
+        "locale_sha256": "b9cc2816355baa87be147316fa3f4f786f43cd4b6cf9e570b1534f2beafc7063",
+        "source_sha256": "334c522b005c29b7f306590daa8ea77c5de8f4f07fcb26ecf2f800cd9ca67a6a"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "b99711aec74a116bf8774a233386eb4b81db240268834b2ea289048a92e91e95",
+        "source_sha256": "cf5a480ca4d1521df4560c9740835bed97971d2795c946f36dd3c6a249e4e44e"
+      },
+      "technical": {
+        "locale_sha256": "e3c66463b53414c25d7ebb75f71a3870d0db700a7223d7f4dd3254c27a3566e0",
+        "source_sha256": "0f2bb2352378b86ff6ce2cd84bcb010cd40cf5d89663a82c6a84959145026bf0"
+      },
+      "title": {
+        "locale_sha256": "154d210e90a4dba7563f6e2ba6551c846b16839b956f054b690bc040cc1347c7",
+        "source_sha256": "2ca436e8b0cecacdad474421837a5bd0824b614fcdb3bc80e7063580e9434e26"
+      },
+      "why_it_matters": {
+        "locale_sha256": "51d93b887b8dcd08248fcd26f81e062291b3d7ed127c373cf103bebe1e815849",
+        "source_sha256": "727a87c062d868eea1a53ca572a8d44c4e1911254ed2442f56afc355cb0ee566"
+      }
+    },
     "FCMO-7D5FC02D5B08": {
       "claims": {
         "locale_sha256": "97a702bc3c457cc128fbaa389c46376e1540a11528170da8f9a239c46900b539",
@@ -77663,6 +77937,48 @@
         "source_sha256": "380db4883c9e15a1d4913cbd8df63016f1a6cc89dd3ab83d847fa310115babc0"
       }
     },
+    "FCMO-988362008277": {
+      "claims": {
+        "locale_sha256": "93fd116956ac0fa10173a3e062a7591747e9a30d649ceeb638c35390cf67cb78",
+        "source_sha256": "d1bcb571cb03ecd8c86011134644248ae756caf4aee061a5bf59adba06c2c062"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "7a4f7970ca1e74b79ee612256450035303f73432b992c63ac7e5cc89c0503416",
+        "source_sha256": "d5140b98d0fb038dced19e7582132a0ef4f7965da328241971a5b1be836e7bd1"
+      },
+      "importance_rationale": {
+        "locale_sha256": "2389ec30490d15bcaa2a7bcf3551f14036736a1d57c6481438dc9c43eee38642",
+        "source_sha256": "c42a30e346450a601a0342984ec287c90e0b277cbf195f85e3b9094457e04f52"
+      },
+      "limitations": {
+        "locale_sha256": "8fb3c30f0de92297508bdaecae59ec676d146971fc08d4bb47b99de52f77ec5b",
+        "source_sha256": "ce8fa148c50959543407396bafe31b6f37f77ffdbf617679a5b74f0536884972"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "90befcddd3b5234e41cb24ca9a662efbc8e9165ca6478999d8a24dd872dbb0bb",
+        "source_sha256": "4d7d272325041e18ca70ef2e6967df102f96afd7a66f7963be31d582274815b8"
+      },
+      "technical": {
+        "locale_sha256": "415fac68995fab7d67e059864c048069b6ac4b595e75f88041321b1721449433",
+        "source_sha256": "a9d3661ebaed538389bb7b702d2dc602363fbd677afb5c63477758d23015024f"
+      },
+      "title": {
+        "locale_sha256": "2d28b08bad48e81c4a3fd63207fbe73470b6e36f957e70db5ea687f5a7a6d5f0",
+        "source_sha256": "a05308a60be892b125f315a672bde3fdfad4c006ef703b0e02d006726c1bc3d3"
+      },
+      "why_it_matters": {
+        "locale_sha256": "7ebbc69aaa744247bad867f57792f677d60138d93e2be5d3a4f74ff8ce9c456e",
+        "source_sha256": "4869d63a9ee503b970bf73bd6724204445d4ba5c74ed531cce9bed13d05679d3"
+      }
+    },
     "FCMO-996A9DA8F42A": {
       "claims": {
         "locale_sha256": "aaf276d41520d0362cfd2a21c50c6dfdcb0f15d73d801cb11ab20cc5243bd4b7",
@@ -80815,32 +81131,32 @@
     },
     "FCMO-AE4E93C6403E": {
       "claims": {
-        "locale_sha256": "13a996ea3d6d7011218d114e200506d24de7a23feb584689361190e7278c05e5",
-        "source_sha256": "d49207c6038bb10a09f3210c34ad90061c6ba7fcf53f06b9517bbf29932a6f25"
+        "locale_sha256": "a2d1e4c85c9b98ccdb5a33c74c3755afbc36d6b28badf19ba0bf26cdc2f29b1f",
+        "source_sha256": "d3621ca17ce25d81bff12b7a043971205cb3954bbdd3c2a3180b7d355e0e04c7"
       },
       "contradictory_evidence": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "evidence_gaps": {
-        "locale_sha256": "6da68801fffa4a6d32d26c0f9fcb89035d5df3a1297f5586fbdb8ba2019a03e5",
-        "source_sha256": "44e1ec1368a7c8c60474005467067625ff37c7c7de1b542ca6eb3b0770aa667f"
+        "locale_sha256": "94c213f0fb8c9c89b91abf0b6f963b34f97b006a3f2afeacb08a6eddc999f223",
+        "source_sha256": "944513de7c7482b7e8434bf6a16f8286e36090e79f9e2eb689cc6bfd0a2e7156"
       },
       "importance_rationale": {
         "locale_sha256": "ca21e53fb59da05c37d283aa5de66f8f0f4e0b1c14091d7d3f026a9fec341978",
         "source_sha256": "0788e4ef322ad766defc18e899ebf600891a9ad9889334fa3fa28faf4f680a6b"
       },
       "limitations": {
-        "locale_sha256": "442d1118e82e0c5893990c08787fb8fec0521a56c36ec9dbff418a5448ac047d",
-        "source_sha256": "b58368af3db22e9925521ae7935aaaa81507eb65f71f45349eb090e474800ed4"
+        "locale_sha256": "f26072f6a268453bdbae7fe671eb86648576e5c9bb3c705777b1a3bee737f1ef",
+        "source_sha256": "4312a0981f272691c92d9a7d53b1993c66489b99c1bdedb896bf7b6772483ec8"
       },
       "relationships": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
-        "locale_sha256": "96975dc4f0a1e27f797bf9aba740df6060bcc8fe3ef464cb61edc84364101119",
-        "source_sha256": "26025add46aa81d35a10a18dca882f2d3fab690b519795c94671a18c98491c81"
+        "locale_sha256": "1ac666575a629ac3199ffc9697dc3a3090a45986dcfe0353dd72bd0872d682ae",
+        "source_sha256": "a370eb271b48edab1e6927b65a0f8288a44895083b3a4a0c1e8c602ffdc2525f"
       },
       "technical": {
         "locale_sha256": "44fae1167f7b71737288dd89e37bf947838a828e77e2c9e2431c718003609fd2",

@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "c4f15787602a2ac95c838e7111a02c77ec8e48a8fcf4a021597820d1029b7973",
+  "canonical_source_sha256": "c069154dc56256fa2351a4b5ea5910c46c04b54a6aaa48acf2b7a550cb69f1da",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -8003,6 +8003,67 @@
       },
       "title": "EnSIMem 将结构化记忆索引连接到原始对话证据",
       "why_it_matters": "该设计把索引作为定位保留对话的地址，而不是会丢失信息的原始证据替代品。它将实体/属性匹配与面向查询的证据覆盖规划结合，并在生成答案前恢复原始对话轮次。如果经复现成立，这种方法可为需要时间、多步组合或多事实回忆的记忆系统提供设计依据；报告的结果显示，显式证据处理带来了更高的在线延迟。"
+    },
+    "FCMO-226ECD710534": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Lee、Choi、Baek 和 Hwang 于 2026-11-10 提交了 arXiv:2611.14320 v1；论文和所链接的代码仓库均可公开访问。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在五个智能体基准的八个测试组中，作者报告 WikiTrace 平均得分为 90.2，无记忆基线为 79.5，获得相同经验但没有来源轨迹的 Insights Only 基线为 87.0。相对于这项经验匹配基线，报告的优势为 3.2 分。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告，WikiTrace 的记忆导致回退率为 4.5%，Insights Only 为 6.5%，重复运行基线为 9.7%；论文称 WikiTrace 的置信区间完全低于重复运行区间。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "WikiTrace 为每条经验保留通往诊断说明和来源轨迹的链接；如果经验缺少细节、与另一条冲突或源自失败任务，智能体可以检查这些材料。主要实验对每个测试组运行三次，使用基于 DeepSeek V4 Flash 的 Pi 终端智能体；作者还报告了规模较小的 GLM-5.3-flash 评估。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "研究团队没有独立复现实验。这些作者报告的基准结果不能证明该方法在生产环境或物理环境中的智能体上有效。作者指出，来源链接能够帮助检查经验，但不能验证经验本身；把所有经验完整放入提示词也可能无法扩展到大型记忆。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "没有独立复现各测试组结果、回退率或所报告置信区间。",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "多数评估环境是模拟环境；论文未证明该方法在生产环境或物理环境智能体中的表现。",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "论文在首条消息中注入所有经验，并指出提示词增长可能限制超大型记忆的扩展能力。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果报告的效果能超出这些测试条件，保留智能体记忆所依据的轨迹，可能减少对错误或不适用经验的有害复用，并改变记忆系统的设计。该结果对使用工具的智能体具有实际意义，但目前仍是作者报告，且主要在模拟环境中测试。",
+      "limitations": [
+        "这是作者报告、已提交 ACL Rolling Review、尚未由研究团队独立复现的结果。",
+        "主要评估涵盖五个基准的八个测试组，并使用特定的 Pi/DeepSeek V4 Flash 智能体框架，而非生产环境中的智能体。",
+        "来源链接让智能体可以检查经验，但不能验证经验本身；论文指出，大型记忆可能需要尚未解决的检索方法。",
+        "报告的 +3.2 分比较对象是获得相同经验但无法访问来源的基线；相较于无记忆的 +10.7 分不能视为来源关联本身的独立效果。"
+      ],
+      "relationships": [],
+      "summary": "一篇新 arXiv 论文介绍了 WikiTrace：它把每条智能体记忆经验与诊断说明及其原始轨迹关联起来，使智能体在经验不确定或相互冲突时能够查阅来源。在五个智能体基准的八个测试组中，作者报告平均得分为 90.2；无记忆基线为 79.5，获得相同经验但无法访问来源轨迹的基线为 87.0。记忆导致的回退率报告为 4.5%，而同经验基线为 6.5%。这些是作者报告、仍在审稿中的结果，尚无独立复现；多数测试使用模拟环境，论文也指出，来源链接本身并不能验证一条经验。",
+      "technical": {
+        "claimed_result": "作者报告 WikiTrace 平均得分为 90.2，Insights Only 为 87.0，无记忆为 79.5，覆盖八个测试组；WikiTrace、Insights Only 和重复运行比较的回退率分别为 4.5%、6.5% 和 9.7%。",
+        "demonstrated_result": "公开的 arXiv v1 论文说明了系统架构、比较条件、三次试验协议、基准结果表、分析和限制。本次激活未独立复现实验结果。",
+        "mechanism": "编译器从每条成功或失败轨迹中生成最多三条简洁经验，并将每条经验链接到诊断说明和保留的原始执行轨迹。执行新任务时，如果经验信息不足、与其他经验冲突或来自失败轨迹，智能体就沿链接查阅来源。",
+        "regime": "五个智能体基准、八个测试组：ALFWorld、ScienceWorld、PlanCraft、AppWorld 和 τ³-bench Retail。主要协议使用基于 DeepSeek V4 Flash 的 Pi 终端智能体，每个测试组运行三次，并用相同的无记忆训练轨迹构建记忆；部分测试组还使用 GLM-5.3-flash 评估。",
+        "reproducibility": "采用 Apache-2.0 许可的公开仓库提供了环境安装、基准数据获取以及运行和分析的说明。研究团队检查了 README，但没有安装依赖、下载数据集或执行实验流程。论文结果仍为作者报告。",
+        "strongest_baseline": "Insights Only 使用与 WikiTrace 相同的提取经验，但不提供来源编译文档和原始轨迹，也不提示智能体沿链接查阅来源。各方法使用相同的训练轨迹和测试任务。论文还比较无记忆基线和其他记忆方法。"
+      },
+      "title": "在报告的智能体基准测试中，证据关联记忆减少了记忆导致的失败",
+      "why_it_matters": "当简短经验有误或被用于不适用的场景时，记忆可能让智能体表现变差。如果这些报告结果能够推广，把建议与其来源经历关联起来，就能让智能体在行动前检查依据。论文测试的基准中，作者报告该方法比使用相同经验的基线平均高 3.2 分。"
     },
     "FCMO-22E1B6702680": {
       "claims": [
@@ -27690,6 +27751,64 @@
       "title": "一种密码学构造说明了依赖诱发行为的模型能力审计存在局限",
       "why_it_matters": "如果攻击者能够蓄意设计模型权重，该构造就揭示了依赖诱发不良行为的审计所存在的一种条件性局限，即使审计者具有白盒访问权限也不例外。这是一项依赖密码学假设且基于小型概念验证的安全研究；它并未证明当前部署的前沿模型实际含有隐藏的危险能力。"
     },
+    "FCMO-7D46BFE549A7": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "论文报告在四种共享资源模拟环境的 77 个场景中进行评估，最多测试五种前沿模型，各环境的模型覆盖情况不同。通常每个场景、每种编组运行 20 个回合；附录记录例外。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告称，单一协调智能体在四种环境中都取得了优于独立用户智能体团队的群体结果。在个人助理环境中，协调智能体满足用户具体请求的频率约为团队的两倍。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者分析了团队扩大时的迟延、覆盖其他用户的操作，以及对他人作出无依据陈述等行为。部分行为由另一模型判定；论文明确指出，这些分析不能证明覆盖操作或无依据陈述导致了结果差距。缓解措施因环境而异。"
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Anthropic 于 2026 年 十一月 11 日发布了有日期标注的研究文章；关联的 arXiv 预印本提交于 2026 年 九月 30 日。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "已检查的来源并未证明报告的结果差距或失效比例适用于真实部署、用户群体或模拟场景之外的环境。本次审查期间无法访问文章链接的代码仓库。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "报告中的对比尚未经过独立复现，本次审查期间也无法访问关联代码。",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "这些协调失灵能否推广至真实用户、已部署平台、长期任务或其他资源与治理安排仍不清楚。",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果报告的规律能够推广，就会影响共享预算、日程和工作流的多用户智能体系统如何协调。现有证据仅来自四种模拟环境中的有限评估，并非真实部署结果。",
+      "limitations": [
+        "报告结果来自模拟用户和任务；论文没有确定真实部署中的发生率或因果效应。",
+        "论文在其特定场景中比较了若干协调与团队结构，不能据此证明集中式协调普遍更优。",
+        "文章和预印本是其方法与报告结果的一手来源；本次未复现实验，也未审计场景构造和评分。",
+        "预印本称代码将在审查后发布；本次审查期间无法访问文章链接的仓库。",
+        "各环境的模型覆盖和推理设置并不相同；77 个场景不代表每种模型都测试了全部场景。每场景 20 个回合的默认安排存在附录所列例外，报告区间也以实际评估的场景集合为条件。",
+        "作者指出，观察到的覆盖操作和无依据陈述并未被证明会导致群体结果差距；部分行为标签依赖模型评审。"
+      ],
+      "relationships": [],
+      "summary": "Anthropic Fellows 的一篇论文研究代表不同用户、共同使用预算、日历、订单或软件工作流的智能体。在四种模拟环境和 77 个场景中，作者报告称，每种环境里单一协调智能体的群体结果都优于用户各自使用智能体的团队。研究最多测试五种模型，各环境覆盖情况不同；通常每个场景和编组运行 20 个回合，附录列出例外。研究还分析团队扩大时的迟延、覆盖他人操作和无依据陈述，并报告因环境而异的缓解措施。这些是模拟中的作者报告结果，尚无独立复现或真实使用验证。",
+      "technical": {
+        "claimed_result": "作者报告称，在五种模型和 77 个场景中，协调智能体在四种模拟环境里均占优；失效模式与有效缓解措施因环境而异。",
+        "demonstrated_result": "有日期的文章和预印本均可公开访问。本次激活没有独立复现该研究结果。",
+        "mechanism": "研究比较一个智能体服务整个群体与每位用户各自使用智能体两种方式，并测试智能体之间能否通信。用户共享有限资源但各有目标；分析内容包括群体结果、延迟、相互覆盖操作和无依据陈述。",
+        "regime": "四种共享资源模拟环境、77 个场景；最多测试五种前沿模型，各环境的模型覆盖和推理设置不同。通常每个场景和编组运行 20 个回合，存在已记录例外。作者计划在审查后发布三个环境共 74 个场景作为基准；研究没有评估真实部署。",
+        "reproducibility": "arXiv 记录称代码将在审查后发布。文章链接的 GitHub 仓库在当前阅读器中返回 404。本次未在本地运行或检查代码与数据。",
+        "strongest_baseline": "论文在相同场景中比较单一协调智能体与按用户分别配置的智能体团队。不同环境使用不同结果指标；95% 置信区间以评估场景集合为条件。这是作者报告的对比，未经独立审计。"
+      },
+      "title": "Anthropic Fellows 报告：多用户智能体团队共享资源时会出现协调失灵",
+      "why_it_matters": "智能体系统正在共享资源，同时代表目标各异的人。该研究提示，协调成本和用户目标冲突可能降低群体结果并损害个别用户，也提出应同时衡量总体结果及影响他人的行为。有限范围的模拟为后续研究提供了可检验的问题，但不能证明在实际部署中集中协调总是更好。"
+    },
     "FCMO-7D5FC02D5B08": {
       "claims": [
         {
@@ -33421,6 +33540,72 @@
       "title": "一项预印本测量了通用操作系统防护自托管智能体持久状态的局限",
       "why_it_matters": "自托管智能体可以修改影响其未来行为的文件。若智能体已经被攻陷，常规文件权限与日志也许无法区分合法的记忆更新和恶意写入。如果这些有限范围内的测量在更多环境中成立，防护方案就需要在隔离与受保护恢复之外，另设带有上下文判断的更新边界。"
     },
+    "FCMO-988362008277": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Google DeepMind 于 2026-11-11 发布了 AlphaGenome 2，并链接了一篇完整论文，介绍模型及其评估。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在精确率为 90% 的 TenK10K 单细胞 eQTL 因果性任务上，作者报告 AlphaGenome 2 的召回率为 30%，AlphaGenome 1 经单细胞数据微调后（AG1-sc）为 16%；报告的整体 AUPRC 分别为 0.76、AG1-sc 的 0.72 和 Scooby 的 0.69。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在同一基准中，作者报告 TenK10K 单细胞 eQTL 效应方向预测召回率为 43%，AG1-sc 为 23%，准确率为 90%；整体 AUC 分别为 0.85、0.79 和 0.77。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文称，该模型根据目标组织、细胞类型或状态，对长度为 1-Mb 的人类或小鼠 DNA 序列进行条件化。作者报告模型使用大规模及单细胞数据集训练，包括来自人类单细胞 RNA 测序的 107 million 个细胞档案；API 可用于非商业研究，模型源代码和权重计划在正式发表后提供。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "本次激活没有独立复现这些结果。论文称研究没有进行新的湿实验，高精确率下只能召回少数精细定位的 eQTL 和可能具有因果性的 GWAS 变异；作者还声明 AlphaGenome 2 未经临床或诊断用途验证或批准。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次激活没有独立复现 TenK10K 指标或其他报告的评估结果。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "所链接论文称模型源代码和权重将在正式发表后提供；本次激活没有测试非商业 API。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "这些结果来自既有数据集的计算基准测试，不能证明生物学因果效应、临床有效性或患者结局。",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "作者报告称，精细定位 eQTL 和可能具有因果性的 GWAS 变异在高精确率下的召回率仍然较低；瞬时、刺激和疾病相关细胞状态在训练数据中代表不足。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果报告的细胞类型变异效应预测改进能够推广，研究者就可能更有效地筛选候选调控变异及相关细胞状态，从而推进人类遗传学研究。该结果对计算基因组学具有显著意义；论文未报告新的湿实验，也没有声称临床验证。",
+      "limitations": [
+        "性能数字来自作者论文，研究团队未对其进行独立复现。",
+        "研究没有进行新的湿实验；细胞层面的预测是基于先前收集数据集的计算分析。",
+        "作者指出，在高精确率下，该模型只能召回少数精细定位的 eQTL 和可能具有因果性的 GWAS 变异；在可访问染色质之外以及转录后机制上，结果可能更弱。",
+        "瞬时、受刺激和疾病相关状态代表不足；从观察性状态数据中学习的条件嵌入反映相关性，而非因果关系。",
+        "API 仅供非商业研究使用。模型源代码和权重计划在论文正式发表后提供。作者指出，模型未经临床或诊断用途验证或批准。"
+      ],
+      "relationships": [],
+      "summary": "Google DeepMind 发布了 AlphaGenome 2，这是一种会根据目标组织、细胞类型或细胞状态调整预测的基因组序列模型。在所链接的论文中，作者报告称，在 TenK10K 单细胞 eQTL 因果性任务上，模型在 90% 精确率下达到 30% 召回率；AlphaGenome 1 经单细胞数据微调后的召回率为 16%。报告的整体 AUPRC 为 0.76，而该基线为 0.72，Scooby 为 0.69。作者还报告了单细胞 eQTL 效应方向预测召回率提高。这些是基于既有数据集的第一方计算结果，尚无独立复现，也没有新的实验验证。该 API 仅供非商业研究使用；模型源代码和权重计划在论文正式发表时提供。作者指出，该系统未经临床或诊断用途验证。",
+      "technical": {
+        "claimed_result": "在 TenK10K 单细胞 eQTL 因果性任务中，作者报告 AlphaGenome 2 在 90% 精确率下召回率为 30%，AG1-sc 为 16%；整体 AUPRC 分别为 0.76、AG1-sc 的 0.72 和 Scooby 的 0.69。效应方向预测方面，作者报告在 90% 准确率下召回率分别为 43% 和 23%，整体 AUC 分别为 0.85、0.79 和 0.77。",
+        "demonstrated_result": "Google DeepMind 发布了公告并链接完整论文，其中说明了模型架构、训练数据、评估数据集、基线、报告指标和局限。本次激活没有独立复现这些结果。",
+        "mechanism": "AlphaGenome 2 接收一段 1-Mb DNA 序列和描述组织、细胞类型或状态的条件信息。模型使用该条件调制序列表征，还可以根据单细胞基因表达数据推断条件嵌入，以预测此前未见的数据集或细胞状态。",
+        "regime": "模型接收一段 1-Mb 人类或小鼠 DNA 序列及一项生物学条件。TenK10K 基准涵盖外周血 28 种细胞类型的单细胞表达 QTL，以及 24 种细胞类型的单细胞染色质可及性 QTL。比较对象包括经单细胞数据微调的 AlphaGenome 1（AG1-sc）和 Scooby。",
+        "strongest_baseline": "对 TenK10K 召回率结果而言，AG1-sc 是最接近的同系列比较对象，即经单细胞数据微调的 AlphaGenome 1。论文还将结果与专门的序列到功能模型 Scooby 比较。这些是作者论文中的实验结果，本次未独立复现。"
+      },
+      "title": "AlphaGenome 2 报告称，其基因组基准测试中的细胞类型特异性变异召回率更高",
+      "why_it_matters": "调控变异可能在不同细胞类型中发挥不同作用，而大型单细胞图谱通常缺少足够的供体，无法直接检验变异关联。如果报告的改进经得住后续检验，按细胞状态进行条件化预测可能帮助研究者筛选候选变异并确定后续研究位置。论文中的计算结果不能证明生物学因果关系、临床效用或患者结局改善。"
+    },
     "FCMO-996A9DA8F42A": {
       "claims": [
         {
@@ -37730,6 +37915,10 @@
         {
           "label": "NOT_ESTABLISHED",
           "text": "论文没有证明结果经过独立复现、适用于其他智能体骨干或真实研究项目，也没有证明其已解决问题属于经外部验证的科学发现。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告了一项跨供应商对比解释集审计：外部Claude Sonnet评估器判定87.0%的集合在结构上满足MECE（按设计加权为91.4%），而同一供应商的GPT-4o评估器判定为96.9%（加权为98.4%）。在一项故意遗漏测试中，研究者从163个此前正确解决的问题集合里移除证据支持的解释；在没有弃答选项时，53.4%产生了自信但错误的结论，加入弃答选项后错误结论降至0.6%。这些是作者报告的审计结果，遗漏测试并未估计自然环境中的遗漏率。"
         }
       ],
       "contradictory_evidence": [],
@@ -37745,7 +37934,7 @@
           "state": "open"
         },
         {
-          "description": "生成的对比解释集合可能遗漏证据支持的解释；论文讨论了弃答选项，但报告称主要实验没有纳入该保护机制。",
+          "description": "生成的解释集合可能遗漏证据支持的解释。作者在一项压力测试中故意从163个此前正确解决的问题集合里移除该解释；没有弃答选项时，53.4%产生了自信但错误的结论。这并非自然发生遗漏的频率估计。",
           "kind": "other",
           "state": "open"
         }
@@ -37756,10 +37945,11 @@
         "发现智能体和信念评估器使用GPT-4o；尚未测试向其他模型家族迁移。",
         "两个成本最高的数据集各只有一次运行。",
         "对比解释集合可能遗漏证据支持的解释；主要实验未采用可选的弃答保护机制。",
-        "专家一致率衡量的是与所选解释相符的程度，并非依据真值或后续科学验证。"
+        "专家一致率衡量的是与所选解释相符的程度，并非依据真值或后续科学验证。",
+        "作者报告的跨供应商审计显示，外部Claude Sonnet评估器判定结构上满足MECE的比例低于同一供应商的GPT-4o评估器（未加权为87.0%对96.9%）。在故意遗漏测试中，163个选定案例里，移除已知的证据支持解释后，有53.4%在没有弃答选项时产生了自信但错误的结论；这不是自然遗漏率。"
       ],
       "relationships": [],
-      "summary": "作者提出Contrastive Discovery，使科学发现智能体围绕多个竞争性解释评估问题，而不是只检验一个核心假设及其未细分的否定命题。在六个科学与社会科学数据集上，作者报告该方法在top-K 200时解决了161.9个问题，点式惊讶度方法为97.2个（+67%）；两种方法使用相同的200次实验验证预算。在一项由38名专家参与的盲测中，作者报告对已解决问题的解释有78%的一致率。这些结果由论文作者报告，使用基于GPT-4o的发现智能体和信念评估器；两个成本最高的数据集各只有一次运行，本次未进行独立复现，而且该方法可能遗漏最受证据支持的解释。论文没有证明其结果可推广到外部情境，也没有证明产生了经验证的科学发现。",
+      "summary": "作者提出Contrastive Discovery，使科学发现智能体围绕多个竞争性解释评估问题，而不是只检验一个核心假设及其未细分的否定命题。在六个科学与社会科学数据集上，作者报告该方法在top-K 200时解决了161.9个问题，点式惊讶度方法为97.2个（+67%）；两种方法使用相同的200次实验验证预算。在一项由38名专家参与的盲测中，作者报告对已解决问题的解释有78%的一致率。这些结果由论文作者报告，使用基于GPT-4o的发现智能体和信念评估器；两个成本最高的数据集各只有一次运行，本次未进行独立复现，而且该方法可能遗漏最受证据支持的解释。论文没有证明其结果可推广到外部情境，也没有证明产生了经验证的科学发现。 作者还报告，外部评估器审计发现结构完整的解释集合比例低于同一供应商评估器；故意遗漏证据支持的解释会频繁导致未弃答的错误结论，但这项压力测试并不估计自然遗漏率。",
       "technical": {
         "claimed_result": "作者报告，在六个数据集和相同的200次实验验证预算下，top-K 200时Contrastive Discovery解决了161.9个问题，点式惊讶度方法为97.2个（+67%）；此外，38名盲测专家对已解决解释的一致率为78%。",
         "demonstrated_result": "所检查的一手论文证明作者提出了该方法并报告了这些实验结果。本次未独立复现，也未对已解决问题进行外部验证。",
@@ -58861,6 +59051,48 @@
         "source_sha256": "ac495ae38a6a5b517b220dbd63daa93eee32c506bd5a0f69f41ee7b53b3b94c0"
       }
     },
+    "FCMO-226ECD710534": {
+      "claims": {
+        "locale_sha256": "3dc74073aefbd6bd4a7135ad5e230c3069b04dfd0acc2d3e95376dcb955e2438",
+        "source_sha256": "7b47ae6e0ff629a496adb4dce43efbcd24b5636c0fe8bfe8813a9c5b28321ee5"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "d91467e814a0ee75d79fba9b898962e8d17ea935487d932d89308289e78e31b4",
+        "source_sha256": "bb0a7a1e13e1e8b91b765508029c21c788bbf63d3a9ceb9e589f71e9ab92e5ad"
+      },
+      "importance_rationale": {
+        "locale_sha256": "2870c331a311e14eb8a17fbd917b7668261c1a0784562b0e5263fdbaaefadb70",
+        "source_sha256": "0d9d48862c424179ceed32e11a960e489ce7998aad50d5c147b8aa8e4d6da4c1"
+      },
+      "limitations": {
+        "locale_sha256": "f96ea65cc6050ea35f9b75ddb76c3f8f4d60e5e0ef6a9eef3cd61b5e13dd0229",
+        "source_sha256": "4c06ddd013b18cdbd81951698df6c14fd30e3dba6bc42c08e6ae985b7d3eb684"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "b9d3d6eb7aa35ee7a6ad6fba39ab62fede9a03cafd7f7467dfb76f14fe2d65ee",
+        "source_sha256": "ec051a44f816521cdda8124d3a3db6554354cf7d1131caa41ef624fefc9fedc4"
+      },
+      "technical": {
+        "locale_sha256": "2b52484df279d2ee3c4de9932aa88aad788024d433930e36f6f732e639b49100",
+        "source_sha256": "0173f51bd57a122bb74350a3f7bc27ac8e982e31ad4fcb7bb7bb7f3f13964231"
+      },
+      "title": {
+        "locale_sha256": "ef953a3c3a01a7b8c7112241140f9d230dfa04744de8cd43770fe0a353d4bb5f",
+        "source_sha256": "fdf28f7f86e6782dd1641c32fc6039721af2954103e30cd1bf711f3c5ca227d1"
+      },
+      "why_it_matters": {
+        "locale_sha256": "622afc6605b2b7f7887ecec58edac2635a8be65aa5dd36b24cf594ae9cf7247d",
+        "source_sha256": "21add0a70b6ded2a6e41c63462d5664299da3526e2ccc3dc9a2ff73f2f8b6bfa"
+      }
+    },
     "FCMO-22E1B6702680": {
       "claims": {
         "locale_sha256": "75427410e9cd31fce97e5926d4c7807a5f248b43a3379eaaa6f58d673fce1189",
@@ -73561,6 +73793,48 @@
         "source_sha256": "120b683469dd99e73d3515350fcb47250d7e1cad778d0ae687207611374d5794"
       }
     },
+    "FCMO-7D46BFE549A7": {
+      "claims": {
+        "locale_sha256": "5049ba5d1fa69fe215c27e3756c0f0b66b891aec4d5af229a6530c6124d2cd34",
+        "source_sha256": "130fb306c90f3217143e8a65f9d92933fed014f2741b0e15bd58528d31234294"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "d3126e50c587b34f3be05ea24b957718f4f74877361431af3b005df0c3a0cf4d",
+        "source_sha256": "9adf8d2d81c30bc0a67f406ee93828803ecd77eadcfc6cef772e51e6797c7da4"
+      },
+      "importance_rationale": {
+        "locale_sha256": "4032e8d3f8065ef84b3cd69eb4b4e7673b12918744793f74d3e728c4aba5ceb2",
+        "source_sha256": "c5a21b6d61adbe6c6a67e2a16161e6eae6defa1a4758f63f6e2f51c2a7723c79"
+      },
+      "limitations": {
+        "locale_sha256": "a9c8fa42db04d09f69a6b6bc83ec8bdeea9b2a5aab931cc7ea32575767da9316",
+        "source_sha256": "334c522b005c29b7f306590daa8ea77c5de8f4f07fcb26ecf2f800cd9ca67a6a"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "1a1742bd547213e37aa77cea5c475825c904be48e54268cfe6116306d94b2bc8",
+        "source_sha256": "cf5a480ca4d1521df4560c9740835bed97971d2795c946f36dd3c6a249e4e44e"
+      },
+      "technical": {
+        "locale_sha256": "9b1abb594059172f7f4c45635737c710b4aef60143f00199bbee1c5378b52d4e",
+        "source_sha256": "0f2bb2352378b86ff6ce2cd84bcb010cd40cf5d89663a82c6a84959145026bf0"
+      },
+      "title": {
+        "locale_sha256": "7e94612af264c09baa81655cb8a41e8725bf5427e636b2d100e96da9e367de85",
+        "source_sha256": "2ca436e8b0cecacdad474421837a5bd0824b614fcdb3bc80e7063580e9434e26"
+      },
+      "why_it_matters": {
+        "locale_sha256": "f75d128ca1b3a00629b9a87735adf04a76bfa955234597ce299379374df12e7a",
+        "source_sha256": "727a87c062d868eea1a53ca572a8d44c4e1911254ed2442f56afc355cb0ee566"
+      }
+    },
     "FCMO-7D5FC02D5B08": {
       "claims": {
         "locale_sha256": "bdb9d9c60876d8246789e40116e3ffc4871d2d92218317c0ff7d0849f7498da7",
@@ -77663,6 +77937,48 @@
         "source_sha256": "380db4883c9e15a1d4913cbd8df63016f1a6cc89dd3ab83d847fa310115babc0"
       }
     },
+    "FCMO-988362008277": {
+      "claims": {
+        "locale_sha256": "97d8965a01254c107f648558fa6835f2296372ca20c2c04b8e599db02fa399d3",
+        "source_sha256": "d1bcb571cb03ecd8c86011134644248ae756caf4aee061a5bf59adba06c2c062"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "75db3c66164e5beedb135f0fbc1fbbecde5c0e4dc7eb9e33345967e2b7a98014",
+        "source_sha256": "d5140b98d0fb038dced19e7582132a0ef4f7965da328241971a5b1be836e7bd1"
+      },
+      "importance_rationale": {
+        "locale_sha256": "0586e57287e4b3e9c578470943a31b86bb6c2ec92f4ac98e73696442d43cbef8",
+        "source_sha256": "c42a30e346450a601a0342984ec287c90e0b277cbf195f85e3b9094457e04f52"
+      },
+      "limitations": {
+        "locale_sha256": "d3097d8b9a87bd60a4607834b98543bf4067bc69ebc4c524391b89db53cc5e5f",
+        "source_sha256": "ce8fa148c50959543407396bafe31b6f37f77ffdbf617679a5b74f0536884972"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "a3c88ee051f5a329ca18ac39e41b2f91f257b912d31604984e2a646daaa19f37",
+        "source_sha256": "4d7d272325041e18ca70ef2e6967df102f96afd7a66f7963be31d582274815b8"
+      },
+      "technical": {
+        "locale_sha256": "a6df0f2cc6cfb7f91ae8c9a6f8fdb8c698563989202524ed7ed8881847f78cce",
+        "source_sha256": "a9d3661ebaed538389bb7b702d2dc602363fbd677afb5c63477758d23015024f"
+      },
+      "title": {
+        "locale_sha256": "10dfeebbe6c5da9ea4b57543ab170397c2bd072a40ae12b1f20270dae42731e2",
+        "source_sha256": "a05308a60be892b125f315a672bde3fdfad4c006ef703b0e02d006726c1bc3d3"
+      },
+      "why_it_matters": {
+        "locale_sha256": "fae3bfdcb78c608b916817dda38f02b9822b36046ed60f80b71955beb3bf6f16",
+        "source_sha256": "4869d63a9ee503b970bf73bd6724204445d4ba5c74ed531cce9bed13d05679d3"
+      }
+    },
     "FCMO-996A9DA8F42A": {
       "claims": {
         "locale_sha256": "217a0da2c6b887f92165f742093ad04ac15a7a4c8e9e2cb6c65e6ad892fa564c",
@@ -80815,32 +81131,32 @@
     },
     "FCMO-AE4E93C6403E": {
       "claims": {
-        "locale_sha256": "ea503dcf6874f83e1bf63fe862186475a12dceceadc2e183505af5e1f02db2a0",
-        "source_sha256": "d49207c6038bb10a09f3210c34ad90061c6ba7fcf53f06b9517bbf29932a6f25"
+        "locale_sha256": "0bc28d67cd6bbff3754bb065feb4011e1dcc4b73fe4465360b623684f139f321",
+        "source_sha256": "d3621ca17ce25d81bff12b7a043971205cb3954bbdd3c2a3180b7d355e0e04c7"
       },
       "contradictory_evidence": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "evidence_gaps": {
-        "locale_sha256": "7d7a4c422d29abd0d207e5e3c30064c5ac699171627fd2e74cd44131ed5ec598",
-        "source_sha256": "44e1ec1368a7c8c60474005467067625ff37c7c7de1b542ca6eb3b0770aa667f"
+        "locale_sha256": "ce6a0c555ff03bc1a1a748e6f4aea64deb093bb09a5c94153cf6166ac530906b",
+        "source_sha256": "944513de7c7482b7e8434bf6a16f8286e36090e79f9e2eb689cc6bfd0a2e7156"
       },
       "importance_rationale": {
         "locale_sha256": "4be649d31dd9c7970df72d00d79c10fe6db44d40d8749ad98c7a81f439b66135",
         "source_sha256": "0788e4ef322ad766defc18e899ebf600891a9ad9889334fa3fa28faf4f680a6b"
       },
       "limitations": {
-        "locale_sha256": "b27302c9d43c077e2df01eeb346dd84598802cbffee355bb208f0f170b498383",
-        "source_sha256": "b58368af3db22e9925521ae7935aaaa81507eb65f71f45349eb090e474800ed4"
+        "locale_sha256": "efa18624dee07a8649f49494bce713b28c919319c331dfbc8392737249a0ccdd",
+        "source_sha256": "4312a0981f272691c92d9a7d53b1993c66489b99c1bdedb896bf7b6772483ec8"
       },
       "relationships": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
-        "locale_sha256": "7c87059a3fc213e205e24b88af5fa36bd4a64293fb4e35dcb3b773ab77c6ac49",
-        "source_sha256": "26025add46aa81d35a10a18dca882f2d3fab690b519795c94671a18c98491c81"
+        "locale_sha256": "c655d691678df129016074832e87ea6a60376c644dde78bf678ca05356682f86",
+        "source_sha256": "a370eb271b48edab1e6927b65a0f8288a44895083b3a4a0c1e8c602ffdc2525f"
       },
       "technical": {
         "locale_sha256": "3d470051e8936d627889b9156c575dde7e606b67080b0ebc926a89bc82600582",
