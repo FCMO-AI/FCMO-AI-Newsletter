@@ -1,0 +1,124 @@
+{
+  "record": {
+    "id": "FCMO-A323059085A3",
+    "title": "Paper reports that emulated NVFP4 pretraining uses more exposures to learn rare facts than BF16",
+    "desk": "Training Data",
+    "event_at": "2026-11-09T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "Lu and Zhang's Nov 9 preprint reports that transformer models trained with emulated NVFP4 matrix multiplications need more exposures than BF16 models to reach the same recall on controlled rare facts, even when validation loss is similar. In the primary 40M-parameter comparisons (six seeds), matched-token exposure multipliers are 1.32× for synthetic biographies and 1.52× for a FineWeb-Edu mixture; matched-loss estimates are 1.25× and 1.22×. The authors attribute part of the effect to gradient noise interacting with AdamW. Experiments use emulated FP4 GEMMs on one RTX 4090, models up to 96.6M parameters and up to 1B tokens. Native FP4 throughput, production-scale generalization and independent reproduction are not established.",
+    "topics": [
+      "low-precision pretraining",
+      "NVFP4",
+      "rare-fact acquisition",
+      "validation loss",
+      "gradient noise"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-A323059085A3.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-A323059085A3.json",
+    "citation": {
+      "id": "FCMO-A323059085A3",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-A323059085A3.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "arXiv records the v1 submission on 2026-11-09."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "At matched training tokens, the authors report NVFP4/BF16 exposure multipliers of 1.32× (95% CI 1.16–1.50) for synthetic biographies and 1.52× (1.35–1.71) for the natural-text mixture."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "At matched validation loss, authors report 1.25× (1.13–1.38) on synthetic biographies and 1.22× (1.10–1.36) on natural text; the latter BF16 point is during learning-rate decay and biases the comparison toward 1."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "Frontier-scale transfer, naturally occurring long-tail facts, native FP4 throughput and independent reproduction are not established."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "training_data",
+      "efficiency",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-11-10"
+    ],
+    "event_at": "2026-11-09T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "Primary matched-token exposure results and AdamW mechanism have not been independently reproduced.",
+        "kind": "missing_independent",
+        "state": "open",
+        "updated_at": "2026-11-11T03:19:59Z"
+      },
+      {
+        "description": "Transfer to frontier scale, natural long-tail facts, native FP4 kernels and production economics is untested.",
+        "kind": "other",
+        "state": "open",
+        "updated_at": "2026-11-11T03:19:59Z"
+      }
+    ],
+    "id": "FCMO-A323059085A3",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the reported gap generalizes, it could change low-precision recipe evaluation by showing that similar aggregate loss can conceal an exposure cost on rare knowledge. This work does not establish frontier-scale or production effects.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-11-11T03:19:59Z",
+    "limitations": [
+      "Author-reported results; not independently reproduced.",
+      "Main comparisons use six seeds and models up to 96.6M parameters; longest run is 1B tokens.",
+      "FP4 GEMMs are emulated via operand quantization and FP32 multiplication on one RTX 4090; no native throughput or end-to-end cost is measured.",
+      "Rare facts are controlled synthetic biographies, alone or mixed into one FineWeb-Edu corpus; natural long-tail knowledge is not tested.",
+      "Natural-text matched-loss BF16 checkpoint occurs during LR decay after 5–6% fewer tokens, biasing this comparison toward 1."
+    ],
+    "organizations": [],
+    "primary_desk": "training_data",
+    "recorded_at": "2026-11-11T03:19:59Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2611.12832"
+    ],
+    "status": "developing",
+    "summary": "Lu and Zhang's Nov 9 preprint reports that transformer models trained with emulated NVFP4 matrix multiplications need more exposures than BF16 models to reach the same recall on controlled rare facts, even when validation loss is similar. In the primary 40M-parameter comparisons (six seeds), matched-token exposure multipliers are 1.32× for synthetic biographies and 1.52× for a FineWeb-Edu mixture; matched-loss estimates are 1.25× and 1.22×. The authors attribute part of the effect to gradient noise interacting with AdamW. Experiments use emulated FP4 GEMMs on one RTX 4090, models up to 96.6M parameters and up to 1B tokens. Native FP4 throughput, production-scale generalization and independent reproduction are not established.",
+    "technical": {
+      "claimed_result": "At matched tokens, exposure multipliers are 1.32× [1.16,1.50] synthetic and 1.52× [1.35,1.71] natural text; matched-loss estimates are 1.25× [1.13,1.38] and 1.22× [1.10,1.36].",
+      "compute_or_cost": "No native FP4 speed, end-to-end throughput, energy or dollar cost was measured; exposure multipliers are not wall-clock speed estimates.",
+      "demonstrated_result": "A dated arXiv v1 paper and its methods, results and limitations are inspectable. Measurements remain author-reported; no independent result was generated here.",
+      "implementation_status": "The paper mentions analysis-code version history but no code repository or runnable artifact was linked in the inspected version.",
+      "mechanism": "Authors model quantization gradient error as noise that can enlarge AdamW's second-moment normalization and lower update signal-to-noise. The reported interventions isolate parts of this mechanism; they do not account for all biased error from full NVFP4.",
+      "regime": "Models up to 96.6M parameters; synthetic biographies and a 1B-token FineWeb-Edu mixture with 7.2% inserted biography tokens; AdamW; emulated FP4 GEMMs on one RTX 4090.",
+      "reproducibility": "Paper gives methods, regimes, seed counts and appendices. Independent execution and code/data availability were not established in this review.",
+      "strongest_baseline": "Paired BF16 models use the same fact set and data order; main NVFP4/BF16 comparisons use six seeds."
+    },
+    "title": "Paper reports that emulated NVFP4 pretraining uses more exposures to learn rare facts than BF16",
+    "topics": [
+      "low-precision pretraining",
+      "NVFP4",
+      "rare-fact acquisition",
+      "validation loss",
+      "gradient noise"
+    ],
+    "why_it_matters": "Validation loss can underweight rare facts. If this result reproduces in larger models and naturally occurring corpora, exposure-controlled recall could change low-precision recipe comparisons by revealing a quality cost that aggregate loss hides. The current evidence is limited to small author-run experiments with emulated arithmetic."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-11-11T03:34:24Z",
-  "release_id": "newswire-6bfe279b3132ce6e282daecf",
+  "generated_at": "2026-11-11T05:37:10Z",
+  "release_id": "newswire-fcd2b65ab932da0916c69f56",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -66,6 +66,235 @@
     "2026-11-10"
   ],
   "stories": [
+    {
+      "id": "FCMO-A323059085A3",
+      "slug": "paper-reports-that-emulated-nvfp4-pretraining-uses-more-exposures-to",
+      "url_date": "2026-11-10",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "architectures_scaling",
+      "title": "Paper reports that emulated NVFP4 pretraining uses more exposures to learn rare facts than BF16",
+      "dek": "Lu and Zhang's Nov 9 preprint reports that transformer models trained with emulated NVFP4 matrix multiplications need more exposures than BF16 models to reach the same recall on controlled rare facts, even when validation loss is similar.",
+      "summary": "Lu and Zhang's Nov 9 preprint reports that transformer models trained with emulated NVFP4 matrix multiplications need more exposures than BF16 models to reach the same recall on controlled rare facts, even when validation loss is similar. In the primary 40M-parameter comparisons (six seeds), matched-token exposure multipliers are 1.32× for synthetic biographies and 1.52× for a FineWeb-Edu mixture; matched-loss estimates are 1.25× and 1.22×. The authors attribute part of the effect to gradient noise interacting with AdamW. Experiments use emulated FP4 GEMMs on one RTX 4090, models up to 96.6M parameters and up to 1B tokens. Native FP4 throughput, production-scale generalization and independent reproduction are not established.",
+      "why_it_matters": "Validation loss can underweight rare facts. If this result reproduces in larger models and naturally occurring corpora, exposure-controlled recall could change low-precision recipe comparisons by revealing a quality cost that aggregate loss hides. The current evidence is limited to small author-run experiments with emulated arithmetic.",
+      "importance_rationale": "If the reported gap generalizes, it could change low-precision recipe evaluation by showing that similar aggregate loss can conceal an exposure cost on rare knowledge. This work does not establish frontier-scale or production effects.",
+      "technical": {
+        "claimed_result": "At matched tokens, exposure multipliers are 1.32× [1.16,1.50] synthetic and 1.52× [1.35,1.71] natural text; matched-loss estimates are 1.25× [1.13,1.38] and 1.22× [1.10,1.36].",
+        "compute_or_cost": "No native FP4 speed, end-to-end throughput, energy or dollar cost was measured; exposure multipliers are not wall-clock speed estimates.",
+        "demonstrated_result": "A dated arXiv v1 paper and its methods, results and limitations are inspectable. Measurements remain author-reported; no independent result was generated here.",
+        "implementation_status": "The paper mentions analysis-code version history but no code repository or runnable artifact was linked in the inspected version.",
+        "mechanism": "Authors model quantization gradient error as noise that can enlarge AdamW's second-moment normalization and lower update signal-to-noise. The reported interventions isolate parts of this mechanism; they do not account for all biased error from full NVFP4.",
+        "regime": "Models up to 96.6M parameters; synthetic biographies and a 1B-token FineWeb-Edu mixture with 7.2% inserted biography tokens; AdamW; emulated FP4 GEMMs on one RTX 4090.",
+        "reproducibility": "Paper gives methods, regimes, seed counts and appendices. Independent execution and code/data availability were not established in this review.",
+        "strongest_baseline": "Paired BF16 models use the same fact set and data order; main NVFP4/BF16 comparisons use six seeds."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-11-09T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-11-11T05:36:39Z",
+      "updated_at": "2026-11-11T05:36:39Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "arXiv records the v1 submission on 2026-11-09."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "At matched training tokens, the authors report NVFP4/BF16 exposure multipliers of 1.32× (95% CI 1.16–1.50) for synthetic biographies and 1.52× (1.35–1.71) for the natural-text mixture."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "At matched validation loss, authors report 1.25× (1.13–1.38) on synthetic biographies and 1.22× (1.10–1.36) on natural text; the latter BF16 point is during learning-rate decay and biases the comparison toward 1."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "Frontier-scale transfer, naturally occurring long-tail facts, native FP4 throughput and independent reproduction are not established."
+          }
+        ],
+        "limitations": [
+          "Author-reported results; not independently reproduced.",
+          "Main comparisons use six seeds and models up to 96.6M parameters; longest run is 1B tokens.",
+          "FP4 GEMMs are emulated via operand quantization and FP32 multiplication on one RTX 4090; no native throughput or end-to-end cost is measured.",
+          "Rare facts are controlled synthetic biographies, alone or mixed into one FineWeb-Edu corpus; natural long-tail knowledge is not tested.",
+          "Natural-text matched-loss BF16 checkpoint occurs during LR decay after 5–6% fewer tokens, biasing this comparison toward 1."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "Primary matched-token exposure results and AdamW mechanism have not been independently reproduced."
+          },
+          {
+            "kind": "other",
+            "description": "Transfer to frontier scale, natural long-tail facts, native FP4 kernels and production economics is untested."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2611.12832",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [],
+      "topics": [
+        "low-precision-pretraining",
+        "nvfp4",
+        "rare-fact-acquisition",
+        "validation-loss",
+        "gradient-noise"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-A323059085A3.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Paper reports that emulated NVFP4 pretraining uses more exposures to learn rare facts than BF16"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un artículo informa que el preentrenamiento NVFP4 emulado requiere más exposiciones para aprender datos poco frecuentes que BF16",
+            "summary": "En un preprint del 9 de noviembre, Lu y Zhang informan que los modelos Transformer entrenados con multiplicaciones matriciales NVFP4 emuladas necesitan más exposiciones que los modelos BF16 para alcanzar la misma recuperación de datos poco frecuentes controlados, incluso cuando la pérdida de validación es similar. En las comparaciones principales de 40M de parámetros (seis semillas), los multiplicadores de exposición con tokens igualados son 1.32× para biografías sintéticas y 1.52× para una mezcla de FineWeb-Edu; con pérdida de validación igualada, las estimaciones son 1.25× y 1.22×. Los autores atribuyen parte del efecto a la interacción entre el ruido de gradiente y AdamW. Los experimentos usan operaciones FP4 emuladas en una sola RTX 4090, modelos de hasta 96.6M de parámetros y hasta 1B de tokens. No se establecen el rendimiento FP4 nativo, la generalización a escala de producción ni una reproducción independiente.",
+            "importance_rationale": "Si la brecha informada se generaliza, podría cambiar la evaluación de recetas de baja precisión al mostrar que una pérdida agregada similar puede ocultar un costo de exposición sobre el conocimiento poco frecuente. Este trabajo no establece efectos a escala de frontera ni de producción.",
+            "why_it_matters": "La pérdida de validación puede dar poco peso a los datos poco frecuentes. Si el resultado se reproduce en modelos mayores y corpus con datos naturales, medir la recuperación según las exposiciones podría cambiar la comparación de recetas de baja precisión al revelar un costo de calidad que la pérdida agregada oculta. La evidencia actual se limita a experimentos pequeños de los autores con aritmética emulada.",
+            "technical": {
+              "claimed_result": "Con tokens igualados, los multiplicadores de exposición son 1.32× [1.16,1.50] en datos sintéticos y 1.52× [1.35,1.71] en texto natural; con pérdida igualada son 1.25× [1.13,1.38] y 1.22× [1.10,1.36].",
+              "compute_or_cost": "No se midieron velocidad FP4 nativa, rendimiento integral, energía ni costo monetario; los multiplicadores de exposición no son estimaciones de tiempo de pared.",
+              "demonstrated_result": "Se pueden inspeccionar el preprint fechado en arXiv y sus métodos, resultados y limitaciones. Las mediciones siguen siendo informes de los autores; aquí no se generó un resultado independiente.",
+              "implementation_status": "El artículo menciona un historial de versiones del código de análisis, pero en la versión inspeccionada no enlaza un repositorio de código ni un artefacto ejecutable.",
+              "mechanism": "Los autores modelan el error de gradiente por cuantización como ruido que puede aumentar la normalización del segundo momento de AdamW y reducir la relación señal/ruido de la actualización. Sus intervenciones aíslan partes de este mecanismo en el entorno probado; no explican todo el error sesgado del entrenamiento NVFP4 completo.",
+              "regime": "Modelos de hasta 96.6M de parámetros; biografías sintéticas y una mezcla FineWeb-Edu de 1B de tokens con 7.2% de tokens de biografías insertadas; AdamW; multiplicaciones FP4 emuladas en una RTX 4090.",
+              "reproducibility": "El artículo presenta métodos, regímenes, cantidad de semillas y apéndices. En esta revisión no se establecieron una ejecución independiente ni la disponibilidad de código o datos.",
+              "strongest_baseline": "Los modelos BF16 pareados usan el mismo conjunto de datos y orden de exposición; las comparaciones principales NVFP4/BF16 usan seis semillas."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "arXiv registra el envío del artículo 2026-11-09."
+                },
+                {
+                  "text": "Con tokens igualados, los autores informan multiplicadores de exposición NVFP4/BF16 de 1.32× (IC del 95%: 1.16–1.50) para biografías sintéticas y 1.52× (1.35–1.71) para la mezcla de texto natural."
+                },
+                {
+                  "text": "Con pérdida de validación igualada, informan 1.25× (1.13–1.38) en biografías sintéticas y 1.22× (1.10–1.36) en texto natural; el punto BF16 de esta última comparación ocurre durante la reducción de la tasa de aprendizaje y sesga la comparación hacia 1."
+                },
+                {
+                  "text": "No se establecen la transferencia a escala de frontera, los efectos en datos naturales de cola larga, el rendimiento FP4 nativo ni una reproducción independiente."
+                }
+              ],
+              "limitations": [
+                "Los resultados son de los autores y no se reprodujeron de forma independiente.",
+                "Las comparaciones principales usan seis semillas y modelos de hasta 96.6M de parámetros; la corrida más larga usa 1B de tokens.",
+                "Las multiplicaciones FP4 se emulan cuantizando operandos y multiplicándolos en FP32 en una RTX 4090; no se midieron el rendimiento nativo ni el costo integral del entrenamiento.",
+                "Los datos poco frecuentes son biografías sintéticas controladas, solas o mezcladas con un corpus de FineWeb-Edu; no se evaluó conocimiento natural de cola larga.",
+                "En la comparación con pérdida igualada en texto natural, el punto BF16 está durante la reducción de la tasa de aprendizaje y había procesado 5–6% menos tokens; el artículo indica que esto sesga la estimación hacia 1."
+              ],
+              "gaps": [
+                {
+                  "description": "Los resultados principales de exposición con tokens igualados y el mecanismo de AdamW no se han reproducido de manera independiente."
+                },
+                {
+                  "description": "No se ha probado la transferencia a escala de frontera, a datos naturales de cola larga, a kernels FP4 nativos ni a la economía del entrenamiento en producción."
+                }
+              ]
+            }
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "论文报告：模拟 NVFP4 预训练学习低频事实所需的数据曝光次数高于 BF16",
+            "summary": "Lu 和 Zhang 在 9日发布的预印本报告称，使用模拟 NVFP4 矩阵乘法训练的 Transformer 模型，要在受控低频事实上达到与 BF16 模型相同的回忆率，需要更多训练曝光次数，即使验证损失相近也是如此。在主要的 40M 参数比较中（六个随机种子），按训练 token 数匹配时，合成传记和 FineWeb-Edu 混合语料的曝光倍数分别为 1.32× 和 1.52×；按验证损失匹配时，估计值分别为 1.25× 和 1.22×。作者将部分效应归因于梯度噪声与 AdamW 的相互作用。实验在一台 RTX 4090 上模拟 FP4 矩阵乘法，模型最多 96.6M 参数，训练最多 1B token。论文没有证明原生 FP4 吞吐、生产规模泛化或独立复现结果。",
+            "importance_rationale": "如果该差距能够推广，低精度训练方案的评估方式可能因此改变：相近的聚合损失也可能掩盖低频知识上的曝光成本。本研究尚未证明该结果可扩展至前沿模型或生产环境。",
+            "why_it_matters": "验证损失可能会低估低频事实。如果这一结果能在更大模型和自然语料中复现，按曝光次数衡量回忆率可能改变低精度训练方案的比较方式，因为它能揭示聚合损失所掩盖的质量成本。目前证据仅限于作者使用模拟算术开展的小规模实验。",
+            "technical": {
+              "claimed_result": "按 token 数匹配时，曝光倍数为合成数据 1.32× [1.16,1.50]、自然文本 1.52× [1.35,1.71]；按损失匹配时分别为 1.25× [1.13,1.38] 和 1.22× [1.10,1.36]。",
+              "compute_or_cost": "没有测量原生 FP4 速度、端到端吞吐、能耗或货币成本；曝光倍数也不是墙钟时间估计。",
+              "demonstrated_result": "带日期的 arXiv v1 论文及其方法、结果和局限均可查阅。测量数据仍是作者报告，本次未产生独立结果。",
+              "implementation_status": "论文提到分析代码的版本历史，但在所检查的版本中没有链接代码仓库或可运行的工件。",
+              "mechanism": "作者将量化导致的梯度误差建模为噪声；这类噪声可能增大 AdamW 的二阶矩归一化项，并降低更新的信噪比。论文中的干预实验在所测环境中分离了这一机制的部分效应，但无法解释完整 NVFP4 训练中的所有有偏误差。",
+              "regime": "模型最多 96.6M 参数；采用合成传记和 1B token 的 FineWeb-Edu 混合语料，其中插入的传记 token 占 7.2%；使用 AdamW；在一台 RTX 4090 上模拟 FP4 矩阵乘法。",
+              "reproducibility": "论文提供方法、实验设置、种子数量和附录。本次审查未确认可进行独立运行，也未确认代码或数据是否公开。",
+              "strongest_baseline": "配对 BF16 模型使用相同事实集合和数据顺序；主要 NVFP4/BF16 比较使用六个随机种子。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "arXiv 记录显示，该论文于 2026-11-09 提交。"
+                },
+                {
+                  "text": "在训练 token 数匹配时，作者报告 NVFP4/BF16 曝光倍数：合成传记为 1.32×（95% 置信区间：1.16–1.50），自然文本混合语料为 1.52×（1.35–1.71）。"
+                },
+                {
+                  "text": "在验证损失匹配时，作者报告合成传记为 1.25×（1.13–1.38），自然文本为 1.22×（1.10–1.36）；后一项中的 BF16 检查点处于学习率衰减阶段，因此该比较会向 1 偏移。"
+                },
+                {
+                  "text": "论文没有证明结果可迁移至前沿模型规模、自然长尾事实，也没有证明原生 FP4 吞吐或独立复现。"
+                }
+              ],
+              "limitations": [
+                "结果由论文作者报告，本次激活未进行独立复现。",
+                "主要比较使用六个随机种子，模型最多 96.6M 参数；最长训练运行使用 1B token。",
+                "FP4 矩阵乘法通过操作数精度模拟后再用 FP32 相乘，运行于一台 RTX 4090；未测量原生吞吐或端到端训练成本。",
+                "低频事实采用受控合成传记，单独训练或混入一个 FineWeb-Edu 语料；未测试自然长尾知识。",
+                "自然文本的损失匹配比较使用处于学习率衰减阶段的 BF16 检查点，其训练 token 少 5–6%；论文指出，这会使估计值向 1 偏移。"
+              ],
+              "gaps": [
+                {
+                  "description": "主要的 token 匹配曝光结果及 AdamW 机制尚未得到独立复现。"
+                },
+                {
+                  "description": "尚未测试其对前沿规模、自然长尾事实、原生 FP4 内核或生产训练经济性的迁移效果。"
+                }
+              ]
+            },
+            "headline": "论文报告：模拟 NVFP4 预训练学习低频事实所需的数据曝光次数高于 BF16"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-CCA87EC86B07",
       "slug": "nvidia-contributes-openshell-to-the-cncf-as-an-open-governance-project",

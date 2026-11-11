@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "2b59df8c7d6dc038ab060b9a8550d3ff15c4a29859785018310e094903ae8443",
+  "canonical_source_sha256": "a5dd241e922f530e126a05745dcadfef9275e57896457ef7dacec3b2c42fafa5",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -35379,6 +35379,63 @@
       },
       "title": "精确刻画受选择等位基因的频率谱，将可控误差计算扩展到生物样本库规模",
       "why_it_matters": "等位基因频率谱方法可用于推断自然选择如何塑造遗传变异。如果所报告的数值方法及其误差控制得到验证，研究者便能检验较大样本量和不同选择区间中的似然计算精度；在这些区间，浮点实现较难审计，大型外显子组队列也包括在内。"
+    },
+    "FCMO-A323059085A3": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "arXiv 记录显示，该论文于 2026-11-09 提交。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在训练 token 数匹配时，作者报告 NVFP4/BF16 曝光倍数：合成传记为 1.32×（95% 置信区间：1.16–1.50），自然文本混合语料为 1.52×（1.35–1.71）。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "在验证损失匹配时，作者报告合成传记为 1.25×（1.13–1.38），自然文本为 1.22×（1.10–1.36）；后一项中的 BF16 检查点处于学习率衰减阶段，因此该比较会向 1 偏移。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "论文没有证明结果可迁移至前沿模型规模、自然长尾事实，也没有证明原生 FP4 吞吐或独立复现。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "主要的 token 匹配曝光结果及 AdamW 机制尚未得到独立复现。",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-11-11T03:19:59Z"
+        },
+        {
+          "description": "尚未测试其对前沿规模、自然长尾事实、原生 FP4 内核或生产训练经济性的迁移效果。",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-11-11T03:19:59Z"
+        }
+      ],
+      "importance_rationale": "如果该差距能够推广，低精度训练方案的评估方式可能因此改变：相近的聚合损失也可能掩盖低频知识上的曝光成本。本研究尚未证明该结果可扩展至前沿模型或生产环境。",
+      "limitations": [
+        "结果由论文作者报告，本次激活未进行独立复现。",
+        "主要比较使用六个随机种子，模型最多 96.6M 参数；最长训练运行使用 1B token。",
+        "FP4 矩阵乘法通过操作数精度模拟后再用 FP32 相乘，运行于一台 RTX 4090；未测量原生吞吐或端到端训练成本。",
+        "低频事实采用受控合成传记，单独训练或混入一个 FineWeb-Edu 语料；未测试自然长尾知识。",
+        "自然文本的损失匹配比较使用处于学习率衰减阶段的 BF16 检查点，其训练 token 少 5–6%；论文指出，这会使估计值向 1 偏移。"
+      ],
+      "relationships": [],
+      "summary": "Lu 和 Zhang 在 9日发布的预印本报告称，使用模拟 NVFP4 矩阵乘法训练的 Transformer 模型，要在受控低频事实上达到与 BF16 模型相同的回忆率，需要更多训练曝光次数，即使验证损失相近也是如此。在主要的 40M 参数比较中（六个随机种子），按训练 token 数匹配时，合成传记和 FineWeb-Edu 混合语料的曝光倍数分别为 1.32× 和 1.52×；按验证损失匹配时，估计值分别为 1.25× 和 1.22×。作者将部分效应归因于梯度噪声与 AdamW 的相互作用。实验在一台 RTX 4090 上模拟 FP4 矩阵乘法，模型最多 96.6M 参数，训练最多 1B token。论文没有证明原生 FP4 吞吐、生产规模泛化或独立复现结果。",
+      "technical": {
+        "claimed_result": "按 token 数匹配时，曝光倍数为合成数据 1.32× [1.16,1.50]、自然文本 1.52× [1.35,1.71]；按损失匹配时分别为 1.25× [1.13,1.38] 和 1.22× [1.10,1.36]。",
+        "compute_or_cost": "没有测量原生 FP4 速度、端到端吞吐、能耗或货币成本；曝光倍数也不是墙钟时间估计。",
+        "demonstrated_result": "带日期的 arXiv v1 论文及其方法、结果和局限均可查阅。测量数据仍是作者报告，本次未产生独立结果。",
+        "implementation_status": "论文提到分析代码的版本历史，但在所检查的版本中没有链接代码仓库或可运行的工件。",
+        "mechanism": "作者将量化导致的梯度误差建模为噪声；这类噪声可能增大 AdamW 的二阶矩归一化项，并降低更新的信噪比。论文中的干预实验在所测环境中分离了这一机制的部分效应，但无法解释完整 NVFP4 训练中的所有有偏误差。",
+        "regime": "模型最多 96.6M 参数；采用合成传记和 1B token 的 FineWeb-Edu 混合语料，其中插入的传记 token 占 7.2%；使用 AdamW；在一台 RTX 4090 上模拟 FP4 矩阵乘法。",
+        "reproducibility": "论文提供方法、实验设置、种子数量和附录。本次审查未确认可进行独立运行，也未确认代码或数据是否公开。",
+        "strongest_baseline": "配对 BF16 模型使用相同事实集合和数据顺序；主要 NVFP4/BF16 比较使用六个随机种子。"
+      },
+      "title": "论文报告：模拟 NVFP4 预训练学习低频事实所需的数据曝光次数高于 BF16",
+      "why_it_matters": "验证损失可能会低估低频事实。如果这一结果能在更大模型和自然语料中复现，按曝光次数衡量回忆率可能改变低精度训练方案的比较方式，因为它能揭示聚合损失所掩盖的质量成本。目前证据仅限于作者使用模拟算术开展的小规模实验。"
     },
     "FCMO-A33DADFA2543": {
       "claims": [
@@ -78620,6 +78677,48 @@
       "why_it_matters": {
         "locale_sha256": "f53d974d649744fb9e3434f053e8957cedcf5554d46c56be949646a1f5d0f8d5",
         "source_sha256": "dd421e4d505b262e394f8aba8eb531977dc1cc82afea5e9c01025ebb3eec8af7"
+      }
+    },
+    "FCMO-A323059085A3": {
+      "claims": {
+        "locale_sha256": "815aaa2e4986f1a164710e494728355f3e7db384f0b7af43b83958502078d53d",
+        "source_sha256": "c5f537e9230d1835e03c7fa6840efd702362e2ef940845e8d3af32c93f75a61f"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "31d122bcdaea52c51a1b2266d20b96a9dca6f8c902a1d70b76369ddab97de0a1",
+        "source_sha256": "d8c2e887aef2540a68d7996a6191caa373854bd089faec63d478a2458b75fc58"
+      },
+      "importance_rationale": {
+        "locale_sha256": "bc22014237ecd4f975535e1cea3fc5c3e344af11f079066577cb501fd12f473b",
+        "source_sha256": "645cc88c5f3cf222abbec72042c05ad6959c1e455aca21cc813d31ec3a4076c1"
+      },
+      "limitations": {
+        "locale_sha256": "d1aeb621acbb538ac89ba47f4c849b3b85ff751a1de76cef16c850b079f035a2",
+        "source_sha256": "68c35e4b0cd4899d07a1883f08270be5368cd1748f6f12e3002f81b4ab1fc426"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "fc871fc61575756dc44b55345bfd95277015ee5df469aa62a48ac09cffa35023",
+        "source_sha256": "6ab5303f3328b0b69fa0156631ce7adbb9992c4417c9bfdc74c5bdae2a6eea81"
+      },
+      "technical": {
+        "locale_sha256": "6863241b0bd46153a3ea6e1ddfcd71fdb5fee68598da4f2b9dc4a3c0849b7269",
+        "source_sha256": "377ea9dfedaf0ae7613df4567a8d3ae5b2d156af3156b6896edf00660ab20c32"
+      },
+      "title": {
+        "locale_sha256": "193535e3b1b44596580394d14e214530e8dbedba4e096f9b6f2f2fef431d0061",
+        "source_sha256": "84ebb753c7c58b4c393f223f3dc8bdf2be0968a96fb5268ddfc838c322913a9d"
+      },
+      "why_it_matters": {
+        "locale_sha256": "84dd3e14ce04fc1d5bf64f52b2ba07e82c2a1ad170478af1f71edd7d1345ec25",
+        "source_sha256": "f1d0573de95a36e7a46db7740297a52eb2c2d90cb5f53bb7deea27b7bcbe9197"
       }
     },
     "FCMO-A33DADFA2543": {
