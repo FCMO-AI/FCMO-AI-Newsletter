@@ -8002,6 +8002,67 @@
       "title": "EnSIMem enlaza índices estructurados de memoria con evidencia conversacional original",
       "why_it_matters": "El diseño trata el índice como una dirección a diálogos preservados, no como un sustituto con pérdida de la evidencia original. Combina coincidencia de entidades y propiedades con planificación de cobertura específica para cada consulta, y recupera los turnos originales antes de generar una respuesta. Si se reproduce, podría orientar sistemas de memoria que requieren recuperación temporal, composicional o de varios hechos; en la medición informada, el manejo explícito de evidencia tiene como costo una latencia en línea mayor."
     },
+    "FCMO-226ECD710534": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Lee, Choi, Baek y Hwang presentaron la v1 de arXiv:2611.14320 el 2026-11-10; el artículo y el repositorio de código enlazado son de acceso público."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En ocho conjuntos de cinco benchmarks de agentes, los autores reportan que WikiTrace obtuvo un promedio de 90.2, frente a 79.5 sin memoria y 87.0 con una línea base que recibió las mismas ideas, pero no las trayectorias de origen. La ventaja reportada frente a esa comparación equivalente es de 3.2 puntos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan una tasa de regresión atribuida a la memoria de 4.5% para WikiTrace, 6.5% para Insights Only y 9.7% para una línea base de repetición; según el artículo, el intervalo de confianza de WikiTrace queda por debajo de toda la banda de repetición."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "WikiTrace guarda cada lección con enlaces a un diagnóstico y a la trayectoria de origen, que el agente puede inspeccionar si faltan detalles, si hay conflicto con otra lección o si la experiencia previa terminó en fracaso. El protocolo principal usa tres pruebas por conjunto y un agente de terminal Pi basado en DeepSeek V4 Flash; los autores también reportan una evaluación más pequeña con GLM-5.3-flash."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La investigación no reprodujo los experimentos de forma independiente. Estos resultados de benchmarks reportados por los autores no establecen el desempeño de agentes en producción ni en el mundo físico. Los autores señalan que un enlace permite revisar una lección, pero no la valida; también advierten que incluir todas las ideas puede no escalar cuando la memoria crece."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente de los resultados por conjunto, las tasas de regresión ni los intervalos de confianza reportados.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "La mayoría de los entornos evaluados son simulados; el artículo no establece el desempeño en agentes de producción ni físicos.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "El artículo incluye todas las ideas de memoria en el primer mensaje y reconoce que el crecimiento del prompt puede impedir escalar a memorias demasiado grandes.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el efecto reportado se mantiene fuera de estos regímenes de prueba, conservar las trayectorias de origen junto a la memoria del agente podría reducir la reutilización dañina de lecciones incorrectas o fuera de contexto y cambiar el diseño de sistemas de memoria. El resultado es relevante para agentes que usan herramientas, pero sigue siendo un informe de los autores y se probó principalmente en entornos simulados.",
+      "limitations": [
+        "El resultado fue reportado por los autores, enviado a ACL Rolling Review y no reproducido de forma independiente por el equipo de investigación.",
+        "La evaluación principal utiliza ocho conjuntos de cinco benchmarks y un agente Pi con DeepSeek V4 Flash, no agentes de producción.",
+        "El enlace permite inspeccionar una idea, pero no la verifica; el artículo señala que memorias grandes podrían requerir una estrategia de recuperación aún no resuelta.",
+        "La comparación de +3.2 puntos corresponde a las mismas ideas sin acceso a las fuentes; la diferencia de +10.7 puntos frente a no usar memoria no debe interpretarse como efecto aislado de enlazar las fuentes."
+      ],
+      "relationships": [],
+      "summary": "Un nuevo artículo de arXiv presenta WikiTrace, que vincula cada lección de memoria de un agente con un diagnóstico y la trayectoria original de la que surgió, para que el agente pueda consultar la fuente cuando una lección sea incierta o entre en conflicto con otra. En ocho conjuntos de pruebas de cinco benchmarks, los autores reportan un promedio de 90.2, frente a 79.5 sin memoria y 87.0 con una línea base que recibe las mismas ideas, pero no sus trayectorias de origen. La regresión atribuida a la memoria fue de 4.5% frente a 6.5% en esa línea base. Son resultados de los autores, aún bajo revisión, no una reproducción independiente; la mayoría de las pruebas usa entornos simulados y el artículo advierte que enlazar una fuente no verifica por sí mismo una lección.",
+      "technical": {
+        "claimed_result": "Los autores reportan un promedio de 90.2 para WikiTrace, 87.0 para Insights Only y 79.5 sin memoria en ocho conjuntos; las tasas de regresión son 4.5%, 6.5% y 9.7% para WikiTrace, Insights Only y la comparación de repetición, respectivamente.",
+        "demonstrated_result": "El artículo v1 público de arXiv especifica la arquitectura, las condiciones de comparación, el protocolo de tres pruebas, las tablas de benchmarks, los análisis y las limitaciones. En esta activación no se reprodujeron los resultados de forma independiente.",
+        "mechanism": "Un compilador produce hasta tres ideas breves por trayectoria de éxito o fracaso y vincula cada idea a un diagnóstico y a la ejecución original conservada. Durante una tarea, el agente consulta la fuente cuando una recomendación es imprecisa, contradice otra o procede de una ejecución fallida.",
+        "regime": "Cinco benchmarks de agentes y ocho conjuntos: ALFWorld, ScienceWorld, PlanCraft, AppWorld y τ³-bench Retail. El protocolo principal usa un agente de terminal Pi con DeepSeek V4 Flash, tres pruebas por conjunto y una memoria construida con las mismas ejecuciones de entrenamiento sin memoria; también se probaron algunos conjuntos con GLM-5.3-flash.",
+        "reproducibility": "El repositorio público bajo Apache-2.0 ofrece instrucciones para instalar los entornos, obtener los benchmarks y ejecutar los análisis. El equipo revisó el README, pero no instaló dependencias, no descargó datos ni ejecutó el protocolo. Los resultados del artículo siguen siendo informes de los autores.",
+        "strongest_baseline": "Insights Only recibe las mismas ideas extraídas, pero no compilaciones ni ejecuciones de origen y omite la instrucción de consultarlas. Los métodos comparten las ejecuciones de referencia y tareas de prueba. También se comparan con ausencia de memoria y otros métodos de memoria."
+      },
+      "title": "La memoria vinculada a evidencias reduce los fallos por memoria en pruebas de agentes reportadas",
+      "why_it_matters": "La memoria puede perjudicar a los agentes cuando una lección breve es incorrecta o se aplica fuera de su alcance. Si los resultados reportados se generalizan, vincular una recomendación con la experiencia que la originó permite que el agente examine esa evidencia antes de actuar. En los conjuntos probados por el artículo, los autores miden una ventaja promedio de 3.2 puntos frente a una línea base con las mismas ideas."
+    },
     "FCMO-22E1B6702680": {
       "claims": [
         {
@@ -27734,6 +27795,64 @@
       "title": "Una construcción criptográfica ilustra un límite de las auditorías de capacidades basadas en elicitar conductas",
       "why_it_matters": "La construcción identifica un límite condicional para las auditorías que dependen de elicitar conductas no deseadas, incluso con acceso de caja blanca, cuando un adversario puede diseñar deliberadamente los pesos del modelo. Es un resultado de seguridad bajo supuestos criptográficos y con una prueba de concepto pequeña; no demuestra que los modelos de frontera desplegados contengan actualmente capacidades peligrosas ocultas."
     },
+    "FCMO-7D46BFE549A7": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa una evaluación en cuatro entornos simulados con recursos compartidos y 77 escenarios. Se probaron hasta cinco modelos de frontera, con cobertura variable por entorno. La regla general fue 20 episodios por escenario y formación, con excepciones descritas en el apéndice."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que un agente coordinador obtuvo mejores resultados grupales que los equipos de agentes separados en los cuatro entornos. En el entorno de asistentes personales, atendió solicitudes específicas de usuarios aproximadamente el doble de veces que los equipos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores analizan demoras al crecer los equipos, acciones que anulan las de otros usuarios y afirmaciones sin sustento. Algunos comportamientos los juzga otro modelo; el artículo aclara que esos análisis no demuestran que las anulaciones o afirmaciones causen la brecha de resultados. Las mitigaciones dependen del entorno."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Anthropic publicó un artículo de investigación fechado el 11 de noviembre de 2026; el preprint enlazado en arXiv se envió el 30 de septiembre de 2026."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Las fuentes revisadas no demuestran que las diferencias de resultados o las tasas de fallas se generalicen a despliegues reales, poblaciones de usuarios u otros entornos simulados. El repositorio de código enlazado no estuvo disponible durante esta revisión."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se reprodujeron de forma independiente las comparaciones reportadas y el código enlazado no estuvo disponible durante esta revisión.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce cómo se trasladan estas fallas a usuarios reales, plataformas desplegadas, tareas prolongadas o arreglos distintos de recursos y gobernanza.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el patrón reportado se generaliza, cambiaría cómo se coordinan agentes multiusuario que comparten presupuestos, calendarios y flujos de trabajo. La evidencia proviene de una evaluación acotada en cuatro entornos simulados, no de despliegues reales.",
+      "limitations": [
+        "Los resultados provienen de usuarios y tareas simulados; el artículo no establece frecuencia ni efectos causales en despliegues reales.",
+        "Se comparan formaciones específicas de coordinación y equipos bajo los escenarios del artículo; no se demuestra que un coordinador central siempre sea mejor.",
+        "El artículo y el preprint son fuentes primarias para sus métodos y resultados reportados. esta revisión no reprodujo los experimentos ni auditó la construcción de escenarios y la puntuación.",
+        "El preprint indica que el código se publicará tras la revisión; el enlace al repositorio no estuvo disponible durante esta revisión.",
+        "La cobertura de modelos y los ajustes de razonamiento varían por entorno; los 77 escenarios no implican que cada modelo se probara en todos ellos. La regla de 20 episodios tiene excepciones y los intervalos reportados están condicionados al conjunto de escenarios evaluado.",
+        "Los autores indican que los análisis de anulaciones y afirmaciones no demuestran causalidad sobre la brecha de resultados; algunas etiquetas de comportamiento dependen de jueces basados en modelos."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de Anthropic Fellows estudia agentes que actúan para usuarios distintos y comparten presupuestos, calendarios, pedidos o flujos de software. En cuatro entornos simulados y 77 escenarios, los autores reportan que un agente coordinador logró mejores resultados grupales que agentes separados en cada entorno. Evaluaron hasta cinco modelos, con cobertura variable según el entorno; el protocolo usa 20 episodios por escenario y formación como regla, con excepciones. El estudio identifica demoras al crecer los equipos, acciones que anulan las de otras personas y afirmaciones sin sustento, además de mitigaciones específicas para cada entorno. Son resultados reportados en simulaciones: faltan la réplica independiente y la validación en uso real.",
+      "technical": {
+        "claimed_result": "Los autores reportan ventajas del coordinador en los cuatro entornos simulados, patrones de falla distintos según el contexto y mitigaciones específicas, a partir de cinco modelos y 77 escenarios.",
+        "demonstrated_result": "El artículo fechado y el preprint están disponibles públicamente. En esta activación no se reprodujo ningún resultado del estudio de manera independiente.",
+        "mechanism": "El estudio compara un agente que sirve a un grupo con agentes individuales para cada usuario, con o sin comunicación entre ellos, mientras comparten recursos limitados y persiguen objetivos propios. Analiza resultados grupales y conductas como demoras, anulaciones y afirmaciones sin sustento.",
+        "regime": "Cuatro entornos simulados con recursos compartidos y 77 escenarios; hasta cinco modelos de frontera, con cobertura y ajustes de razonamiento variables por entorno. La regla general fue 20 episodios por escenario y formación, con excepciones documentadas. Los autores prevén publicar tres entornos y 74 escenarios como referencia; no se evalúa ningún despliegue real.",
+        "reproducibility": "El registro de arXiv indica que el código se publicará tras revisión. El enlace de GitHub del artículo devolvió 404 en el lector disponible. No se ejecutaron ni inspeccionaron código o datos localmente.",
+        "strongest_baseline": "Comparaciones internas del artículo entre un coordinador y distintas formaciones de agentes por usuario en escenarios equivalentes. Las métricas de resultado cambian según el entorno; los intervalos reportados están condicionados al conjunto de escenarios evaluado. Los intervalos de confianza del 95% dependen del conjunto de escenarios evaluado. No es una auditoría independiente."
+      },
+      "title": "Anthropic Fellows reportan fallas de coordinación en equipos de agentes que comparten recursos entre usuarios",
+      "why_it_matters": "Los sistemas de agentes empiezan a compartir recursos mientras representan a personas con objetivos distintos. El estudio sugiere que la coordinación y los conflictos entre objetivos pueden reducir los resultados del grupo y perjudicar a usuarios individuales. También plantea medir tanto los resultados colectivos como las acciones que afectan a otras personas. Las simulaciones delimitadas ofrecen preguntas comprobables, pero no demuestran que centralizar la coordinación sea siempre mejor en sistemas desplegados."
+    },
     "FCMO-7D5FC02D5B08": {
       "claims": [
         {
@@ -33465,6 +33584,72 @@
       "title": "Una prepublicación mide los límites de las defensas genéricas del sistema operativo para el estado persistente de agentes autónomos",
       "why_it_matters": "Los agentes alojados en el equipo del usuario pueden modificar archivos que condicionan su comportamiento futuro. Tras comprometerse un agente, los permisos y registros de archivos habituales quizá no distingan una actualización autorizada de memoria de una escritura maliciosa. Si estas mediciones acotadas se sostienen en más contextos, las defensas necesitarían una frontera de actualización contextual además del aislamiento y las copias de recuperación protegidas."
     },
+    "FCMO-988362008277": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Google DeepMind anunció AlphaGenome 2 el 2026-11-11 y enlazó un manuscrito completo que describe el modelo y sus evaluaciones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Con 90% de precisión en la tarea de causalidad de eQTL de célula única TenK10K, los autores reportan una recuperación de 30% para AlphaGenome 2 frente a 16% para AlphaGenome 1 ajustado con datos de célula única (AG1-sc); el AUPRC general reportado es 0.76, frente a 0.72 para AG1-sc y 0.69 para Scooby."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En el mismo benchmark, los autores reportan para AlphaGenome 2 una recuperación de 43% para predecir el sentido del efecto en eQTL celulares de TenK10K, frente a 23% para AG1-sc, con 90% de exactitud; el AUC general es 0.85 frente a 0.79 y 0.77, respectivamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo describe un modelo que condiciona una secuencia de ADN humana o de ratón de 1-Mb al tejido, tipo celular o estado celular de destino. Informa entrenamiento con conjuntos de datos masivos y de célula única, incluidos 107 millones de perfiles humanos de secuenciación de ARN de célula única, y señala que la API está disponible para investigación no comercial; el código fuente y los pesos se publicarán junto con la versión final del artículo."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los resultados no se reprodujeron de forma independiente en esta activación. El artículo informa que no se hicieron nuevos experimentos de laboratorio, que la recuperación de alta precisión sigue abarcando solo una minoría de eQTL finamente mapeados y variantes GWAS posiblemente causales, y que AlphaGenome 2 no está validado ni aprobado para uso clínico o diagnóstico."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las métricas de TenK10K y otras evaluaciones reportadas no se reprodujeron de forma independiente en esta activación.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El manuscrito enlazado indica que el código fuente y los pesos se publicarán tras la publicación final; esta activación no probó la API no comercial.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "Los resultados son benchmarks computacionales con conjuntos de datos existentes; no demuestran efectos biológicos causales, validez clínica ni resultados en pacientes.",
+          "kind": "regime_unclear",
+          "state": "open"
+        },
+        {
+          "description": "Los autores reportan que la recuperación de alta precisión sigue siendo baja para eQTL finamente mapeados y variantes GWAS posiblemente causales, y que los estados celulares transitorios, estimulados y patológicos están subrepresentados.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras reportadas para predecir efectos de variantes por tipo celular se generalizan, investigadores podrían priorizar variantes reguladoras candidatas y los estados celulares relevantes con mayor eficacia en estudios de genética humana. La consecuencia es notable para la genómica computacional; el artículo no reporta nuevos experimentos de laboratorio ni afirma validación clínica.",
+      "limitations": [
+        "Las cifras de desempeño provienen del manuscrito de los autores y el equipo de investigación no las reprodujo de forma independiente.",
+        "El estudio no informa nuevos experimentos de laboratorio; sus predicciones celulares son análisis computacionales de conjuntos de datos recopilados previamente.",
+        "Los autores indican que, con alta precisión, el modelo recupera solo una minoría de eQTL finamente mapeados y variantes GWAS posiblemente causales; los resultados pueden ser menores fuera de la cromatina accesible y para mecanismos postranscripcionales.",
+        "Los estados transitorios, estimulados y de enfermedad están subrepresentados; las representaciones de estado observacionales codifican correlaciones, no relaciones causales.",
+        "La API se ofrece para investigación no comercial. El código fuente y los pesos del modelo se prevén para la publicación final. Los autores indican que el modelo no está validado ni aprobado para uso clínico o diagnóstico."
+      ],
+      "relationships": [],
+      "summary": "Google DeepMind anunció AlphaGenome 2, un modelo de secuencias genómicas que condiciona sus predicciones al tejido, tipo celular o estado celular de interés. En el manuscrito enlazado, los autores reportan que en la prueba de causalidad de eQTL de célula única TenK10K alcanzó 30% de recuperación con 90% de precisión, frente a 16% de AlphaGenome 1 ajustado con datos de célula única; el AUPRC general reportado fue 0.76, frente a 0.72 para esa línea base y 0.69 para Scooby. Los autores también reportan mayor recuperación al predecir el sentido del efecto en eQTL celulares. Son resultados computacionales de primera parte sobre conjuntos de datos existentes, sin reproducción independiente ni nueva validación experimental. La API se ofrece para investigación no comercial; el código fuente y los pesos del modelo se prevén para la publicación final. Los autores indican que el sistema no está validado para uso clínico ni diagnóstico.",
+      "technical": {
+        "claimed_result": "En causalidad de eQTL celulares de TenK10K, los autores reportan 30% de recuperación frente a 16% para AG1-sc con 90% de precisión, y AUPRC general de 0.76 frente a 0.72 para AG1-sc y 0.69 para Scooby. En predicción del sentido del efecto reportan 43% frente a 23% para AG1-sc con 90% de exactitud, y AUC general de 0.85 frente a 0.79 y 0.77.",
+        "demonstrated_result": "Google DeepMind publicó un anuncio y enlazó un manuscrito completo que especifica la arquitectura, los datos de entrenamiento, conjuntos de evaluación, líneas base, métricas reportadas y limitaciones. El equipo de investigación no reprodujo los resultados de manera independiente.",
+        "mechanism": "AlphaGenome 2 recibe una secuencia de ADN de 1-Mb y una condición que describe un tejido, tipo celular o estado. Modula las representaciones de secuencia usando esa condición y puede inferir una representación condicional a partir de expresión génica de célula única para predecir en conjuntos de datos o estados no vistos.",
+        "regime": "El modelo acepta una secuencia de ADN humana o de ratón de 1-Mb y una condición biológica. El benchmark TenK10K cubre eQTL de expresión de célula única en 28 tipos celulares de sangre periférica y QTL de accesibilidad de cromatina de célula única en 24 tipos celulares. Las comparaciones incluyen AlphaGenome 1 ajustado con datos de célula única (AG1-sc) y Scooby.",
+        "strongest_baseline": "Para la comparación de recuperación citada en TenK10K, AG1-sc es la comparación interna más cercana: AlphaGenome 1 ajustado con datos de célula única. El artículo también compara con Scooby, un modelo especializado de secuencia a función. Los resultados son del manuscrito de los autores y no fueron replicados de forma independiente aquí."
+      },
+      "title": "AlphaGenome 2 reporta mayor recuperación de variantes por tipo celular en benchmarks genómicos",
+      "why_it_matters": "Las variantes reguladoras pueden actuar de manera distinta según el tipo celular, pero los mapas de célula única suelen incluir pocos donantes para probar directamente las asociaciones de variantes. Si las mejoras reportadas se confirman, condicionar el modelo al estado celular podría ayudar a priorizar variantes candidatas y elegir dónde estudiarlas. Los resultados computacionales del artículo no demuestran causalidad biológica, utilidad clínica ni mejoras en la salud de pacientes."
+    },
     "FCMO-996A9DA8F42A": {
       "claims": [
         {
@@ -37723,6 +37908,10 @@
         {
           "label": "NOT_ESTABLISHED",
           "text": "El artículo no establece una reproducción independiente, el desempeño con otros agentes base o en programas de investigación reales, ni que las preguntas resueltas sean descubrimientos científicos validados externamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan una auditoría entre proveedores de los conjuntos de explicaciones: un evaluador externo basado en Claude Sonnet calificó 87.0% como estructuralmente MECE (91.4% con ponderación de diseño), frente a 96.9% (98.4% ponderado) con el evaluador GPT-4o del mismo proveedor. En una prueba deliberada de omisión sobre 163 conjuntos resueltos correctamente con anterioridad, retirar la explicación respaldada produjo una resolución segura pero errónea en 53.4% de los casos; añadir una opción de abstención redujo las resoluciones erróneas a 0.6%. Son auditorías reportadas por los autores y la prueba de omisión no estima la frecuencia de omisiones en condiciones naturales."
         }
       ],
       "contradictory_evidence": [],
@@ -37738,7 +37927,7 @@
           "state": "open"
         },
         {
-          "description": "Los conjuntos de explicaciones generados pueden omitir la explicación respaldada por la evidencia; el artículo describe una opción de abstención, pero informa que no se incluyó en los experimentos principales.",
+          "description": "Los conjuntos generados pueden omitir la explicación respaldada por la evidencia. En una prueba de estrés de los autores que retiró deliberadamente esa explicación de 163 conjuntos resueltos correctamente con anterioridad, 53.4% produjo una resolución segura pero errónea sin opción de abstención; esto no estima la frecuencia de omisiones naturales.",
           "kind": "other",
           "state": "open"
         }
@@ -37749,10 +37938,11 @@
         "Los agentes de descubrimiento y elicitación de creencias usan GPT-4o; no se ha probado la transferencia a otras familias de modelos.",
         "Cada uno de los dos conjuntos de datos de mayor costo tiene una sola corrida.",
         "Un conjunto de explicaciones puede omitir una explicación respaldada por la evidencia; la opción de abstención no se usó en los experimentos principales.",
-        "La coincidencia de expertos mide acuerdo con la explicación seleccionada, no verdad de referencia ni validación científica posterior."
+        "La coincidencia de expertos mide acuerdo con la explicación seleccionada, no verdad de referencia ni validación científica posterior.",
+        "Una auditoría reportada por los autores encontró menor integridad estructural MECE con un evaluador externo basado en Claude Sonnet que con el evaluador GPT-4o del mismo proveedor (87.0% frente a 96.9% sin ponderar). En una prueba deliberada de omisión, retirar una explicación respaldada conocida causó resoluciones seguras pero erróneas en 53.4% de 163 casos seleccionados sin abstención; esto no representa la tasa natural de omisión."
       ],
       "relationships": [],
-      "summary": "Los autores presentan Contrastive Discovery, un método para que los agentes de descubrimiento científico evalúen una pregunta frente a varias explicaciones rivales, en vez de una hipótesis central y su negación sin estructura. En seis conjuntos de datos científicos y sociales, informan 161.9 preguntas resueltas con top-K 200, frente a 97.2 con sorpresa puntual (+67%), bajo el mismo presupuesto de 200 validaciones experimentales. En un estudio ciego con 38 expertos, informan coincidencia en 78% de las preguntas resueltas. Los resultados son de los autores y usan agentes de descubrimiento y de elicitación de creencias basados en GPT-4o; cada uno de los dos conjuntos de datos de mayor costo tuvo una sola corrida, aquí no se hizo una reproducción independiente y el método puede omitir la explicación mejor respaldada por la evidencia. El artículo no establece generalidad externa ni descubrimientos científicos validados.",
+      "summary": "Los autores presentan Contrastive Discovery, un método para que los agentes de descubrimiento científico evalúen una pregunta frente a varias explicaciones rivales, en vez de una hipótesis central y su negación sin estructura. En seis conjuntos de datos científicos y sociales, informan 161.9 preguntas resueltas con top-K 200, frente a 97.2 con sorpresa puntual (+67%), bajo el mismo presupuesto de 200 validaciones experimentales. En un estudio ciego con 38 expertos, informan coincidencia en 78% de las preguntas resueltas. Los resultados son de los autores y usan agentes de descubrimiento y de elicitación de creencias basados en GPT-4o; cada uno de los dos conjuntos de datos de mayor costo tuvo una sola corrida, aquí no se hizo una reproducción independiente y el método puede omitir la explicación mejor respaldada por la evidencia. El artículo no establece generalidad externa ni descubrimientos científicos validados. Los autores también informan que una auditoría con evaluador externo encontró menos conjuntos estructuralmente completos que el evaluador del mismo proveedor; al omitir deliberadamente explicaciones respaldadas hubo muchas resoluciones erróneas sin abstención, pero esa prueba no estima la tasa natural de omisión.",
       "technical": {
         "claimed_result": "Los autores informan 161.9 preguntas resueltas con top-K 200, frente a 97.2 con sorpresa puntual (+67%), en seis conjuntos de datos bajo un presupuesto equivalente de 200 validaciones experimentales, además de 78% de coincidencia entre 38 expertos a ciegas sobre las explicaciones resueltas.",
         "demonstrated_result": "El artículo primario inspeccionado permite confirmar que los autores propusieron el método y reportan estos resultados experimentales. No se realizó una reproducción independiente ni una validación externa de las preguntas resueltas.",
