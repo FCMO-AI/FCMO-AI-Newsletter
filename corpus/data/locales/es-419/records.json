@@ -28207,6 +28207,58 @@
       "title": "BenchShield modela la integridad de las recompensas en todo el ciclo de evaluación de agentes",
       "why_it_matters": "Los puntajes de benchmarks agénticos dependen de una cadena de estado del entorno, acciones del agente, entradas del verificador y recolección de recompensas. El artículo propone modelar y auditar esa cadena con evidencia del lado de la infraestructura, en vez de depender solo de la transcripción del agente o de un juez de lenguaje posterior. Si los resultados se generalizan, la infraestructura de evaluación podría aportar evidencia más sólida de que un puntaje provino de la ruta prevista. Quedan abiertas la cobertura de sistemas reales, la integridad del modelo de ciclo finito y la resistencia ante ataques adaptativos."
     },
+    "FCMO-7FEEA30D5E7C": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Huang, Jiang, Kakade, Malladi, Krishnamurthy y Foster publicaron la versión 1 de su artículo teórico de 141 páginas en arXiv el 2026-11-10 a las 18:31:36 UTC."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores construyen un caso de bandido contextual en el que la política base tiene un costo esperado de muestreo de respuestas óptimas no mayor que 6, pero REINFORCE con gradientes exactos puede reducir de forma exponencial la probabilidad de esas respuestas mientras aumenta la recompensa, lo que hace que la convergencia cercana al óptimo requiera exponencialmente muchos pasos, con o sin regularización KL hacia la política base fija."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores prueban que Approximate Policy Mirror Descent, con reinicios repetidos de la referencia KL, conserva la cobertura de respuestas y logra convergencia global en los entornos analizados; instancian el marco con variantes estilizadas de PPO/GRPO y objetivos de pérdida cuadrática al estilo Kimi y Rebel-OnPolicy."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que los entrenamientos desplegados de LLM no lineales a escala de frontera presenten la dinámica de colapso de cobertura construida ni que reiniciar la referencia mejore sus resultados medidos; limita sus garantías integrales a políticas lineales softmax como modelo simplificado y deja para trabajo futuro las parametrizaciones más ricas y las tareas de varios pasos."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "En esta activación no se revisaron de forma independiente la construcción de la cota inferior principal ni las demostraciones de convergencia con reinicios de referencia.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Las garantías integrales dependen en gran medida de supuestos de bandido contextual y políticas lineales softmax con características preentrenadas fijas; no hay experimentos que demuestren su transferencia a modelos de frontera no lineales o al entrenamiento de agentes de varios pasos.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las garantías se extienden más allá del entorno simplificado del artículo, las decisiones sobre reinicios de referencia y regularización podrían cambiar de manera importante la estabilidad de optimización y el costo de muestras en programas de postentrenamiento. El alcance teórico y la transferencia práctica aún no están medidos.",
+      "limitations": [
+        "El resultado principal sobre colapso de cobertura es una cota inferior en un caso construido de bandido contextual con gradientes exactos; no es un fallo observado en un modelo desplegado.",
+        "Las principales garantías integrales de complejidad suponen políticas lineales softmax sobre características preentrenadas fijas y recompensas lineales; parametrizaciones no lineales más ricas podrían plantear dificultades adicionales.",
+        "El entorno estudiado es una optimización de políticas de un solo paso. La transferencia a razonamiento de varios pasos o tareas interactivas de agentes queda para trabajo futuro.",
+        "En esta activación no se auditaron de forma independiente las demostraciones ni se reprodujo una implementación o comparación de entrenamiento con presupuesto equivalente."
+      ],
+      "relationships": [],
+      "summary": "Un artículo teórico de 141 páginas estudia la optimización de políticas para el postentrenamiento de modelos de lenguaje. Los autores construyen un entorno de bandido contextual donde REINFORCE con gradientes exactos puede perder probabilidad de respuestas óptimas mientras aumenta la recompensa, lo que produce una convergencia exponencialmente lenta pese a una buena cobertura inicial de respuestas. Presentan Approximate Policy Mirror Descent, que reinicia periódicamente la referencia KL a la política más reciente, y prueban convergencia con cobertura preservada para variantes estilizadas de PPO/GRPO y métodos de pérdida cuadrática, incluidos objetivos al estilo Kimi. Las principales garantías integrales dependen de entornos de bandido contextual y políticas lineales softmax sobre características fijas; el artículo no muestra que el colapso o las mejoras predichas ocurran en entrenamientos desplegados de LLM no lineales.",
+      "technical": {
+        "claimed_result": "Una cota inferior teórica muestra que REINFORCE puede perder cobertura de respuestas óptimas mientras aumenta la recompensa; los reinicios repetidos de referencia dentro del marco APMD permiten garantías de convergencia con cobertura preservada para variantes analizadas de PPO/GRPO y algoritmos de pérdida cuadrática.",
+        "demonstrated_result": "El preprint inspeccionado presenta la construcción formal, los algoritmos y las demostraciones resumidos en su texto principal. Esta revisión no validó las derivaciones de forma independiente ni observó esos efectos en un LLM desplegado.",
+        "mechanism": "Cuando la política actual reduce la probabilidad de respuestas óptimas, la señal de entrenamiento basada en muestras de esa misma política puede desvanecerse incluso si aumenta la recompensa esperada. La regularización KL fuerte respecto de la política más reciente limita cada actualización a una región local; reiniciar esa referencia periódicamente permitiría mejoras locales sucesivas sin perder la cobertura de respuestas de la política base.",
+        "regime": "Análisis teórico de optimización de políticas en línea en entornos de bandido contextual y respuestas de un solo paso. Las garantías integrales de muestras y gradientes utilizan principalmente políticas softmax lineales sobre características preentrenadas fijas y recompensas lineales acotadas; los supuestos varían entre resultados y algoritmos.",
+        "reproducibility": "En esta activación no se reprodujo una implementación ni se revisaron de forma independiente las demostraciones. El preprint de 141 páginas incluye apéndices técnicos; sigue pendiente una comprobación independiente completa de las derivaciones.",
+        "strongest_baseline": "La construcción de REINFORCE con referencia fija, incluida la regularización KL hacia el modelo base, se compara con variantes APMD que reinician la referencia. El artículo es teórico y no informa una comparación empírica de entrenamiento ni un resultado medido de producción."
+      },
+      "title": "La teoría del postentrenamiento identifica el colapso de cobertura y una solución con reinicios de referencia",
+      "why_it_matters": "Si el análisis se extiende al postentrenamiento práctico, ofrece un mecanismo concreto por el que la recompensa puede subir mientras se erosiona la cobertura de respuestas útiles, y propone reinicios de referencia como control de diseño. Puede orientar decisiones de algoritmos e hiperparámetros, pero la transferencia práctica a entrenamientos no lineales de frontera aún no está medida."
+    },
     "FCMO-802761256479": {
       "claims": [
         {
