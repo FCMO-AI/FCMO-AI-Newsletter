@@ -1,0 +1,125 @@
+{
+  "record": {
+    "id": "FCMO-7FEEA30D5E7C",
+    "title": "Post-training theory identifies response-coverage collapse and a reference-reset remedy",
+    "desk": "Reasoning Posttraining",
+    "event_at": "2026-11-10T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "A 141-page theory paper studies policy optimization for language-model post-training. It constructs a contextual-bandit setting where exact-gradient REINFORCE can lose probability mass on optimal responses even while reward rises, yielding exponentially slow convergence despite favorable initial response coverage. The authors introduce Approximate Policy Mirror Descent, which periodically resets the KL reference to the latest policy, and prove coverage-preserving convergence for stylized PPO/GRPO variants and squared-loss methods including Kimi-style objectives under stated assumptions. The main end-to-end guarantees rely on contextual-bandit and softmax-linear policies over frozen features; the paper does not show that deployed nonlinear LLM training runs exhibit the predicted collapse or gains.",
+    "topics": [
+      "post-training",
+      "reinforcement learning",
+      "policy optimization",
+      "response coverage",
+      "PPO",
+      "GRPO",
+      "KimiPO",
+      "theoretical guarantees"
+    ],
+    "organizations": [],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-7FEEA30D5E7C.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-7FEEA30D5E7C.json",
+    "citation": {
+      "id": "FCMO-7FEEA30D5E7C",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-7FEEA30D5E7C.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "Huang, Jiang, Kakade, Malladi, Krishnamurthy and Foster posted version 1 of their 141-page policy-optimization paper on arXiv on 2026-11-10 at 18:31:36 UTC."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors construct a contextual-bandit instance with a base policy whose expected optimal-response sampling cost is at most 6, where exact-gradient REINFORCE can drive optimal-response probability exponentially low as reward improves, resulting in exponentially many gradient steps for near-optimal convergence, with or without KL regularization to the fixed base policy."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors prove that Approximate Policy Mirror Descent with repeated KL-reference resets preserves response coverage and achieves global convergence in analyzed settings; they instantiate the framework with stylized PPO/GRPO variants and squared-loss Kimi-style and Rebel-OnPolicy objectives."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The paper does not establish that deployed frontier-scale nonlinear LLM training runs experience the constructed coverage-collapse dynamics or that reference resets improve their measured outcomes; it identifies softmax-linear end-to-end guarantees as a simplified testbed and leaves richer policy parameterizations and multi-step tasks for future work."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "reasoning_posttraining",
+      "architectures_scaling",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-11-12"
+    ],
+    "event_at": "2026-11-10T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "The main lower-bound and reference-reset convergence derivations were not independently audited in this activation.",
+        "kind": "missing_independent",
+        "state": "open"
+      },
+      {
+        "description": "The end-to-end guarantees rely largely on contextual-bandit and softmax-linear/frozen-feature assumptions, and no experiment establishes transfer to nonlinear frontier models or multi-step agent training.",
+        "kind": "other",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-7FEEA30D5E7C",
+    "importance_effective_score": 5,
+    "importance_rationale": "If the guarantees extend beyond the paper’s simplified setting, reference-reset and regularization choices could materially change optimization stability and sample costs across post-training programs. Theoretical scope and unmeasured practical transfer keep the consequence conditional.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-11-12T05:17:55Z",
+    "limitations": [
+      "The headline coverage-collapse result is a constructed contextual-bandit lower bound using exact gradients; it is not an observed failure in a deployed model.",
+      "The principal end-to-end complexity guarantees assume softmax-linear policies and linear rewards over frozen pretrained features; richer nonlinear policy parameterizations may introduce additional challenges.",
+      "The studied setting is one-shot policy optimization. Transfer to multi-step reasoning or interactive agent tasks is future work.",
+      "The proof derivations were not independently audited in this activation, and no empirical implementation or matched-budget training comparison was run."
+    ],
+    "organizations": [],
+    "primary_desk": "reasoning_posttraining",
+    "recorded_at": "2026-11-12T05:17:55Z",
+    "regions": [
+      "global"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2611.14467"
+    ],
+    "status": "active",
+    "summary": "A 141-page theory paper studies policy optimization for language-model post-training. It constructs a contextual-bandit setting where exact-gradient REINFORCE can lose probability mass on optimal responses even while reward rises, yielding exponentially slow convergence despite favorable initial response coverage. The authors introduce Approximate Policy Mirror Descent, which periodically resets the KL reference to the latest policy, and prove coverage-preserving convergence for stylized PPO/GRPO variants and squared-loss methods including Kimi-style objectives under stated assumptions. The main end-to-end guarantees rely on contextual-bandit and softmax-linear policies over frozen features; the paper does not show that deployed nonlinear LLM training runs exhibit the predicted collapse or gains.",
+    "technical": {
+      "claimed_result": "A theoretical lower-bound construction shows REINFORCE can lose optimal-response coverage while reward rises; repeated KL-reference resets in the APMD framework support coverage-preserving convergence guarantees for analyzed PPO/GRPO and squared-loss algorithms.",
+      "demonstrated_result": "The inspected arXiv preprint presents the formal construction, algorithms and proofs summarized in its main text. the research desk did not independently validate the derivations or observe these effects in a deployed LLM.",
+      "mechanism": "When the current policy reduces probability on optimal responses, its own sampled training signal can vanish even as expected reward rises. Strong KL regularization to the most recent policy limits each update to a local region; periodically resetting that reference is argued to permit successive local improvements without losing the base policy’s response coverage.",
+      "regime": "Theoretical analysis of online policy optimization in contextual-bandit/one-shot response settings. End-to-end sample and gradient-step guarantees primarily use softmax-linear policies over fixed pretrained features with linear bounded rewards; exact-gradient lower-bound and stated algorithm-specific assumptions differ by result.",
+      "reproducibility": "No implementation reproduction or independent proof audit was performed in this activation. The 141-page preprint includes technical appendices; a full independent derivation check remains open.",
+      "strongest_baseline": "The fixed-reference REINFORCE construction, including KL regularization to the base model, is contrasted with reference-reset APMD variants. The paper is theoretical and reports no empirical training benchmark or measured production baseline."
+    },
+    "title": "Post-training theory identifies response-coverage collapse and a reference-reset remedy",
+    "topics": [
+      "post-training",
+      "reinforcement learning",
+      "policy optimization",
+      "response coverage",
+      "PPO",
+      "GRPO",
+      "KimiPO",
+      "theoretical guarantees"
+    ],
+    "why_it_matters": "If the analysis extends to practical post-training, it gives a concrete mechanism for how reward can improve while useful-response coverage erodes and suggests reference resets as a design control. It may inform algorithm and hyperparameter choices, but practical transfer to frontier-scale nonlinear training remains unmeasured."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}

@@ -1,6 +1,6 @@
 # FCMO AI Newsletter — static-paper release receipt
 
-Release: **newswire-3cb562a74f794a7a4af42368**
+Release: **newswire-432655ab1bfd4445a64701c0**
 
 Status: **the deterministic A3 publication candidate is assembled and measurable.** Deployment still requires the A4 integrity gates, browser oracle, and post-deploy live verification.
 
@@ -9,18 +9,18 @@ Status: **the deterministic A3 publication candidate is assembled and measurable
 - Receipt schema: `fcmo-paper-receipt-v1`
 - Story schema: `fcmo-stories-v2`
 - Newsroom-status schema: `fcmo-newsroom-status-v2`
-- Story layer generated at: `2026-11-12T01:41:43Z`
-- Edition: `2026-11-11` (`FRESH`)
+- Story layer generated at: `2026-11-12T15:45:19Z`
+- Edition: `2026-11-12` (`FRESH`)
 
 ## Final route/data manifest
 
-- `data/routes.json`: 7377 routes; SHA-256 `995078c15e105505a70e35fe8ab11d54686cd6d4f1255ac5f1423cdec33821db`
-- Route locales: en=2459, es-419=2459, zh-Hans=2459
-- Route kinds: about=3, agenda=3, archive=30, author=3, beat=39, correction=15, corrections=3, edition=183, feeds=3, landing=3, legal=9, letters=3, method=3, org=3384, search=3, status=3, story=2889, subscribe=12, topic=783, topics=3
-- Story routes: 2889 for 963 live canonical stories
-- Embedded `data/stories.v2.json`: byte-identical to the Story layer; SHA-256 `de702ad6c9db55baa24a61959b820f8c1b7400354b57925a88e7afe1e843a366`
-- Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `bcca656b095d58a6562bf3e17e793fdffe057f273ffd2b1dce1e7a4546e8a8a2`
-- Candidate tree: 27114 files, including 2904 local story-media files; SHA-256 `b9032acb5ea19cba0bc14287278d2bf326f30040e5caa3793810de6af0c22e79`
+- `data/routes.json`: 7401 routes; SHA-256 `e52de94bb27aff00ca08b145b3cd68783d43c393a26b60a90f9331dedabbbbf7`
+- Route locales: en=2467, es-419=2467, zh-Hans=2467
+- Route kinds: about=3, agenda=3, archive=30, author=3, beat=39, correction=15, corrections=3, edition=186, feeds=3, landing=3, legal=9, letters=3, method=3, org=3393, search=3, status=3, story=2898, subscribe=12, topic=786, topics=3
+- Story routes: 2898 for 966 live canonical stories
+- Embedded `data/stories.v2.json`: byte-identical to the Story layer; SHA-256 `47a374070b372544fd3f1357d71f71c58bd223fff884326d9d905e41f0e05cd1`
+- Embedded `data/newsroom-status.json`: byte-identical to newsroom status; SHA-256 `12e6f92bc54666cca4241db24e83a7e3a87aea45dfa93ca7b9083c88ffdb3cc2`
+- Candidate tree: 27205 files, including 2913 local story-media files; SHA-256 `75df15e5ed26566d411f61e1a7f3b962c09714c7b60240fae596c83e9ba0a9cb`
 
 ## Verification boundary
 
