@@ -290,6 +290,54 @@
       "title": "El artículo de BlockLock informa inferencia reproducible de LLM por lotes con geometría fija por solicitud",
       "why_it_matters": "La reproducibilidad fiable importa para evaluar modelos, generar trayectorias de aprendizaje por refuerzo y ejecutar sistemas que usan herramientas. Si los resultados se generalizan, fijar la geometría solo para las solicitudes que requieren reproducibilidad podría reducir el costo de latencia de la inferencia determinista y conservar el prellenado compartido por lotes. El artículo no establece beneficios de costo ni de colas en producción."
     },
+    "FCMO-017DD1274F3C": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En una comparación controlada de postentrenamiento con RL, OpenAI informa que entrenar con tareas adversariales reforzadas elevó la seguridad de 45% a 68% ante jailbreaks fijos reservados y de 71% a 92% ante ataques adaptativos en línea."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI afirma que incorporó este método al entrenamiento de GPT-6 Astra y Sol; según las evaluaciones informadas, estos modelos obtuvieron mayor seguridad que modelos anteriores ante los jailbreaks fijos y adaptativos estudiados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró una reproducción independiente de la comparación controlada con RL ni de los resultados de GPT-6 Astra/Sol; los checkpoints principales y los conjuntos de ataques son internos.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-11-13T05:17:47Z"
+        },
+        {
+          "description": "El artículo reconoce que worst@n reduce la variación entre jueces, pero no sus sesgos sistemáticos. También informa que la puntuación de cumplimiento benigno en ciberseguridad bajó de 81.7% a 76.7%.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-11-13T05:17:47Z"
+        }
+      ],
+      "importance_rationale": "Si el efecto controlado se generaliza, el postentrenamiento con datos adversariales podría mejorar de forma material la resistencia ante intentos adaptativos de abuso en ciberseguridad y biología, e influir en programas de entrenamiento de seguridad. Las mejoras informadas son relevantes, pero provienen de una evaluación interna de un solo laboratorio, con posibles sesgos de evaluación y un costo en utilidad para tareas benignas de ciberseguridad.",
+      "limitations": [
+        "Las métricas cuantitativas de resistencia y la incorporación a GPT-6 Astra/Sol provienen del artículo de OpenAI y no se reprodujeron ni auditaron de forma independiente.",
+        "La comparación controlada usa un checkpoint interno GPT-5.6-Terra y conjuntos de ataques del laboratorio; el checkpoint inicial, los datos reforzados y las corridas completas no están disponibles públicamente en el artículo inspeccionado.",
+        "El artículo indica que las evaluaciones repetidas worst@n reducen la variación de los jueces, pero no resuelven sus sesgos sistemáticos; informa que detectaron y corrigieron brechas del juez mediante revisión humana.",
+        "La evaluación separada de tareas benignas informa una caída del cumplimiento completo en ciberseguridad de 81.7% a 76.7% para el modelo entrenado con datos de robustez; ese intercambio entre seguridad y utilidad debe conservarse.",
+        "Las evaluaciones de GPT-6 Astra/Sol se informan sin las barreras de bloqueo de producción y no demuestran una reducción de incidentes reales ni resistencia en todas las condiciones de despliegue."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de OpenAI del 12 de noviembre describe un ciclo automatizado de red teaming que usa retroalimentación iterativa de un atacante y un criterio de éxito repetido, «worst@n», para crear ejemplos de entrenamiento adversariales. En una comparación controlada, OpenAI informa que añadir esos ejemplos al postentrenamiento con RL elevó las puntuaciones de seguridad de 45% a 68% ante jailbreaks fijos reservados y de 71% a 92% ante ataques adaptativos en línea. Las dos corridas partieron del mismo checkpoint interno GPT-5.6-Terra y mantuvieron fijo el presupuesto total de RL. OpenAI también afirma que incorporó el método al entrenamiento de GPT-6 Astra y Sol. Son resultados informados por la empresa, no una confirmación independiente; el artículo reconoce sesgos en los jueces de seguridad e informa una caída de utilidad en tareas benignas de ciberseguridad.",
+      "technical": {
+        "claimed_result": "OpenAI informa que, en una comparación controlada con RL, las tareas adversariales reforzadas elevaron las puntuaciones de seguridad de 45% a 68% en jailbreaks fijos reservados y de 71% a 92% en ataques adaptativos en línea. También afirma que usó el método para entrenar GPT-6 Astra y Sol.",
+        "demonstrated_result": "El artículo fechado de OpenAI y el trabajo enlazado pueden inspeccionarse directamente y describen el método y los experimentos. Las métricas de resultados y la supuesta integración en el entrenamiento de modelos son afirmaciones de primera parte que no se verificaron de forma independiente en esta activación.",
+        "implementation_status": "El artículo dice que el método se incorporó al entrenamiento de GPT-6 Astra y Sol. Es una afirmación de OpenAI; no hubo acceso independiente a esas corridas de entrenamiento ni a los checkpoints resultantes.",
+        "mechanism": "Un modelo atacante reescribe tareas iniciales de forma iterativa, consulta a modelos defensores y recibe retroalimentación de jueces de seguridad. La regla worst@n conserva un jailbreak solo cuando n respuestas muestreadas del defensor y sus evaluaciones coinciden en que tuvo éxito. Las variantes adversariales seleccionadas se añaden a una mezcla de postentrenamiento con RL fuera de línea; el artículo dice que se usó revisión humana para identificar y corregir brechas de los jueces antes del entrenamiento.",
+        "regime": "Checkpoints internos de OpenAI; postentrenamiento controlado fuera de línea con RL para tareas de seguridad de biología, ciberseguridad y actividad violenta; jailbreaks fijos reservados y ataques adaptativos en línea. El artículo indica que las evaluaciones de GPT-6 Astra/Sol excluyen los bloqueos de producción.",
+        "reproducibility": "El blog oficial enlaza un artículo de 20 páginas. El anuncio y el artículo inspeccionados no enlazan una implementación pública, datos de entrenamiento ni checkpoints; el checkpoint interno inicial solo se identifica por su familia. No se encontró una reproducción independiente ni una auditoría de evaluadores independientes.",
+        "strongest_baseline": "Dos corridas de postentrenamiento con RL inicializadas desde el mismo checkpoint interno GPT-5.6-Terra; la corrida con datos reforzados añadió tareas adversariales en una proporción aproximada de 3:1 y redujo proporcionalmente otros datos para mantener fijo el presupuesto total de RL. La evaluación usó un atacante reservado para los jailbreaks fijos y 12 perfiles sintéticos para los ataques adaptativos."
+      },
+      "title": "OpenAI informa mayor resistencia ante jailbreaks tras entrenar con datos adversariales",
+      "why_it_matters": "Si el efecto informado se generaliza, generar ejemplos adversariales con verificaciones de éxito repetido e incorporarlos al entrenamiento podría mejorar la resistencia ante jailbreaks reservados y adaptativos en ámbitos de alto riesgo. Las mejoras controladas informadas y su traslado al entrenamiento de modelos posteriores podrían influir en las decisiones de postentrenamiento de seguridad. Sin embargo, el posible sesgo de los jueces, la menor utilidad informada en ciberseguridad y la falta de reproducción independiente limitan las conclusiones."
+    },
     "FCMO-0180330ECF93": {
       "claims": [
         {
@@ -46962,6 +47010,10 @@
         {
           "label": "NOT_ESTABLISHED",
           "text": "Una búsqueda acotada de material oficial del MGI/Governo Digital encontró gobernanza de IA y orientación para servidores a nivel ministerial, pero no estableció que la regla específica propuesta para el manual se hubiera convertido en una Portaria o decreto de alcance nacional, ni que los controles de datos o las cifras de uso informados produjeran resultados medidos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La página de IA del MGI de Brasil presenta sus datos de autoevaluación federal de 2025 como 182 soluciones de IA en operación, 144 organismos que planean adoptar asistentes de IA y 44 organismos con directrices de IA. La página no expone el denominador, las definiciones de los indicadores ni una exportación versionada."
         }
       ],
       "contradictory_evidence": [],
@@ -46983,6 +47035,12 @@
           "kind": "other",
           "state": "open",
           "updated_at": "2026-11-03T08:21:03Z"
+        },
+        {
+          "description": "El panel enlazado de OBIA no ofrece una exportación versionada de datos de 2025, denominador, definiciones de indicadores ni historial de revisiones; por ello, las cifras de 2025 no pueden conciliarse con la captura anterior de 41 organismos con directrices ni interpretarse como una tendencia.",
+          "kind": "missing_artifact",
+          "state": "open",
+          "updated_at": "2026-11-13T05:27:50Z"
         }
       ],
       "importance_rationale": "Si la propuesta informada conduce a directrices federales vinculantes, podría afectar cómo los empleados públicos manejan información sensible en servicios externos de IA en una administración extensa. La fuente documenta una consideración de política y adopción de IA informada, no un instrumento nacional promulgado ni una reducción medida del riesgo; las reglas ministeriales existentes tienen un alcance menor.",
@@ -46991,21 +47049,23 @@
         "Las cifras informadas de soluciones e iniciativas son datos de autoevaluación sin inventario publicado ni denominador en la entrevista revisada.",
         "La búsqueda oficial fue acotada y no agotó el Diário Oficial; no se ha establecido la ausencia de un instrumento nacional.",
         "La Portaria MGI nº 3.485/2026 y la orientación para servidores tienen un alcance más limitado o distinto de la propuesta federal descrita en la entrevista.",
-        "No se establecieron reducciones medidas en la exposición de datos, mejoras de servicio ni resultados de implementación."
+        "No se establecieron reducciones medidas en la exposición de datos, mejoras de servicio ni resultados de implementación.",
+        "La página del MGI identifica sus cifras como datos de 2025, pero la página y el panel dinámico OBIA enlazado no muestran una exportación fechada, denominador, definiciones de indicadores ni historial de revisiones; la cifra de 44 organismos no es directamente comparable con una captura anterior de 41 directrices.",
+        "La página oficial del MGI identifica los indicadores 182, 144 y 44 como datos de 2025, pero el panel dinámico OBIA enlazado no ofrece exportación fechada, denominador, definiciones de indicadores ni historial de revisiones; la cifra de 44 organismos no es directamente comparable con una captura anterior de 41 directrices."
       ],
       "relationships": [],
-      "summary": "Una entrevista de Tele.Síntese del 14 de septiembre de 2026 informó que Esther Dweck, ministra brasileña de Gestión e Innovación, consideraba dar más fuerza a un manual existente sobre el uso ético de la IA por parte de trabajadores federales, mediante una Portaria o un decreto presidencial. Dweck también dijo que una autoevaluación federal había identificado más de 150 soluciones de IA ya en uso y más de 300 iniciativas en estudio o desarrollo. Las declaraciones documentan una intención de política informada y cifras de inventario atribuidas al ministerio, no una norma nacional promulgada ni resultados auditados. Una búsqueda acotada del MGI oficial encontró gobernanza y orientación ministeriales, pero no un instrumento nacional específico para el manual; sigue pendiente una revisión completa del Diário Oficial.",
+      "summary": "Una entrevista de Tele.Síntese del 14 de septiembre de 2026 informó que Esther Dweck, ministra brasileña de Gestión e Innovación, consideraba dar más fuerza a un manual existente sobre el uso ético de la IA por parte de trabajadores federales, mediante una Portaria o un decreto presidencial. Dweck también dijo que una autoevaluación federal había identificado más de 150 soluciones de IA ya en uso y más de 300 iniciativas en estudio o desarrollo. Las declaraciones documentan una intención de política informada y cifras de inventario atribuidas al ministerio, no una norma nacional promulgada ni resultados auditados. Una búsqueda acotada del MGI oficial encontró gobernanza y orientación ministeriales, pero no un instrumento nacional específico para el manual; sigue pendiente una revisión completa del Diário Oficial. Una revisión posterior de la página oficial de IA del MGI encontró que presenta indicadores federales de 2025: 182 soluciones de IA en operación, 144 organismos que planean adoptar asistentes de IA y 44 con directrices de IA. Son cifras ministeriales de autoevaluación; el panel dinámico enlazado no expone una exportación fechada, denominador ni definiciones, por lo que no demuestran resultados de implementación ni una tendencia.",
       "technical": {
-        "claimed_result": "La ministra informa más de 150 soluciones de IA ya en uso en organismos federales y más de 300 en estudio/desarrollo; no se inspeccionó un inventario ni una medición independiente.",
-        "demonstrated_result": "La entrevista fechada registra directamente la declaración de la ministra de que se consideraba una formalización más firme. No se estableció un instrumento nacional ni un resultado medido de protección de datos.",
+        "claimed_result": "La ministra informa más de 150 soluciones de IA ya en uso en organismos federales y más de 300 en estudio/desarrollo; no se inspeccionó un inventario ni una medición independiente. Una página oficial del MGI presenta por separado sus datos de autoevaluación de 2025 como 182 soluciones de IA en operación, 144 organismos que planean asistentes de IA y 44 con directrices de IA.",
+        "demonstrated_result": "La entrevista fechada registra directamente la declaración de la ministra de que se consideraba una formalización más firme. No se estableció un instrumento nacional ni un resultado medido de protección de datos. La página oficial del MGI muestra directamente esas cifras como datos ministeriales de 2025; ni las cifras ni su método de medición se auditaron de forma independiente.",
         "implementation_status": "Consideración de política informada el 14 de septiembre de 2026. Una búsqueda oficial acotada encontró la Portaria MGI 3.485/2026, limitada al MGI, y orientación para servidores, pero no una Portaria/decreto nacional específico para el manual.",
         "mechanism": "La vía normativa informada reforzaría un manual existente de uso ético mediante una Portaria o un decreto presidencial; la entrevista también describe negociaciones para operar aplicaciones Microsoft dentro de Serpro y un entorno de IA que mantendría las entradas dentro de la infraestructura gubernamental.",
         "regime": "Administración pública federal brasileña; el informe distingue un manual propuesto para trabajadores federales de las medidas de gobernanza específicas del MGI.",
-        "reproducibility": "La entrevista y el índice de actos del MGI están disponibles; las cifras de inventario, su denominador y la situación jurídica posterior requieren registros primarios.",
+        "reproducibility": "La entrevista, la página oficial de IA del MGI y la vista OBIA enlazada son accesibles. La página del MGI informa indicadores de 2025, pero el panel no ofrece exportación fechada, denominador, definiciones de indicadores ni historial de revisiones. Las cifras y su comparabilidad requieren registros primarios subyacentes.",
         "strongest_baseline": "No se informó una línea de base emparejada ni una comparación de resultados."
       },
       "title": "El MGI de Brasil considera reglas más firmes para el uso de herramientas de IA por parte de trabajadores federales",
-      "why_it_matters": "Los empleados federales pueden usar herramientas de IA con información pública, personal o sensible. Un instrumento vinculante para toda la administración podría cambiar qué herramientas se permiten y qué controles se exigen antes de usarlas. La entrevista solo establece que se consideraba formalizar la política, y las cifras de adopción informadas carecen de un inventario publicado y una medición independiente en la fuente revisada."
+      "why_it_matters": "El personal federal puede usar herramientas de IA con información pública, personal o sensible. Un instrumento vinculante para toda la administración podría cambiar qué herramientas están permitidas y qué controles se exigen antes de usarlas. La página oficial del MGI también ofrece una instantánea acotada, informada por el ministerio, de la adopción y preparación de gobernanza de IA federal en 2025, pero su metodología no está expuesta. La entrevista solo establece que se consideraba formalizar la política; las cifras informadas no están auditadas y no se midieron resultados de despliegue ni de reducción de riesgos."
     },
     "FCMO-DB18BF567290": {
       "claims": [
