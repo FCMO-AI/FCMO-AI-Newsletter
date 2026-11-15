@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "7295f64da9d84278c366add006b07b3e9e40e0c53173dd24d6914be8b4734554",
+  "canonical_source_sha256": "8109ffdbb61f7c4ed4532154e47499c575425f7e2481416087e8b375b5382f97",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -14796,6 +14796,62 @@
       },
       "title": "预印本报告：实时工具进度信号在一次服务引擎实验中降低了工具调用后的延迟",
       "why_it_matters": "智能体等待工具时，其请求的 KV 缓存可能继续占用稀缺的 GPU 内存。如果其他环境也能复现这些提升，利用实时工具进度或可改善工具调用后的响应速度和缓存调度，而不必只依赖调用前的时长估计。现有证据支持的是论文报告的一项具体结果，并非通用性能保证。"
+    },
+    "FCMO-4252428B272C": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Together AI Research 于2026年十一月10日发布了预印本 arXiv 2611.14681，介绍了 Together Compiler 这一由智能体驱动的持续推理优化系统。论文描述了一个可持久运行并热重载前向计算候选方案的引擎、快速与高保真两级测量机制，以及用于选择并行配置的成本模型。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者称，在 SemiAnalysis InferenceX 测试中，TKCC 对选定的前沿模型与硬件平台实现了最高2.6×的每秒令牌数，超过领先的开放配置；每个模型使用不超过两个节点，并在24小时内完成。作者还报告，持久引擎设计使智能体实验数量提高252×。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Together AI 声称，TKCC 持续编译其生产集群；该集群每天处理数万亿个令牌。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "已审阅的证据没有独立证实所报告的性能提升、向其他推理集群的迁移效果、成本节省或生产规模的令牌量。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "测试结果和实验数量提高252×的比较由系统作者报告；本次审阅未找到独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "所审阅的预印本未提供 TKCC 公共源代码实现，因此本次激活无法直接审计代码和端到端测试流程。",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "论文称 TKCC 每天处理数万亿个令牌，但这是 Together AI 的一方生产声明，没有独立运营数据佐证。",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果测试提升及生产优化机制能够推广到其他前沿模型服务集群，就可能显著改变多个团队的推理能力、优化成本和发布速度决策。此重要性评分依据的是这种潜在影响，而不是对供应商所报测量结果的信任程度。",
+      "limitations": [
+        "本次审阅的系统结果和生产集群声明均来自 Together AI 作者；未找到独立复现。",
+        "所报最高2.6×来自选定的模型、硬件和并发配置，不应视为典型或普遍提升。",
+        "预印本描述了生产系统，但审阅的来源中没有公开 TKCC 实现。"
+      ],
+      "relationships": [],
+      "summary": "Together AI Research 于2026年十一月10日发布的预印本介绍了 Together Compiler（TKCC），这是一个可随模型与流量变化持续优化推理部署的智能体系统。它结合了可热重载前向计算候选方案的持久引擎、快速与高保真测量机制，以及用于选择并行配置的成本模型。作者称，在 SemiAnalysis InferenceX 的特定模型与硬件组合上，TKCC 的吞吐量最高达到领先开放配置的2.6×；每个模型耗时不到24小时且使用不超过两个节点。作者还称，与每次测量都重启引擎的方法相比，智能体实验数量提高252×。这些是一方报告，本次未作独立复现；其生产集群令牌量的说法也未获核实。",
+      "technical": {
+        "claimed_result": "与领先的开放 InferenceX 配置相比，TPS 最高提高2.6×；与高度优化的 Llama 1B 巨型内核相比，最高提高1.7×；相较于每次测量都重启引擎，实验吞吐量提高252×。公司另称其生产集群每天处理数万亿个令牌。",
+        "demonstrated_result": "预印本及其方法、测试流程和所报数据表均可直接查阅。性能测量、生产使用和集群规模仍属于一方报告，尚未被独立确证。",
+        "mechanism": "持久推理引擎只加载一次模型权重，通过热重载接收智能体生成的前向计算候选方案，并在快速和较慢的高保真级别中测量。并行优化智能体探索候选方案；成本模型结合分析估算、硬件测量信号，为张量、专家、上下文及数据并行配置排序。",
+        "regime": "论文评估了包括 Llama 1B 以及采用混合专家或稀疏注意力的前沿模型在内的选定负载，使用 H100、B200、B300、GB300、MI355X 和 Trainium2 配置。最高2.6× TPS 的主要比较针对 SemiAnalysis InferenceX 上选定模型、并发和硬件条件下的领先开放配置；每个模型最多使用两个节点，编译时间不到24小时。",
+        "reproducibility": "预印本提供了详细方法、数据表和实验流程，但审阅的论文未提供 TKCC 公共实现。本次未进行独立复现。",
+        "strongest_baseline": "对于前沿模型的最高性能主张，论文将 TKCC 与截至2026年十月27日 InferenceX 上公开的最佳配置比较，并以其并行策略作为优化起点。不同结果对应不同模型、硬件与并发条件；2.6×是最高值，并非典型结果。"
+      },
+      "title": "Together AI 报告了一个持续优化 AI 推理的智能体系统",
+      "why_it_matters": "推理吞吐量和优化人力决定了 AI 服务成本与部署能力。如果所报提升能够推广到 Together AI 所选模型、硬件和负载之外，持续优化循环可能改变服务系统适应模型与流量变化的速度。目前证据是一篇内容详实但由供应商撰写的预印本；它尚未确立独立性能结果或普遍部署影响。"
     },
     "FCMO-425BD7B2FFA0": {
       "claims": [
@@ -64776,6 +64832,48 @@
       "why_it_matters": {
         "locale_sha256": "04ffe52cfd68f68c317034fce7b93ae0e826bdc74091a60ba01de7fd8b65bafa",
         "source_sha256": "6015e1549d6f00148215ddf765aefd4cc2e1a1b54dc3fc1a0b39c408abf77d4d"
+      }
+    },
+    "FCMO-4252428B272C": {
+      "claims": {
+        "locale_sha256": "5cc95d19f61d18bbbd2fde714c6756d07a8645722220084497d18095559a6b12",
+        "source_sha256": "e6dcd95f65e2e412e99ac91d9994730d080bd79c04450764c21b66cda4038652"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "0f0e444e475cadf4f6ba1c68f8ce802b3e21f84842e8cab6262d6e78da742e6d",
+        "source_sha256": "b689f64145150ead4e4404184ae576a29c4b6ffb0849f153a3af7d563b362d68"
+      },
+      "importance_rationale": {
+        "locale_sha256": "e75f9e95072fd0091b4cc6d497f68a35efdc777582815a9d3de03a3b927a7835",
+        "source_sha256": "1071dce3993185b3d916427585068a6fca328230f3c9b59f6512b1657af07c44"
+      },
+      "limitations": {
+        "locale_sha256": "6a945abc0790a1a5ee51181a981a69df5d4f9ec6044a9d51098b50333317bed8",
+        "source_sha256": "5841ef28ffc206456e94d2074f401beee8d51b1871fca8988b361427e2f49c44"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "220e05a4fa57360c6bd0c9e1437674d4429990e5d0acae299b63a0222d55b8e3",
+        "source_sha256": "d453c0de06d39a93752c9eed1bc16f8347d6e2b8f19a12810401615e8239361d"
+      },
+      "technical": {
+        "locale_sha256": "fe6bdadb9c93fb2efb73fbeacd7a5416b2f4a384454ca7a983e6793ff2ef66ba",
+        "source_sha256": "6c5a42d778d387b96bb097edbac1406e06f4abe30793df978eb05fff0d70472a"
+      },
+      "title": {
+        "locale_sha256": "c2caf29d8d227bd55931274bac18d12fcdb4908a41736a39b7437c6fcac66899",
+        "source_sha256": "080e1ff47ad525e48d8060c815cfce0c731cd49acf8e2a10b0bfc79d05eb4f2e"
+      },
+      "why_it_matters": {
+        "locale_sha256": "35d5f1db5b7c1f5909862cb45f6d87fa91cd411a2f570b24d698e9111566d70a",
+        "source_sha256": "52cc850247c2705a41a5edc9d13105ed124b6d01ed8128e255bd05da552ed962"
       }
     },
     "FCMO-425BD7B2FFA0": {

@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "7295f64da9d84278c366add006b07b3e9e40e0c53173dd24d6914be8b4734554",
+  "canonical_source_sha256": "8109ffdbb61f7c4ed4532154e47499c575425f7e2481416087e8b375b5382f97",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -14796,6 +14796,62 @@
       },
       "title": "Un preprint informa que las señales de progreso de herramientas redujeron la latencia posterior a su uso en un experimento de serving",
       "why_it_matters": "Mientras un agente espera una herramienta, la caché KV de su solicitud puede seguir ocupando memoria GPU escasa. Si las mejoras informadas se replican en otros entornos, usar el progreso de las herramientas en tiempo real podría mejorar la capacidad de respuesta y la gestión de caché sin depender únicamente de estimaciones de duración previas a la llamada. La evidencia actual respalda un resultado específico informado en un artículo, no una garantía general de rendimiento."
+    },
+    "FCMO-4252428B272C": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Together AI Research publicó el 10 de noviembre de 2026 el preprint arXiv 2611.14681, que describe Together Compiler, un sistema de optimización continua de inferencia mediante agentes. El artículo presenta un motor persistente que recarga en caliente variantes del pase hacia adelante, niveles de medición rápidos y de mayor fidelidad, y un modelo de costos para seleccionar configuraciones de paralelismo."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que TKCC alcanzó hasta 2.6× más tokens por segundo que las principales configuraciones abiertas en la prueba SemiAnalysis InferenceX, para determinados modelos de frontera y plataformas de hardware, en menos de 24 horas y con un máximo de dos nodos por modelo. También informan 252× más experimentos de agentes gracias al diseño de motor persistente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Together AI afirma que TKCC compila de forma continua su flota de producción, que procesa billones de tokens al día."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La evidencia revisada no comprueba de manera independiente las mejoras informadas, su transferencia a otras flotas de inferencia, los ahorros de costos ni el volumen de producción declarado."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de benchmark y la comparación de 252× en experimentos provienen de los autores del sistema; esta revisión no encontró una reproducción independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El preprint revisado no incluye una implementación pública del código fuente de TKCC, lo que impide auditar directamente el código y el protocolo integral en esta activación.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "La afirmación del artículo de que TKCC procesa billones de tokens al día en producción es una declaración de la empresa sin medición operativa independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si las mejoras de benchmark y el mecanismo de optimización en producción se generalizan a otras flotas de servicio de modelos de frontera, podrían cambiar de manera sustancial la capacidad de inferencia, el costo de optimización y las decisiones sobre velocidad de lanzamiento de varios equipos. La importancia refleja esa posible consecuencia, no la confianza en las mediciones informadas por el proveedor.",
+      "limitations": [
+        "Todos los resultados del sistema y las afirmaciones sobre la flota de producción revisados aquí provienen de los autores de Together AI; no se encontró una reproducción independiente.",
+        "El máximo informado de 2.6× combina configuraciones seleccionadas de modelo, hardware y concurrencia; no debe interpretarse como una mejora típica o universal.",
+        "El preprint describe un sistema de producción, pero la fuente revisada no permitió identificar una implementación pública de TKCC."
+      ],
+      "relationships": [],
+      "summary": "El preprint de Together AI Research del 10 de noviembre de 2026 describe Together Compiler (TKCC), un sistema continuo de optimización de inferencia con agentes que se adapta a cambios en modelos y tráfico. Combina un motor persistente que recarga variantes del pase hacia adelante, mediciones rápidas y de mayor fidelidad, y un modelo de costos para elegir configuraciones de paralelismo. Los autores informan hasta 2.6× más rendimiento que las principales configuraciones abiertas en determinadas combinaciones de modelos y hardware de SemiAnalysis InferenceX, en menos de 24 horas y con hasta dos nodos por modelo; también informan 252× más experimentos de agentes que con un enfoque que reinicia el motor en cada medición. Son resultados de primera parte que aquí no se reprodujeron de manera independiente; tampoco se verificó la afirmación de volumen de la flota de producción.",
+      "technical": {
+        "claimed_result": "Hasta 2.6× más TPS que las principales configuraciones abiertas de InferenceX, hasta 1.7× frente a kernels gigantes altamente optimizados para Llama 1B, 252× más experimentos que reiniciar el motor en cada medición y un servicio de flota de producción que, según la empresa, procesa billones de tokens al día.",
+        "demonstrated_result": "El preprint, su método, los protocolos y las tablas informadas pueden consultarse directamente. Las mediciones de rendimiento, el uso declarado en producción y la escala de la flota siguen siendo informes de primera parte, no resultados establecidos de manera independiente.",
+        "mechanism": "Un motor persistente de inferencia, con diseño similar al de producción, carga los pesos una vez, recibe mediante recarga en caliente variantes del pase hacia adelante generadas por agentes y las mide en niveles rápidos y más lentos de fidelidad. Agentes paralelos exploran variantes mientras un modelo de costos clasifica configuraciones de paralelismo tensorial, de expertos, de contexto y de datos mediante estimaciones analíticas y señales medidas en hardware.",
+        "regime": "El artículo evalúa cargas seleccionadas, entre ellas Llama 1B y modelos de frontera con mezcla de expertos o atención dispersa, en configuraciones H100, B200, B300, GB300, MI355X y Trainium2. La comparación principal de hasta 2.6× TPS usa configuraciones abiertas destacadas de SemiAnalysis InferenceX para modelos, concurrencias y hardware específicos; el sistema usa hasta dos nodos por modelo y una ventana de compilación inferior a 24 horas.",
+        "reproducibility": "El preprint incluye métodos, tablas y protocolos detallados, pero no ofrece una implementación pública de TKCC en la fuente examinada. No se hizo una reproducción independiente.",
+        "strongest_baseline": "Para su afirmación principal sobre modelos de frontera, el artículo compara con las mejores configuraciones abiertas publicadas de InferenceX disponibles al 27 de octubre de 2026 y utiliza su estrategia de paralelismo como punto de partida. Informa distintos regímenes de modelo, hardware y concurrencia; 2.6× es el máximo, no el resultado típico."
+      },
+      "title": "Together AI presenta un sistema continuo con agentes para optimizar la inferencia de IA",
+      "why_it_matters": "El rendimiento de inferencia y el trabajo de optimización determinan en gran medida el costo y la capacidad de los servicios de IA. Si las mejoras informadas se extienden más allá de los modelos, hardware y cargas seleccionados por Together AI, un ciclo continuo de optimización podría cambiar la rapidez con que los sistemas de servicio se adaptan a cambios de modelos y tráfico. La evidencia actual es un preprint detallado pero de primera parte; no demuestra rendimiento independiente ni impacto general en despliegues."
     },
     "FCMO-425BD7B2FFA0": {
       "claims": [
@@ -64776,6 +64832,48 @@
       "why_it_matters": {
         "locale_sha256": "04cb73e1056e293bb3b04291f1936f72a46567017beb45cc59615e9c8446e180",
         "source_sha256": "6015e1549d6f00148215ddf765aefd4cc2e1a1b54dc3fc1a0b39c408abf77d4d"
+      }
+    },
+    "FCMO-4252428B272C": {
+      "claims": {
+        "locale_sha256": "325d1a46fc3ed482b0adb804ca0bfa62921fa98875b78575ed5f3e12728f9ba1",
+        "source_sha256": "e6dcd95f65e2e412e99ac91d9994730d080bd79c04450764c21b66cda4038652"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "5c5f01b2767503c79a5869ce4e31363724478d3ed1adeb009349d300229059fc",
+        "source_sha256": "b689f64145150ead4e4404184ae576a29c4b6ffb0849f153a3af7d563b362d68"
+      },
+      "importance_rationale": {
+        "locale_sha256": "74480c59f9abecd82bf0dff3ab12a418cee6a47cca6236a251678f3b32c0eabc",
+        "source_sha256": "1071dce3993185b3d916427585068a6fca328230f3c9b59f6512b1657af07c44"
+      },
+      "limitations": {
+        "locale_sha256": "a5fba94aafe15f3e7ef969198003da5d9a9e056f96c087cd55041fc153223db0",
+        "source_sha256": "5841ef28ffc206456e94d2074f401beee8d51b1871fca8988b361427e2f49c44"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "bb75a82b39108947aae73b0970b199d3d82bf2f58abde447e95246077c3cdd86",
+        "source_sha256": "d453c0de06d39a93752c9eed1bc16f8347d6e2b8f19a12810401615e8239361d"
+      },
+      "technical": {
+        "locale_sha256": "1b8cfbc62ab14f0841035dcd44ab4daae3b7dce88b829c0cd9dc3c02613353fc",
+        "source_sha256": "6c5a42d778d387b96bb097edbac1406e06f4abe30793df978eb05fff0d70472a"
+      },
+      "title": {
+        "locale_sha256": "a926cf43c42a77530796749bd3b78049471af5575cb52cf6e369a948b3e332e3",
+        "source_sha256": "080e1ff47ad525e48d8060c815cfce0c731cd49acf8e2a10b0bfc79d05eb4f2e"
+      },
+      "why_it_matters": {
+        "locale_sha256": "1c29d34d4fd0381c2b09ebacb76c6306c8d5be601d9cb81b228b5aac6dc41c9a",
+        "source_sha256": "52cc850247c2705a41a5edc9d13105ed124b6d01ed8128e255bd05da552ed962"
       }
     },
     "FCMO-425BD7B2FFA0": {
