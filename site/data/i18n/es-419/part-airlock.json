@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "889f4b2f55bff027586ef8609384f7ed3e5eddd7938d50def968c520b1bec684",
+  "canonical_source_sha256": "2abaf1d4e8418f4365120438dccfb14a054acaf8e091511f3c22eb339274cc1a",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "es-419",
   "records": {
@@ -291,6 +291,54 @@
       },
       "title": "El artículo de BlockLock informa inferencia reproducible de LLM por lotes con geometría fija por solicitud",
       "why_it_matters": "La reproducibilidad fiable importa para evaluar modelos, generar trayectorias de aprendizaje por refuerzo y ejecutar sistemas que usan herramientas. Si los resultados se generalizan, fijar la geometría solo para las solicitudes que requieren reproducibilidad podría reducir el costo de latencia de la inferencia determinista y conservar el prellenado compartido por lotes. El artículo no establece beneficios de costo ni de colas en producción."
+    },
+    "FCMO-017DD1274F3C": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En una comparación controlada de postentrenamiento con RL, OpenAI informa que entrenar con tareas adversariales reforzadas elevó la seguridad de 45% a 68% ante jailbreaks fijos reservados y de 71% a 92% ante ataques adaptativos en línea."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI afirma que incorporó este método al entrenamiento de GPT-6 Astra y Sol; según las evaluaciones informadas, estos modelos obtuvieron mayor seguridad que modelos anteriores ante los jailbreaks fijos y adaptativos estudiados."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró una reproducción independiente de la comparación controlada con RL ni de los resultados de GPT-6 Astra/Sol; los checkpoints principales y los conjuntos de ataques son internos.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-11-13T05:17:47Z"
+        },
+        {
+          "description": "El artículo reconoce que worst@n reduce la variación entre jueces, pero no sus sesgos sistemáticos. También informa que la puntuación de cumplimiento benigno en ciberseguridad bajó de 81.7% a 76.7%.",
+          "kind": "other",
+          "state": "open",
+          "updated_at": "2026-11-13T05:17:47Z"
+        }
+      ],
+      "importance_rationale": "Si el efecto controlado se generaliza, el postentrenamiento con datos adversariales podría mejorar de forma material la resistencia ante intentos adaptativos de abuso en ciberseguridad y biología, e influir en programas de entrenamiento de seguridad. Las mejoras informadas son relevantes, pero provienen de una evaluación interna de un solo laboratorio, con posibles sesgos de evaluación y un costo en utilidad para tareas benignas de ciberseguridad.",
+      "limitations": [
+        "Las métricas cuantitativas de resistencia y la incorporación a GPT-6 Astra/Sol provienen del artículo de OpenAI y no se reprodujeron ni auditaron de forma independiente.",
+        "La comparación controlada usa un checkpoint interno GPT-5.6-Terra y conjuntos de ataques del laboratorio; el checkpoint inicial, los datos reforzados y las corridas completas no están disponibles públicamente en el artículo inspeccionado.",
+        "El artículo indica que las evaluaciones repetidas worst@n reducen la variación de los jueces, pero no resuelven sus sesgos sistemáticos; informa que detectaron y corrigieron brechas del juez mediante revisión humana.",
+        "La evaluación separada de tareas benignas informa una caída del cumplimiento completo en ciberseguridad de 81.7% a 76.7% para el modelo entrenado con datos de robustez; ese intercambio entre seguridad y utilidad debe conservarse.",
+        "Las evaluaciones de GPT-6 Astra/Sol se informan sin las barreras de bloqueo de producción y no demuestran una reducción de incidentes reales ni resistencia en todas las condiciones de despliegue."
+      ],
+      "relationships": [],
+      "summary": "Un artículo de OpenAI del 12 de noviembre describe un ciclo automatizado de red teaming que usa retroalimentación iterativa de un atacante y un criterio de éxito repetido, «worst@n», para crear ejemplos de entrenamiento adversariales. En una comparación controlada, OpenAI informa que añadir esos ejemplos al postentrenamiento con RL elevó las puntuaciones de seguridad de 45% a 68% ante jailbreaks fijos reservados y de 71% a 92% ante ataques adaptativos en línea. Las dos corridas partieron del mismo checkpoint interno GPT-5.6-Terra y mantuvieron fijo el presupuesto total de RL. OpenAI también afirma que incorporó el método al entrenamiento de GPT-6 Astra y Sol. Son resultados informados por la empresa, no una confirmación independiente; el artículo reconoce sesgos en los jueces de seguridad e informa una caída de utilidad en tareas benignas de ciberseguridad.",
+      "technical": {
+        "claimed_result": "OpenAI informa que, en una comparación controlada con RL, las tareas adversariales reforzadas elevaron las puntuaciones de seguridad de 45% a 68% en jailbreaks fijos reservados y de 71% a 92% en ataques adaptativos en línea. También afirma que usó el método para entrenar GPT-6 Astra y Sol.",
+        "demonstrated_result": "El artículo fechado de OpenAI y el trabajo enlazado pueden inspeccionarse directamente y describen el método y los experimentos. Las métricas de resultados y la supuesta integración en el entrenamiento de modelos son afirmaciones de primera parte que no se verificaron de forma independiente en esta activación.",
+        "implementation_status": "El artículo dice que el método se incorporó al entrenamiento de GPT-6 Astra y Sol. Es una afirmación de OpenAI; no hubo acceso independiente a esas corridas de entrenamiento ni a los checkpoints resultantes.",
+        "mechanism": "Un modelo atacante reescribe tareas iniciales de forma iterativa, consulta a modelos defensores y recibe retroalimentación de jueces de seguridad. La regla worst@n conserva un jailbreak solo cuando n respuestas muestreadas del defensor y sus evaluaciones coinciden en que tuvo éxito. Las variantes adversariales seleccionadas se añaden a una mezcla de postentrenamiento con RL fuera de línea; el artículo dice que se usó revisión humana para identificar y corregir brechas de los jueces antes del entrenamiento.",
+        "regime": "Checkpoints internos de OpenAI; postentrenamiento controlado fuera de línea con RL para tareas de seguridad de biología, ciberseguridad y actividad violenta; jailbreaks fijos reservados y ataques adaptativos en línea. El artículo indica que las evaluaciones de GPT-6 Astra/Sol excluyen los bloqueos de producción.",
+        "reproducibility": "El blog oficial enlaza un artículo de 20 páginas. El anuncio y el artículo inspeccionados no enlazan una implementación pública, datos de entrenamiento ni checkpoints; el checkpoint interno inicial solo se identifica por su familia. No se encontró una reproducción independiente ni una auditoría de evaluadores independientes.",
+        "strongest_baseline": "Dos corridas de postentrenamiento con RL inicializadas desde el mismo checkpoint interno GPT-5.6-Terra; la corrida con datos reforzados añadió tareas adversariales en una proporción aproximada de 3:1 y redujo proporcionalmente otros datos para mantener fijo el presupuesto total de RL. La evaluación usó un atacante reservado para los jailbreaks fijos y 12 perfiles sintéticos para los ataques adaptativos."
+      },
+      "title": "OpenAI informa mayor resistencia ante jailbreaks tras entrenar con datos adversariales",
+      "why_it_matters": "Si el efecto informado se generaliza, generar ejemplos adversariales con verificaciones de éxito repetido e incorporarlos al entrenamiento podría mejorar la resistencia ante jailbreaks reservados y adaptativos en ámbitos de alto riesgo. Las mejoras controladas informadas y su traslado al entrenamiento de modelos posteriores podrían influir en las decisiones de postentrenamiento de seguridad. Sin embargo, el posible sesgo de los jueces, la menor utilidad informada en ciberseguridad y la falta de reproducción independiente limitan las conclusiones."
     },
     "FCMO-0180330ECF93": {
       "claims": [
@@ -46908,6 +46956,10 @@
         {
           "label": "NOT_ESTABLISHED",
           "text": "Una búsqueda acotada de material oficial del MGI/Governo Digital encontró gobernanza de IA y orientación para servidores a nivel ministerial, pero no estableció que la regla específica propuesta para el manual se hubiera convertido en una Portaria o decreto de alcance nacional, ni que los controles de datos o las cifras de uso informados produjeran resultados medidos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La página de IA del MGI de Brasil presenta sus datos de autoevaluación federal de 2025 como 182 soluciones de IA en operación, 144 organismos que planean adoptar asistentes de IA y 44 organismos con directrices de IA. La página no expone el denominador, las definiciones de los indicadores ni una exportación versionada."
         }
       ],
       "contradictory_evidence": [],
@@ -46929,6 +46981,12 @@
           "kind": "other",
           "state": "open",
           "updated_at": "2026-11-03T08:21:03Z"
+        },
+        {
+          "description": "El panel enlazado de OBIA no ofrece una exportación versionada de datos de 2025, denominador, definiciones de indicadores ni historial de revisiones; por ello, las cifras de 2025 no pueden conciliarse con la captura anterior de 41 organismos con directrices ni interpretarse como una tendencia.",
+          "kind": "missing_artifact",
+          "state": "open",
+          "updated_at": "2026-11-13T05:27:50Z"
         }
       ],
       "importance_rationale": "Si la propuesta informada conduce a directrices federales vinculantes, podría afectar cómo los empleados públicos manejan información sensible en servicios externos de IA en una administración extensa. La fuente documenta una consideración de política y adopción de IA informada, no un instrumento nacional promulgado ni una reducción medida del riesgo; las reglas ministeriales existentes tienen un alcance menor.",
@@ -46937,21 +46995,23 @@
         "Las cifras informadas de soluciones e iniciativas son datos de autoevaluación sin inventario publicado ni denominador en la entrevista revisada.",
         "La búsqueda oficial fue acotada y no agotó el Diário Oficial; no se ha establecido la ausencia de un instrumento nacional.",
         "La Portaria MGI nº 3.485/2026 y la orientación para servidores tienen un alcance más limitado o distinto de la propuesta federal descrita en la entrevista.",
-        "No se establecieron reducciones medidas en la exposición de datos, mejoras de servicio ni resultados de implementación."
+        "No se establecieron reducciones medidas en la exposición de datos, mejoras de servicio ni resultados de implementación.",
+        "La página del MGI identifica sus cifras como datos de 2025, pero la página y el panel dinámico OBIA enlazado no muestran una exportación fechada, denominador, definiciones de indicadores ni historial de revisiones; la cifra de 44 organismos no es directamente comparable con una captura anterior de 41 directrices.",
+        "La página oficial del MGI identifica los indicadores 182, 144 y 44 como datos de 2025, pero el panel dinámico OBIA enlazado no ofrece exportación fechada, denominador, definiciones de indicadores ni historial de revisiones; la cifra de 44 organismos no es directamente comparable con una captura anterior de 41 directrices."
       ],
       "relationships": [],
-      "summary": "Una entrevista de Tele.Síntese del 14 de septiembre de 2026 informó que Esther Dweck, ministra brasileña de Gestión e Innovación, consideraba dar más fuerza a un manual existente sobre el uso ético de la IA por parte de trabajadores federales, mediante una Portaria o un decreto presidencial. Dweck también dijo que una autoevaluación federal había identificado más de 150 soluciones de IA ya en uso y más de 300 iniciativas en estudio o desarrollo. Las declaraciones documentan una intención de política informada y cifras de inventario atribuidas al ministerio, no una norma nacional promulgada ni resultados auditados. Una búsqueda acotada del MGI oficial encontró gobernanza y orientación ministeriales, pero no un instrumento nacional específico para el manual; sigue pendiente una revisión completa del Diário Oficial.",
+      "summary": "Una entrevista de Tele.Síntese del 14 de septiembre de 2026 informó que Esther Dweck, ministra brasileña de Gestión e Innovación, consideraba dar más fuerza a un manual existente sobre el uso ético de la IA por parte de trabajadores federales, mediante una Portaria o un decreto presidencial. Dweck también dijo que una autoevaluación federal había identificado más de 150 soluciones de IA ya en uso y más de 300 iniciativas en estudio o desarrollo. Las declaraciones documentan una intención de política informada y cifras de inventario atribuidas al ministerio, no una norma nacional promulgada ni resultados auditados. Una búsqueda acotada del MGI oficial encontró gobernanza y orientación ministeriales, pero no un instrumento nacional específico para el manual; sigue pendiente una revisión completa del Diário Oficial. Una revisión posterior de la página oficial de IA del MGI encontró que presenta indicadores federales de 2025: 182 soluciones de IA en operación, 144 organismos que planean adoptar asistentes de IA y 44 con directrices de IA. Son cifras ministeriales de autoevaluación; el panel dinámico enlazado no expone una exportación fechada, denominador ni definiciones, por lo que no demuestran resultados de implementación ni una tendencia.",
       "technical": {
-        "claimed_result": "La ministra informa más de 150 soluciones de IA ya en uso en organismos federales y más de 300 en estudio/desarrollo; no se inspeccionó un inventario ni una medición independiente.",
-        "demonstrated_result": "La entrevista fechada registra directamente la declaración de la ministra de que se consideraba una formalización más firme. No se estableció un instrumento nacional ni un resultado medido de protección de datos.",
+        "claimed_result": "La ministra informa más de 150 soluciones de IA ya en uso en organismos federales y más de 300 en estudio/desarrollo; no se inspeccionó un inventario ni una medición independiente. Una página oficial del MGI presenta por separado sus datos de autoevaluación de 2025 como 182 soluciones de IA en operación, 144 organismos que planean asistentes de IA y 44 con directrices de IA.",
+        "demonstrated_result": "La entrevista fechada registra directamente la declaración de la ministra de que se consideraba una formalización más firme. No se estableció un instrumento nacional ni un resultado medido de protección de datos. La página oficial del MGI muestra directamente esas cifras como datos ministeriales de 2025; ni las cifras ni su método de medición se auditaron de forma independiente.",
         "implementation_status": "Consideración de política informada el 14 de septiembre de 2026. Una búsqueda oficial acotada encontró la Portaria MGI 3.485/2026, limitada al MGI, y orientación para servidores, pero no una Portaria/decreto nacional específico para el manual.",
         "mechanism": "La vía normativa informada reforzaría un manual existente de uso ético mediante una Portaria o un decreto presidencial; la entrevista también describe negociaciones para operar aplicaciones Microsoft dentro de Serpro y un entorno de IA que mantendría las entradas dentro de la infraestructura gubernamental.",
         "regime": "Administración pública federal brasileña; el informe distingue un manual propuesto para trabajadores federales de las medidas de gobernanza específicas del MGI.",
-        "reproducibility": "La entrevista y el índice de actos del MGI están disponibles; las cifras de inventario, su denominador y la situación jurídica posterior requieren registros primarios.",
+        "reproducibility": "La entrevista, la página oficial de IA del MGI y la vista OBIA enlazada son accesibles. La página del MGI informa indicadores de 2025, pero el panel no ofrece exportación fechada, denominador, definiciones de indicadores ni historial de revisiones. Las cifras y su comparabilidad requieren registros primarios subyacentes.",
         "strongest_baseline": "No se informó una línea de base emparejada ni una comparación de resultados."
       },
       "title": "El MGI de Brasil considera reglas más firmes para el uso de herramientas de IA por parte de trabajadores federales",
-      "why_it_matters": "Los empleados federales pueden usar herramientas de IA con información pública, personal o sensible. Un instrumento vinculante para toda la administración podría cambiar qué herramientas se permiten y qué controles se exigen antes de usarlas. La entrevista solo establece que se consideraba formalizar la política, y las cifras de adopción informadas carecen de un inventario publicado y una medición independiente en la fuente revisada."
+      "why_it_matters": "El personal federal puede usar herramientas de IA con información pública, personal o sensible. Un instrumento vinculante para toda la administración podría cambiar qué herramientas están permitidas y qué controles se exigen antes de usarlas. La página oficial del MGI también ofrece una instantánea acotada, informada por el ministerio, de la adopción y preparación de gobernanza de IA federal en 2025, pero su metodología no está expuesta. La entrevista solo establece que se consideraba formalizar la política; las cifras informadas no están auditadas y no se midieron resultados de despliegue ni de reducción de riesgos."
     },
     "FCMO-DB18BF567290": {
       "claims": [
@@ -48055,6 +48115,48 @@
       },
       "title": "Un modelo condicional de confiabilidad muestra cómo los fallos compartidos borran la redundancia nominal del control de IA",
       "why_it_matters": "Contar salvaguardas visibles puede exagerar la redundancia cuando varias dependen de un mismo modelo, servicio de identidad, base de código o plano de control. El artículo ofrece un marco condicional concreto para examinar esas dependencias y ponderar las pruebas de recuperación según los fallos que realmente llegarían a esa etapa. Su valor está en el diseño y la medición; no estima el riesgo real de un sistema."
+    },
+    "FCMO-E2A865D7E234": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La Comisión Europea abrió el 11 de noviembre de 2026 una expresión de interés, con cierre el 28 de febrero de 2027, para recibir propuestas e información sobre detección celular de drones de doble uso."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La Comisión identifica como posibles áreas la detección con IA de drones conectados, la detección celular de drones no conectados y la integración de detección y seguimiento con sistemas de mando y respuesta antidrones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La Comisión afirma que, tras revisar este ejercicio, estudiará si publica una convocatoria oficial de financiación para proyectos piloto; el aviso no establece que exista una convocatoria o adjudicación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se informa de selección de proyectos, convocatoria o adjudicación de fondos, sistema desplegado, especificación técnica ni rendimiento medido de detección.",
+          "kind": "missing_artifact",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si deriva en proyectos piloto, la iniciativa podría influir en la detección antidrones y la integración de telecomunicaciones para la seguridad y la infraestructura crítica de la UE. La evidencia actual solo acredita una etapa de recopilación de información, no una decisión de financiación, un despliegue ni resultados de rendimiento.",
+      "limitations": [
+        "La consulta solicita propuestas e información; no garantiza que se financie un proyecto piloto.",
+        "La detección con IA es una de tres áreas posibles, no una arquitectura técnica especificada ni una capacidad demostrada.",
+        "No se informan proyectos seleccionados, despliegues, resultados operativos ni rendimiento de detección."
+      ],
+      "relationships": [],
+      "summary": "El 11 de noviembre de 2026, la Comisión Europea abrió una expresión de interés, vigente hasta el 28 de febrero de 2027, para reunir propuestas e información sobre pruebas y despliegue de capacidades celulares de detección de drones de doble uso. La consulta incluye la detección con IA de drones conectados, la detección celular de drones no conectados y la integración con sistemas de respuesta antidrones. Se invita a los Estados miembros de la UE a presentar propuestas junto con consorcios privados; Ucrania puede participar. La Comisión dice que, después de revisar las propuestas, estudiará la posibilidad de publicar una convocatoria de financiación independiente. El aviso actual no concede fondos ni acredita despliegues.",
+      "technical": {
+        "claimed_result": "El aviso de la Comisión plantea reunir propuestas para probar y desplegar detección celular de drones de doble uso, incluida la detección con IA de drones conectados; no presenta resultados de rendimiento.",
+        "demonstrated_result": "La página oficial documenta una expresión de interés abierta el 11 de noviembre de 2026, con cierre el 28 de febrero de 2027, la estructura de las propuestas y la posibilidad condicional de una convocatoria de financiación posterior.",
+        "mechanism": "El trabajo potencial combinaría la detección mediante redes de telecomunicaciones de drones conectados, la detección celular de drones no conectados y la integración con sistemas de mando y respuesta. El aviso no especifica un diseño concreto.",
+        "regime": "La convocatoria se dirige a Estados miembros de la UE y consorcios del sector privado; Ucrania puede participar en un consorcio. Es una etapa de recopilación de información sobre usos antidrones de doble uso.",
+        "reproducibility": "Es un anuncio de consulta pública; el texto oficial puede inspeccionarse directamente. No se evaluó ningún sistema técnico ni resultado operativo.",
+        "strongest_baseline": "La Comisión indica que la iniciativa sigue el Plan de Acción de la UE sobre Seguridad de Drones y Antidrones; no ofrece un rendimiento de referencia anterior."
+      },
+      "title": "La Comisión Europea abre una convocatoria de interés sobre detección celular de drones de doble uso",
+      "why_it_matters": "La iniciativa incorpora la detección mediante redes de telecomunicaciones y la integración antidrones a la agenda de seguridad de la UE, y podría dar lugar a proyectos piloto transfronterizos. La evidencia confirma una consulta de interés y una posible financiación futura, no proyectos seleccionados, capacidades desplegadas ni resultados de detección."
     },
     "FCMO-E2FB9F5C7E07": {
       "claims": [
@@ -53781,6 +53883,48 @@
       "why_it_matters": {
         "locale_sha256": "b6a91ea19933acf9635ed5b682af04439c5b528091e95581d7e6b8a29b1274ad",
         "source_sha256": "d7e24553cf0fc0f78e82a28fcb9892642c0f13f9c0a93bb54c0c05b55fb5281f"
+      }
+    },
+    "FCMO-017DD1274F3C": {
+      "claims": {
+        "locale_sha256": "485ff3be2528da61eebaf6fa72b247e318f4b68e1d3441b44eb7594c7c18c02c",
+        "source_sha256": "270c00238dd112b856140dff0416c9d10fd3ac2becb0a4e0fb8dc540cb3a506f"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "ea4c330d2b8204b652575b76600307b6e18305af20879a46aedd98ec85398e07",
+        "source_sha256": "313100e3d1715c436f5ecd604a7a14b12783210c3de8756a0a267cdd5471be72"
+      },
+      "importance_rationale": {
+        "locale_sha256": "4b9a108fb22cd1975259dec0516fce13fa786df78d458d471725a308a0d58e81",
+        "source_sha256": "31f3d3deb80f48842a51825ceed38782f7b63cf9513fd6b4f067c4ff2e58736a"
+      },
+      "limitations": {
+        "locale_sha256": "72148acc8d52777c944b29a1d0d0364e719445c3176027a2fca66826d49ff884",
+        "source_sha256": "c5af0deed1f2156863d3ee2796406f8ef96676f3a735edcf98a3984c1cffe60e"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "d2ca59fcbb86cd0c1c2cc2f3224ee12f9cb116bd9c64b692bc14f46a424630a4",
+        "source_sha256": "bc9aaac485a5d3f825c923095e22fb359790948088049372c545a653e4c7b6e4"
+      },
+      "technical": {
+        "locale_sha256": "611317cb23215717d4cffed10a193cb2df83866c39c141457c6f4f5da3094666",
+        "source_sha256": "80d901ab3a9baa70e0cb0111b980faed6c6397d1dc7061a031706055f28c02ba"
+      },
+      "title": {
+        "locale_sha256": "feaf91c80c7929fb0c2c2b34cb3121c7fa3efbb0f145da3c9f1b5e4e71a77d05",
+        "source_sha256": "bad71e325f76760c872cb08d3c9d5a8c2c3073be4495e9f331d0fbedcf7e75c3"
+      },
+      "why_it_matters": {
+        "locale_sha256": "49ee1ab5710b7e07fcec16ae834f39787cae0ba7dea623ebdaf95a457adc0428",
+        "source_sha256": "2f934ab12fd31217ed6bfb7ff92d88323ac840f1001ff970ca7dc9f98bf593ab"
       }
     },
     "FCMO-0180330ECF93": {
@@ -88323,44 +88467,44 @@
     },
     "FCMO-DA6903E72985": {
       "claims": {
-        "locale_sha256": "eb16fe889cfac09006811dc543482769f7862ced7975aa02e4bc4cd2bb896641",
-        "source_sha256": "f130ee85d5eaab0af1dfad355a112d4e782edfdf78ccde72c2ea4a854c20c973"
+        "locale_sha256": "e080c58d82af30272e618d36be27ba0374ad7b3c7d84459a1a485e61b62524ac",
+        "source_sha256": "1fcb97eab4d2b47e8c72efb02197e05ee3037e761d282d48efbe798d7e1df484"
       },
       "contradictory_evidence": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "evidence_gaps": {
-        "locale_sha256": "8149647131ee9a1b4fddd3667ae47a13c5831ad85a1d464e5df3a462cc7b1f4c",
-        "source_sha256": "a649b83db620e068cf6b8fedde4b3f5a356c85fc5bd5cc83a2fec73cd08e08bc"
+        "locale_sha256": "225a7cef445a54880258555f0508bacff9dfdb8c09211a8a9a2bc8c9a58939e2",
+        "source_sha256": "dcceb327f4ed251fd443087ac08b1a2f13134b8a5cc6c42467f7ed3f58617c9f"
       },
       "importance_rationale": {
         "locale_sha256": "632d546f995b8770481d926dfd8fa5c21afd447f4923048b26836d72e9766411",
         "source_sha256": "19c75e3dbb1e298e2b84ca46af69c12c00af6e8e07a5e34c5712878709209792"
       },
       "limitations": {
-        "locale_sha256": "b75bfc4fafbc0b24f472230c163d2069ae638a501aca209303006adf37d2bb2d",
-        "source_sha256": "f7334f55ab247609541c873a26b337562e60042bf42b661adf5059d539145b06"
+        "locale_sha256": "bece973fa890eb4ef9f1cda56d940d6e087225bd630ddaf7e84fa1dfdcdfd29e",
+        "source_sha256": "ec6a2c00a2ad8b150e6e34a2759c9746b5c445d5309742d800120d623d6dffac"
       },
       "relationships": {
         "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       },
       "summary": {
-        "locale_sha256": "7c13ce01e9512234c4a8146ab027faae9f1bbed677da680ef1fadee6f66cca80",
-        "source_sha256": "1719eaf9f38a248cff61fa0dc759bb887b0288be03cbd744b7794d799d17bbef"
+        "locale_sha256": "e82e263bc666b8a8e6f123da633415fdd2c31d820aa070312ac9b0a6ff702251",
+        "source_sha256": "cb30928d69b456e771776defcfdfb791b6591f1a7dc0a0844189a7387baec9a9"
       },
       "technical": {
-        "locale_sha256": "d9a93220d2d71f87bfe62515cd8b7bc3c9246d76ba6938b2d11d72690401030e",
-        "source_sha256": "1c8282c0a3cc06328a83fedb51344e4ae7d374785eebb5cdd7f33f2f40e3a732"
+        "locale_sha256": "d9321dffacdbca4fae07b18cda678ae46be87a68b98efe77e8cec1c85c789b01",
+        "source_sha256": "b02c79d99e20d8aee5871b9cc4a2d856c73539ca4a3453d1c406248f2a251a8b"
       },
       "title": {
         "locale_sha256": "f1cace79e99fe4a52d53d4f2745c1313584fead87cee2af0adb2ed4e2b2365d0",
         "source_sha256": "3211330b799552ff5e4f1c745ce5f61b56aad5d9ad9bbd7c549afbbd5a041b40"
       },
       "why_it_matters": {
-        "locale_sha256": "0283df3370a0edb15b3e34c863716e2627f8bb6803cf1824731b04fa3bc7c79d",
-        "source_sha256": "b5da439346ee26edac14b14be1b0e2b9d53c653ec1c437a7f77b40f6aee12fa0"
+        "locale_sha256": "2c867ee8b92de7c7ecea12e9adc3580c7cd025f7a360fba99d42d09375aa945d",
+        "source_sha256": "c67e0e65e756ebb235f8d325391d3f599406c34a134a16cc923853eb573fa3b0"
       }
     },
     "FCMO-DB18BF567290": {
@@ -89173,6 +89317,48 @@
       "why_it_matters": {
         "locale_sha256": "cd2403b48995df9d384f92486f06b1b653caeea8ae79a565b8f636daf9c3f9ba",
         "source_sha256": "186abf9275312e5c662d3fed360a394980a097a1a901e3bff76d845e4e38beae"
+      }
+    },
+    "FCMO-E2A865D7E234": {
+      "claims": {
+        "locale_sha256": "53feeb89e6e84e73a0bf8d5db24e160d4be6867458f1a88907e8b926d64b5dec",
+        "source_sha256": "725bae06a8db40e228d8aba052e39f95972c19d1cf783c78fb50a98600f1948d"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "c55cf8501704f693215767ee6abb5c6e85ec4ef9067d12267dc499fd5dd1bee2",
+        "source_sha256": "09393dcd1bea500b530c43239b46eae6d8fc9d019430a74461d58740e9bc4e2e"
+      },
+      "importance_rationale": {
+        "locale_sha256": "006626f54bfe010f64b4de7e6d137d013d51b2e307a24e6367c5e879317405a0",
+        "source_sha256": "55f142ea86fc94b1b34b20deeb4686f3f06ef0bc73e65b0485f53c3353e6e26c"
+      },
+      "limitations": {
+        "locale_sha256": "42fadb8ea35566344036bb8906c5954603c29e9a810407aeb8f4eedc75415f2e",
+        "source_sha256": "95ecd6fe7816b9f513f1914bbbfde1f577363e34483c519c2bb951f84de7a1fb"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "941f5bff8edd16f8cae330a863ad63cdfe4a2a2a249c1cb0af147cce68351471",
+        "source_sha256": "c270f509a567412a6d2b75e71cd44da281f10c6ea67c22ee73c6045bf3c6b28d"
+      },
+      "technical": {
+        "locale_sha256": "a3146922b34bd64d3270ef0e25877e70d47261f77895b52b2b249213c6d4a9da",
+        "source_sha256": "4a5c7f0e682a9a3b19e9d3c52df2c4c7296b45e29f3bcee87d5a4f296f364775"
+      },
+      "title": {
+        "locale_sha256": "bd9518307b998609868d3f06434bb9e2856f9b3ebbae615174e06692a3198c38",
+        "source_sha256": "2be75fc358a83c38ccf18d1f309439d3676aadba20b25989597d3fe99ae77d97"
+      },
+      "why_it_matters": {
+        "locale_sha256": "3223d6625c63f2e043688f221be4310044f7d30d3f87fa8df7f9e2b0f3da3726",
+        "source_sha256": "e838115e2ea3883d3489ebcce0c92a55bc7c7fa47be1b8969def898caa06057d"
       }
     },
     "FCMO-E2FB9F5C7E07": {
