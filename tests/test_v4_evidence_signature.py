@@ -111,6 +111,13 @@ class EvidenceSignatureTests(unittest.TestCase):
         # The bare probe carries nothing at all, so its class must be «not established» whatever level the
         # chosen story arrived with (a «shown» level would otherwise make the expectation data-dependent).
         chosen[2].pop("confidence", None)
+        # A locale pack carries its own copy of the evidence prose, and the front board counts open gaps from
+        # that copy outside English. A bare probe must be bare in every locale, so drop it there too: fresh
+        # corpus stories ship localized gaps, and leaving them made the probe show «3 gaps» against an
+        # expectation of 0 (refresh guard failure, 2026-11-13 onward).
+        for pack in (chosen[2].get("l10n") or {}).values():
+            if isinstance(pack, dict):
+                (pack.get("fields") or {}).pop("evidence", None)
         for story in live:
             story["evidence_class"] = "<x>"
         cls.fixture_ids = [story["id"] for story in chosen]
