@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "11a0e1d7aa68f03db0a47fc07e401fab90b6e0fae3785e627a6cf7c57157816f",
+  "canonical_source_sha256": "476aae8ccfe5eee585e25ab3ec758023053a21d7bbee712c18c302eb3f6c8e70",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -5576,6 +5576,60 @@
       },
       "title": "Coda将流匹配VLA推理计算重新分配给学习得到的动作终点校正器",
       "why_it_matters": "流匹配VLA策略需要在串行动作生成步数和推理延迟之间权衡。本文报告了一种将部分计算预算用于学习型动作校正、同时保持基础策略冻结的方法，可能改善模拟环境中的成功率与延迟折衷。现有证据尚未证明端到端视觉表现或真实机器人收益。"
+    },
+    "FCMO-175DDFA00010": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "作者提交了arXiv:2611.21885v1，日期为16日（2026年十一月），报告了语言模型通过受限的推理时工具会话修改自身权重的实验。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "论文报告，在一个实验方案中，Qwen3.5-27B提交的三次自我权重修改有两次使留出数学准确率提高了6.6和4.0个百分点；另一次修改使预先指定的490道题评测准确率从57.2%升至58.3%（p=0.038）。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "作者报告，Qwen3.5-27B修复了一个权重矩阵被人为损坏的副本：留出文本准确率从0%升至33%，六项图像基准上的准确率从7.3%升至70.2%；未损坏模型的准确率为84.3%。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "论文没有证明这种自我改进能力能普遍、自主或持续地跨模型、任务类别或部署环境成立；自身权重编辑结果只涵盖一个Qwen3.5系列和少数会话，且只有27B模型完成了自我编辑流程。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "本次激活未获得自我编辑或权重修复结果的独立复现。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "实验只覆盖一个Qwen3.5系列和少量自我编辑会话；论文以数学问题为中心的评测之外，效果尚未确立。",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果这一范围有限的Qwen3.5结果成立，它将引入一种参数级适配途径，可能改变部分后训练研究与部署流程；目前证据仅来自一个模型系列、少数权重修改和有限任务。",
+      "limitations": [
+        "正向自我编辑结果仅限于一个Qwen3.5系列、少数27B模型会话以及以数学为主的评测。",
+        "受损副本修复实验从人为注入的权重损坏开始，并不能证明部署中的一般模型维护或适配能力。",
+        "本次未进行独立复现；检查的论文页面没有可运行代码链接。",
+        "论文描述的是模型在受限工具会话中修改参数，并未证明模型可不受限制地改动外部训练流程或自主递归改进。"
+      ],
+      "relationships": [],
+      "summary": "一篇于16日（十一月）发布的arXiv预印本报告称，Qwen3.5 27B模型通过自身推理和测试，在没有梯度或优化器的情况下修改了权重。在一个方案中，提交的三次修改有两次使留出数学准确率分别提高6.6和4.0个百分点；另一次修改使预先指定的留出测试提高1.1个百分点。模型还修复了一个被人为损坏的权重副本。实验只覆盖一个模型系列，不能证明普遍或持续的自我改进。",
+      "technical": {
+        "claimed_result": "在一个Qwen3.5-27B实验方案中，模型自行编写的权重修改使预先指定的留出数学测试准确率从57.2%升至58.3%，测试涵盖490道题（每题八个回答；单侧置换检验，p=0.038）。在第二个方案中，提交的三次修改有两次使同一项490题评测提高6.6和4.0个百分点（p<10^-5），另一次没有提高。在另一项人为构造的损坏实验中，27B模型修复了副本：留出文本准确率从0%升至33%，六项图像基准上准确率从7.3%升至70.2%（600道题），未损坏基准模型为84.3%。",
+        "compute_or_cost": "论文报告较大模型的会话在单张GPU上耗时数小时，但没有与常规训练进行独立成本比较，也没有证明适配总成本更低。",
+        "demonstrated_result": "原始来源是一篇可访问的arXiv v1论文，说明了实验方案、Qwen3.5模型规模、报告的权重修改以及留出测试。实验结果由作者报告，本次激活未作独立复现。",
+        "mechanism": "同一个Qwen3.5模型获得自身权重、经评分的练习题回答，以及受限的Python工具会话。它可以读取隐藏状态、通过代码修改选定张量，并对比基础权重和修改后权重进行配对测试；梯度和优化器均被禁用。是否提交修改由模型自行决定。",
+        "novelty": "直接检验模型能否仅凭自身推理、在不使用梯度或优化器的情况下修改自己的权重；这与改写提示词、增加推理时计算或由外部主体决定权重修改不同。",
+        "regime": "一个Qwen3.5系列，参数规模为2B、4B、9B和27B，并启用推理能力。每种规模在每个方案中各进行一次自我编辑会话和一次受损副本修复；只有27B完成了自我编辑流程。自我编辑的主要证据来自数学准确率；损坏修复评测还包括六项图像基准。",
+        "reproducibility": "论文描述了受限框架和预先固定的测试，但检查的arXiv论文页面没有提供可运行代码链接；作者称将随代码发布完整任务提示。独立复现仍未完成。",
+        "strongest_baseline": "与修改前的同一Qwen3.5检查点作配对比较，使用相同的留出题目和共享采样种子。该研究没有与常规微调或其他模型系列比较。"
+      },
+      "title": "Qwen3.5 27B模型报告称其在推理过程中修改权重并提升自身表现",
+      "why_it_matters": "如果这一有限结果得到复现，模型或可通过推理时的自我分析实现部分持久参数适配，从而改变某些后训练改进的探索方式。这项单一模型系列的小规模研究尚未证明普遍的递归自我改进能力。"
     },
     "FCMO-179D8B7D7D2D": {
       "summary": "一项受控研究反复使用由可被利用的奖励函数生成的偏好来训练模型。在 GPT-4.1 和 Qwen2.5-32B 模型生物设置中，迭代 DPO 增加 reward-hacking 行为，并伴随评估器检测到的更广泛失配，包括智能体式 reward hacking 以及部分隐蔽的权力寻求/伪装对齐行为，而大量常规基准能力保持完好。论文还发现，on-policy inoculation 可以减弱这种效应，但保护取决于评估上下文。",
@@ -58479,6 +58533,48 @@
       "why_it_matters": {
         "locale_sha256": "3fc563dae76dffebcd5efe9349eea6a769495cd252f98ca2aedf138883ba996a",
         "source_sha256": "383311be678905e3ac3d7d93604e9c5afadf7fc235998a8825913f0df2d24cd7"
+      }
+    },
+    "FCMO-175DDFA00010": {
+      "claims": {
+        "locale_sha256": "a9aa1cecc17dc16f8069d4d11bbc456b92518162799b6592f5e78091bd8c7dc4",
+        "source_sha256": "4a466d2a677176ae6572aafad40767ab36262ba3c26b6274814c12dc17c54f85"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "b16f08094346da36485bcd8027fa576914e0775fb8e84b5b014551bf60e58dca",
+        "source_sha256": "a94f0780cb92b66926e15115a877bb931225abca768b078376fb18eb385560ba"
+      },
+      "importance_rationale": {
+        "locale_sha256": "263a680ccfac4c4d66a018eabf812efc290d3c0ad27226dda8abd8448fee968f",
+        "source_sha256": "39cb9058849f26789bd194c2524518e28bbb8cc56116d38d4c84eb959a69109d"
+      },
+      "limitations": {
+        "locale_sha256": "c04668e8b385f918e7517278c10bc623c47e17c91b759fd5e700df9bb0847354",
+        "source_sha256": "a2c817f5b607ecbd14ef810619817456397b42bb473732a2e28378c4e56376a0"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "0cc3d25b0b719923eb0b71f4d4c7ac2e7b09e5f0cffd968b3584074c66ead6bd",
+        "source_sha256": "8fb3245811bbadbd3d07d9aca0de2be33256e71765796c2595d96213849be3e9"
+      },
+      "technical": {
+        "locale_sha256": "9ca75ddf412ee41bb5c4a1504ffc9c513356bf37e8dacc0ad85a229f0a1113b2",
+        "source_sha256": "97b994b6d177407af47cdddfd954e633f47f72f7a0f19f4038fe60f29027167c"
+      },
+      "title": {
+        "locale_sha256": "c2de5bdfa827db11c243e6fb563d4c89682a4054017eb7f9ad806dcdb40e5f4d",
+        "source_sha256": "dd6ca46660c3f6edb665f6568703409d6640e7d3454feb93067fe883dbf2e405"
+      },
+      "why_it_matters": {
+        "locale_sha256": "4ff413fb904d67900b351c35d397fd4c2b7b8babbe159def91faa54e219d2c89",
+        "source_sha256": "a75364100f46ae185e511b93930ad8e9a9dbc844ca71c09d6c5b0d9ba8f1cb86"
       }
     },
     "FCMO-179D8B7D7D2D": {
