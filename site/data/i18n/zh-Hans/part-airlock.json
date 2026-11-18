@@ -1,6 +1,6 @@
 {
   "canonical_locale": "en",
-  "canonical_source_sha256": "2ca0c5a2b6484e46ece5d201517931ecac95d8c5f84543947167734316ed09fb",
+  "canonical_source_sha256": "388e7e41b32cf19e786d1f4a38c0040dac76d7f10067cb32b0c9b623f85734e1",
   "generated_from": "ARB airlock; editorial wording authored upstream",
   "locale": "zh-Hans",
   "records": {
@@ -16084,6 +16084,59 @@
       },
       "title": "EBRL报告模拟具身RL训练吞吐量提高1.30×至3.47×",
       "why_it_matters": "具身RL训练可能受到CPU/GPU闲置以及模拟、动作生成和训练阶段间同步等待的限制。如果EBRL报告的结果能够复现，其调度器可能提高每个加速器小时完成的策略训练工作量。现有证据来自作者选择的模拟配置，不能证明其适用于物理机器人，也不能证明每个成功行为的成本更低。"
+    },
+    "FCMO-45EDDE9A7233": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "OpenAI于2026年十一月18日发布研究文章，介绍了模型辅助芯片设计、与AMD的合作以及两项RISC-V模型评测。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI称，在AMD旗舰GPU IP上，相对高度优化的基线，功耗、性能与面积综合指标最高提升14%；下一代旗舰CPU的部分模块提升为个位数百分比；部分模型生成的改动已进入AMD送厂制造的设计或生产设计文件。"
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI报告称，针对PicoRV32和Ibex的优化及按规格设计任务共完成9,881次计分运行；在每次运行约112,000个token的可比预算下，GPT-6.2 Astra在两款处理器核上的平均分最高，在PicoRV32上约为GPT-6 Astra的两倍。"
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "该文章没有证明通用自主芯片设计能力或全行业生产率提升。RISC-V评测只涵盖两款嵌入式处理器核；按规格设计的任务可以省略原有功能，频率由Yosys估算而未通过物理综合后的时序检查。"
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "此次有限范围的核查没有找到AMD或Synopsys的独立确认，也没有找到公开的设计级数据。",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "所查文章没有链接完整的9,881次RISC-V评测材料；此外，任务没有涵盖生产级处理器核的全部要求。",
+          "kind": "missing_artifact",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "如果报告中的RTL改动和功耗、性能与面积提升能够复现，模型辅助设计可能减少芯片设计迭代成本，包括专用AI硬件，并影响算力供给和电子设计自动化流程。现有证据来自单一实验室发布、少量合作方设计以及两款开源处理器核的模拟评测，尚不足以证明更广泛的生产率提升。",
+      "limitations": [
+        "功耗、性能与面积结果及制造状态均为厂商报告；本次没有查阅合作方的独立证据或设计材料。",
+        "受控能力评测仅涵盖两款32位嵌入式处理器核，并不代表大型量产SoC或加速器。",
+        "从规格设计时可以通过省略参考核原有功能来提高吞吐量；没有检查物理综合后的时序。",
+        "该文章没有量化端到端工程人力、EDA工具总成本、失败率或已实现的制造影响。"
+      ],
+      "relationships": [],
+      "summary": "在十一月18日发布的研究文章中，OpenAI称其模型协助重新设计了Jalapeño推理芯片的部分模块，并为AMD的GPU和CPU设计提供了RTL改动。OpenAI报告称，在AMD一款旗舰GPU IP上，相比经过高度优化的基线，功耗、性能与面积综合指标最高改善14%；在下一代旗舰CPU的部分模块上则有个位数百分比的提升。该公司还报告了9,881次RISC-V评测运行，在可比token预算下GPT-6.2 Astra的平均得分最高。制造状态和性能数据均为厂商自述；受控评测只覆盖两款处理器核，也没有进行物理综合后的时序检查。",
+      "technical": {
+        "claimed_result": "OpenAI报告称，Jalapeño的向量模块面积减少约13%，矩阵模块减少约10%；在AMD方面，旗舰GPU IP的功耗、性能与面积指标最高改善14%，下一代CPU的部分模块提升为个位数百分比。在RISC-V测试中，使用较高且相同的token预算时，GPT-6.2 Astra在PicoRV32和Ibex上的平均分领先。这些均为公司报告的结果。",
+        "demonstrated_result": "官方文章证实OpenAI发布了这些说法，并描述了评测设置。本次没有查阅AMD的独立确认、底层评测数据、完整运行记录或物理设计材料。",
+        "mechanism": "模型提出SystemVerilog RTL重写，并使用Synopsys工具检查功能等价性以及功耗、性能和面积之间的权衡。RISC-V评测要求模型优化现有处理器核，或根据书面要求设计处理器核；通过仿真检查正确性，淘汰失败结果以及面积超过原始处理器核的16x的设计，再用隐藏工作负载和Yosys估算的最高频率计算吞吐量。",
+        "novelty": "该报告将OpenAI此前介绍的Jalapeño芯片设计工作扩展到第三方GPU和CPU设计，并报告了跨模型代际的处理器核优化及按规格设计评测。",
+        "regime": "Jalapeño和AMD的部分设计模块；两款32位嵌入式处理器核（PicoRV32和Ibex）；仿真正确性检查、隐藏评测工作负载，以及每次运行约112,000个token的可比预算。按规格设计的结果可能省略原始处理器核包含的功能。",
+        "reproducibility": "该文章没有提供可确认完整评测材料或独立复现的信息。如能获得AMD或Synopsys确认，以及任务代码、RTL、工具版本和物理设计测量数据，便可进行更强的核查。",
+        "strongest_baseline": "对于AMD设计，OpenAI称其结果相对高度优化的基线，但公开文章没有披露足够的设计与测量细节供独立复算。RISC-V结果是在相同任务限制和token预算下比较不同代模型；每款处理器核的最高观测分数归一化为1.0。"
+      },
+      "title": "OpenAI称模型生成的设计改动改善了AMD量产芯片，并在RISC-V设计任务中取得更高分数",
+      "why_it_matters": "如果这些有限范围的结果得到复现，模型辅助RTL设计可能缩短先进芯片开发中的部分迭代周期，并扩大人工智能在电子设计自动化中的实际用途。该文章没有证明通用自主芯片设计能力、跨厂商结果或经独立测量的产品影响。"
     },
     "FCMO-45F5B47CECCF": {
       "claims": [
@@ -66570,6 +66623,48 @@
       "why_it_matters": {
         "locale_sha256": "9adf37c0fe66f49988e5d199645abfc22a3f655abd78296d0584493c32dc3c6f",
         "source_sha256": "c2c8024a42b1b7048f66894a69706b4ef731164b566de9ec03a740140ed51249"
+      }
+    },
+    "FCMO-45EDDE9A7233": {
+      "claims": {
+        "locale_sha256": "e0ca66ed38f8d993f325281ffbd7ae1339d9fb6c80dc1bdc34b4db0739692253",
+        "source_sha256": "4763a82f87f1379c16b27a2ca15bc9beb85d291d6a6850d5d03246de52097dd9"
+      },
+      "contradictory_evidence": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "evidence_gaps": {
+        "locale_sha256": "1fd558ae1728bca2193c851b15b7ef43aa737e0b4bdba25ace5374b5aa23863d",
+        "source_sha256": "378c7de6eceb2a9d70c4999bd30a2af283ed5384178e5ab71bb1cb5ebf52ae64"
+      },
+      "importance_rationale": {
+        "locale_sha256": "f2f7b0cbce1bf481ae1bfa36b09007873d2f5cfcdb6da4c924c4d31d9cbdce1c",
+        "source_sha256": "3d7fe9f9491e60bef941d2fb2eb187675feafd27a6db91f52444d005050dcccf"
+      },
+      "limitations": {
+        "locale_sha256": "e056bbf5220153941d6fb5c40e9bf7cefc1ef77014f7f7419ea2380c302c26ff",
+        "source_sha256": "9346eba912c2cc6896d7f0de27dd908106551d7405d9dffa6f2913b00643d1ee"
+      },
+      "relationships": {
+        "locale_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "summary": {
+        "locale_sha256": "f78931ae219276c6b8a2d0c7585f69ed30b5fd00dc71e03d828dd6720e1a6a42",
+        "source_sha256": "22d50f14cdc0cc48e35b2a8cfeac2b9f9d3384c5207bc410d7187ae753aba43b"
+      },
+      "technical": {
+        "locale_sha256": "4882a0dbd996831aa53372420bc3c18f5378ca8309c8b349d1ef8e5235975bef",
+        "source_sha256": "a4bd7b515c77691f0ef6b93f53ee7d989c7f7748fbe746a2495dcd7bc8b42930"
+      },
+      "title": {
+        "locale_sha256": "ddb9ca36f612f97769c542cd038065c0b580204227f96ec575d46ac6af87be15",
+        "source_sha256": "7b3c283c32dc89b8869f1a9419ddb3ed979c6044ceb180207248338a3d0f9ab3"
+      },
+      "why_it_matters": {
+        "locale_sha256": "b3bca6ac2d28676753a24b9b645cbc125fed395431af98d495016bb709de4f42",
+        "source_sha256": "b8a5b6134dd7b608f846a8a3d14d2deb1b9cfbbe2fe8c251f83cf265ccf57a76"
       }
     },
     "FCMO-45F5B47CECCF": {
