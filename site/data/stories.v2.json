@@ -1,7 +1,7 @@
 {
   "schema": "fcmo-stories-v2",
-  "generated_at": "2026-11-18T09:43:08Z",
-  "release_id": "newswire-1729bd8b2fae94cbb937934a",
+  "generated_at": "2026-11-18T11:46:02Z",
+  "release_id": "newswire-734001ab08c7d5bf0a9353a9",
   "canonical_locale": "en",
   "locales": [
     "en",
@@ -69,6 +69,492 @@
     "2026-11-15"
   ],
   "stories": [
+    {
+      "id": "FCMO-41B563D1CCAF",
+      "slug": "adindex-reports-faster-sparse-attention-indexing-for-long-context",
+      "url_date": "2026-11-18",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "compute_inference",
+      "title": "ADIndex reports faster sparse-attention indexing for long-context inference",
+      "headline": "ADIndex reports faster sparse-attention indexing for long-context inference",
+      "dek": "Qi et al. introduce ADIndex, which calibrates token-bank size by layer and distills a lightweight group indexer to share candidate tokens across neighboring queries in DeepSeek Sparse Attention.",
+      "summary": "Qi et al. introduce ADIndex, which calibrates token-bank size by layer and distills a lightweight group indexer to share candidate tokens across neighboring queries in DeepSeek Sparse Attention. In author-reported SGLang experiments on NVIDIA B300 GPUs with DeepSeek-V3.2 and GLM-5.1, ADIndex stays within one percentage point of standard DSA on RULER at 16K–128K contexts, while reported indexing-kernel speedups reach 6.22× for prefill and 3.40× for decode at 256K; the paper reports 1.54× end-to-end speed at 128K. Some shorter-context configurations are slower than DSA, and code or independent reproduction was not established in this review.",
+      "why_it_matters": "The paper targets a systems bottleneck in sparse-attention inference: repeated full-prefix scoring can remain costly even after attention is sparsified. Its bounded results suggest layer-aware sharing may improve long-context throughput while retaining benchmark performance, which could affect serving choices if independently reproduced on relevant hardware and workloads.",
+      "importance_rationale": "If reproduced on deployed sparse-attention systems, lower indexer overhead at long contexts could materially change inference throughput and cost choices. The paper reports an end-to-end gain on two model families, but measurements are author-reported and hardware- and context-dependent.",
+      "technical": {
+        "claimed_result": "The authors report near-matched RULER results on DeepSeek-V3.2 and GLM-5.1, kernel speedups up to 6.22× prefill and 3.40× decode at 256K, and 1.54× end-to-end speed at 128K. Some short-context configurations are slower than DSA.",
+        "compute_or_cost": "The paper reports end-to-end 1.54× speed at 128K KV-cache length on NVIDIA B300. It does not establish general serving economics; its simplified operation-count model excludes auxiliary costs.",
+        "demonstrated_result": "The accessible arXiv record establishes publication of v1 on 7 November 2026. The reported experiments remain author claims; no independent reproduction was conducted.",
+        "implementation_status": "Implemented in the authors’ experimental SGLang setup. No code artifact was linked in the inspected arXiv record and no independent deployment was found.",
+        "mechanism": "For each layer, offline calibration selects neighboring-query group sizes and token-bank budgets. A lightweight group indexer is distilled from the frozen DSA indexer to build a shared bank with one full-prefix scan per group; the original indexer then refines candidates for each query. Short prefixes and incomplete groups fall back to original DSA.",
+        "novelty": "Combines layer-specific calibration, group-level distillation and shared token-bank construction to reduce repeated full-prefix DSA scans while retaining per-query refinement.",
+        "regime": "Author-reported SGLang inference tests on NVIDIA B300 GPUs, using DeepSeek-V3.2 and GLM-5.1 in non-thinking mode. Benchmarks: LongBench, LongBench v2 capped at 128K, RULER at 16K–128K and indexing kernels profiled to 256K.",
+        "reproducibility": "The paper reports model, benchmark, GPU and training-data details. The inspected record did not link code; no matched independent reproduction was conducted.",
+        "strongest_baseline": "Original DeepSeek Sparse Attention (DSA) is the main baseline; the paper also compares HISA, MISA, IndexCache and PIVOT."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-11-07T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-11-18T11:45:23Z",
+      "updated_at": "2026-11-18T11:45:23Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": true,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "Qi et al. published ADIndex, a layer-adaptive sparse-attention indexing method, as arXiv:2611.12956v1 on 7 November 2026."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The authors report that on DeepSeek-V3.2 and GLM-5.1, ADIndex remained within one percentage point of the original DSA on RULER at each tested context length from 16K through 128K. At 128K, the reported scores were 93.34 versus 93.69 for DeepSeek-V3.2 and 94.49 versus 94.97 for GLM-5.1. These results were not independently reproduced here."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper reports custom indexing-kernel speedups over DSA of 3.15×–6.22× for prefill and 2.46×–3.40× for decode at 256K across four reuse configurations, and 1.54× end-to-end speed at a 128K KV-cache length. It also reports end-to-end slowdowns at shorter contexts for some configurations, including 0.69× at 16K for one configuration and 0.86× for its layer-wise setting."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The appendix analytical model counts each score evaluation at equal cost regardless of indexing-head count and excludes pooling, projections, candidate selection and kernel-launch overhead; its scoring-operation reductions are not themselves end-to-end latency measurements."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The inspected paper does not establish independent reproduction, performance on hardware other than the reported NVIDIA B300 setting, or realized serving-cost savings in production workloads."
+          }
+        ],
+        "limitations": [
+          "All task-performance and efficiency measurements are author-reported; no independent reproduction was conducted.",
+          "The reported experiment uses SGLang and NVIDIA B300 GPUs with two models; cross-stack, cross-hardware and production transfer are unestablished.",
+          "ADIndex can be slower than DSA at shorter contexts; the paper reports configuration-specific end-to-end slowdowns at 16K and 32K.",
+          "The appendix operation-count model assigns equal cost to different indexer heads and excludes pooling, projection, candidate-selection and kernel-launch overheads; these ratios are not wall-clock latency.",
+          "The 1.54× end-to-end result is at a 128K KV-cache length and does not establish general production savings."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_artifact",
+            "description": "No author-linked implementation or pinned code artifact was found in the arXiv record or the earlier bounded search."
+          },
+          {
+            "kind": "missing_independent",
+            "description": "The benchmark and efficiency results remain author-reported; no independent matched reproduction was conducted."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2611.12956",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Nanjing University",
+        "Alibaba Group"
+      ],
+      "topics": [
+        "sparse-attention",
+        "long-context-inference",
+        "inference-efficiency",
+        "attention-indexing",
+        "benchmarking"
+      ],
+      "regions": [
+        "CN"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-41B563D1CCAF.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: ADIndex reports faster sparse-attention indexing for long-context inference"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "ADIndex informa una indexación más rápida para la atención dispersa en contextos extensos",
+            "summary": "Qi y sus colegas presentan ADIndex, un método que calibra por capa el tamaño de bancos de tokens y destila un indexador ligero para compartir candidatos entre consultas vecinas en DeepSeek Sparse Attention. En experimentos de los autores con SGLang y GPU NVIDIA B300, usando DeepSeek-V3.2 y GLM-5.1, ADIndex se mantiene a menos de un punto porcentual de DSA estándar en RULER entre contextos de 16K y 128K. Los autores informan aceleraciones de hasta 6.22× en el kernel de indexación durante el prefill y 3.40× durante la decodificación a 256K, además de 1.54× de velocidad de extremo a extremo a 128K. Algunas configuraciones son más lentas en contextos cortos; esta revisión no encontró código ni una reproducción independiente.",
+            "importance_rationale": "Si se reproduce en sistemas de atención dispersa desplegados, reducir el costo del indexador con contextos largos podría cambiar de forma significativa las decisiones sobre rendimiento y costo de inferencia. El artículo informa una ganancia de extremo a extremo en dos familias de modelos, pero las mediciones son de los autores y dependen del hardware y la longitud del contexto.",
+            "why_it_matters": "El trabajo aborda un cuello de botella concreto de la inferencia con atención dispersa: la puntuación repetida de todo el prefijo puede seguir siendo costosa incluso cuando se reduce el cálculo de atención. Los resultados acotados sugieren que compartir bancos según la capa podría mejorar el rendimiento con contextos largos sin perder resultados de referencia, lo que podría influir en decisiones de servicio si se reproduce en hardware y cargas pertinentes.",
+            "technical": {
+              "claimed_result": "Los autores informan resultados RULER cercanos a DSA en DeepSeek-V3.2 y GLM-5.1, aceleraciones de kernel de hasta 6.22× en prefill y 3.40× en decodificación a 256K, y 1.54× de velocidad total a 128K. Algunas configuraciones son más lentas en contextos cortos.",
+              "compute_or_cost": "El artículo informa 1.54× de velocidad de extremo a extremo con una caché KV de 128K en GPU NVIDIA B300. No demuestra costos generales de servicio; el modelo simplificado de operaciones omite costos auxiliares.",
+              "demonstrated_result": "El registro público de arXiv confirma que la versión v1 se publicó el 7 de noviembre de 2026. Los experimentos informados siguen siendo afirmaciones de los autores; esta revisión no los reprodujo independientemente.",
+              "implementation_status": "El método está implementado en el entorno experimental SGLang de los autores. El registro de arXiv revisado no enlaza un artefacto de código y no se encontró un despliegue independiente.",
+              "mechanism": "Para cada capa, una calibración sin conexión elige el tamaño de los grupos de consultas vecinas y el presupuesto del banco de tokens. Un indexador ligero de grupo se destila del indexador DSA congelado y crea un banco compartido con una sola lectura del prefijo completo por grupo; luego el indexador original ajusta los candidatos para cada consulta. Los prefijos cortos y los grupos incompletos vuelven al recorrido DSA original.",
+              "novelty": "Combina calibración por capa, destilación de grupos y bancos de tokens compartidos para reducir lecturas repetidas del prefijo completo en DSA, conservando un ajuste específico para cada consulta.",
+              "regime": "Pruebas de inferencia informadas por los autores en SGLang y GPU NVIDIA B300 con DeepSeek-V3.2 y GLM-5.1 sin modo de razonamiento. Incluyen LongBench, LongBench v2 limitado a 128K, RULER entre 16K y 128K y kernels de indexación medidos hasta 256K.",
+              "reproducibility": "El artículo detalla modelos, benchmarks, GPU y datos de entrenamiento. El registro revisado no enlaza código y no se hizo una reproducción independiente en condiciones comparables.",
+              "strongest_baseline": "El indexador original de DeepSeek Sparse Attention (DSA) es la comparación principal. El artículo también evalúa HISA, MISA, IndexCache y PIVOT."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Qi y sus colegas publicaron ADIndex, un método de indexación para atención dispersa adaptable por capa, como arXiv:2611.12956v1 el 7 de noviembre de 2026."
+                },
+                {
+                  "text": "Los autores informan que, con DeepSeek-V3.2 y GLM-5.1, ADIndex quedó a menos de un punto porcentual del DSA original en RULER para cada contexto evaluado entre 16K y 128K. A 128K, las puntuaciones informadas fueron 93.34 frente a 93.69 para DeepSeek-V3.2 y 94.49 frente a 94.97 para GLM-5.1. Aquí no se reprodujeron de forma independiente."
+                },
+                {
+                  "text": "El artículo informa, frente a DSA, aceleraciones de 3.15×–6.22× en kernels de indexación durante el prefill y de 2.46×–3.40× durante la decodificación a 256K, en cuatro configuraciones; también informa 1.54× de velocidad de extremo a extremo con una caché KV de 128K. Algunas configuraciones son más lentas en contextos cortos: una alcanza 0.69× a 16K y la variante adaptable por capa 0.86×."
+                },
+                {
+                  "text": "El modelo analítico del apéndice asigna el mismo costo a cada puntuación aunque cambie la cantidad de cabezas del indexador, y excluye agrupación, proyecciones, selección de candidatos y lanzamientos de kernels. Por ello, las reducciones de operaciones de puntuación no son mediciones de latencia de extremo a extremo."
+                },
+                {
+                  "text": "El artículo revisado no demuestra una reproducción independiente, rendimiento en hardware distinto de las GPU NVIDIA B300 informadas ni ahorros de servicio realizados en cargas de producción."
+                }
+              ],
+              "limitations": [
+                "Todas las mediciones de rendimiento y eficiencia son informes de los autores; aquí no se reprodujeron independientemente.",
+                "Los experimentos informados usan SGLang y GPU NVIDIA B300 con dos modelos; no se estableció la transferencia a otras pilas, hardware o producción.",
+                "ADIndex puede ser más lento que DSA con contextos cortos; el artículo informa ralentizaciones de extremo a extremo a 16K y 32K en algunas configuraciones.",
+                "El modelo de operaciones del apéndice asigna igual costo a distintas cantidades de cabezas y excluye agrupación, proyecciones, selección de candidatos y lanzamientos de kernels; esas razones no equivalen a latencia real.",
+                "El resultado de 1.54× de extremo a extremo corresponde a una caché KV de 128K y no demuestra ahorros generales en producción."
+              ],
+              "gaps": [
+                {
+                  "description": "No se encontró una implementación vinculada por los autores ni una versión de código fijada en el registro de arXiv o en la búsqueda acotada anterior."
+                },
+                {
+                  "description": "Los resultados de rendimiento y eficiencia siguen siendo informes de los autores; no se hizo una reproducción independiente en condiciones comparables."
+                }
+              ]
+            },
+            "headline": "ADIndex informa una indexación más rápida para la atención dispersa en contextos extensos",
+            "dek": "Qi y sus colegas presentan ADIndex, un método que calibra por capa el tamaño de bancos de tokens y destila un indexador ligero para compartir candidatos entre consultas vecinas en DeepSeek Sparse Attention."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "ADIndex 报告称长上下文稀疏注意力索引速度提升",
+            "summary": "Qi 等人提出 ADIndex：按层校准令牌库容量，并蒸馏轻量级分组索引器，在 DeepSeek Sparse Attention 中让相邻查询共享候选令牌。作者在 NVIDIA B300 GPU 上通过 SGLang 对 DeepSeek-V3.2 和 GLM-5.1 进行实验，报告称在 16K 至 128K 上下文的 RULER 评测中，ADIndex 与标准 DSA 的差距不到一个百分点。作者还报告称，在 256K 上下文下，索引内核的预填充速度最高提升 6.22×，解码速度最高提升 3.40×；在 128K 上下文下端到端速度提升 1.54×。部分短上下文配置反而更慢；本次审阅未找到代码，也未进行独立复现。",
+            "importance_rationale": "如果该方法能在已部署的稀疏注意力系统中复现，降低长上下文下索引器的开销可能显著改变推理吞吐量和成本决策。论文报告了两类模型上的端到端收益，但这些测量由作者完成，并受硬件和上下文长度影响。",
+            "why_it_matters": "这项工作针对稀疏注意力推理中的一个具体瓶颈：即使注意力计算已变稀疏，反复为整个前缀打分仍可能耗费大量时间。其有限范围内的结果表明，按层共享令牌库或可在保持基准表现的同时提升长上下文吞吐量；若能在相关硬件和工作负载上独立复现，可能影响推理服务方案的选择。",
+            "technical": {
+              "claimed_result": "作者报告称，DeepSeek-V3.2 和 GLM-5.1 上的 RULER 结果接近 DSA；256K 上下文下索引内核预填充速度最高提升 6.22×、解码速度提升 3.40×；128K 时端到端速度提升 1.54×。部分短上下文配置更慢。",
+              "compute_or_cost": "论文报告称，NVIDIA B300 GPU 上 128K KV 缓存的端到端速度提升 1.54×。论文未证明普遍适用的推理服务经济性；其简化操作数量模型省略了辅助开销。",
+              "demonstrated_result": "arXiv 公开记录确认该论文第一版于 2026年十一月7日发布。报告的实验结果仍是作者的主张，本次审阅未进行独立复现。",
+              "implementation_status": "该方法已在作者的实验性 SGLang 环境中实现。所审阅的 arXiv 记录没有代码链接，也未发现独立部署。",
+              "mechanism": "每层分别通过离线校准选择相邻查询的分组大小和令牌库预算。轻量级分组索引器由冻结的 DSA 索引器蒸馏而来，每组仅扫描一次完整前缀以建立共享令牌库；随后原索引器针对每条查询细化候选项。短前缀和不完整分组回退到原始 DSA 路径。",
+              "novelty": "将逐层校准、分组蒸馏和共享令牌库结合起来，减少 DSA 对完整前缀的重复扫描，同时保留逐查询细化。",
+              "regime": "作者在 NVIDIA B300 GPU 的 SGLang 环境下测试 DeepSeek-V3.2 和 GLM-5.1，均未启用思考模式。基准包括 LongBench、上限为 128K 的 LongBench v2、16K 至 128K 的 RULER，以及测至 256K 的索引内核。",
+              "reproducibility": "论文提供了模型、基准、GPU 和训练数据细节。所审阅的记录没有代码链接，本次未进行匹配条件下的独立复现。",
+              "strongest_baseline": "主要对照是原始 DeepSeek Sparse Attention（DSA）索引器。论文还比较了 HISA、MISA、IndexCache 和 PIVOT。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Qi 等人于 2026年十一月7日在 arXiv 发布了按层自适应的稀疏注意力索引方法 ADIndex，版本号为 arXiv:2611.12956v1。"
+                },
+                {
+                  "text": "作者报告称，在 DeepSeek-V3.2 和 GLM-5.1 上，ADIndex 在 16K 至 128K 的每个测试上下文长度下，RULER 得分与原始 DSA 相差不到一个百分点。128K 时，DeepSeek-V3.2 的报告得分为 93.34 对 93.69，GLM-5.1 为 94.49 对 94.97。本次审阅未独立复现这些结果。"
+                },
+                {
+                  "text": "论文报告称，相较 DSA，四种复用配置在 256K 上下文下的索引内核预填充加速为 3.15× 至 6.22×，解码加速为 2.46× 至 3.40×；128K KV 缓存下端到端速度提升 1.54×。部分短上下文配置端到端速度更慢，其中一种配置在 16K 时为 0.69×，按层配置为 0.86×。"
+                },
+                {
+                  "text": "附录中的分析模型将每次打分视为相同成本，不区分索引器头数，并且不计入池化、投影、候选筛选和内核启动开销。因此，打分操作减少量本身不代表端到端延迟测量。"
+                },
+                {
+                  "text": "所审阅的论文未证明结果得到独立复现、可在 NVIDIA B300 以外的硬件上达到相同性能，或已在生产工作负载中实现服务成本节约。"
+                }
+              ],
+              "limitations": [
+                "所有任务表现和效率测量均由论文作者报告；本次未独立复现。",
+                "报告的实验使用 SGLang、NVIDIA B300 GPU 和两种模型；能否迁移至其他软件栈、硬件或生产环境尚未确立。",
+                "在较短上下文中，ADIndex 可能慢于 DSA；论文报告某些配置在 16K 和 32K 时端到端速度下降。",
+                "附录的操作数量模型将不同索引器头数视为相同成本，并排除了池化、投影、候选筛选和内核启动开销；这些比率并非实测墙钟延迟。",
+                "1.54×端到端结果对应 128K KV 缓存，不能证明生产环境普遍节省成本。"
+              ],
+              "gaps": [
+                {
+                  "description": "arXiv 记录及此前的有限检索中均未发现作者关联的实现或固定版本的代码工件。"
+                },
+                {
+                  "description": "基准与效率结果仍由论文作者报告，本次未进行独立的匹配条件复现。"
+                }
+              ]
+            },
+            "headline": "ADIndex 报告称长上下文稀疏注意力索引速度提升"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
+    {
+      "id": "FCMO-08AC34FF5FD4",
+      "slug": "preprint-reports-no-measurable-increase-in-merged-coding-work-after",
+      "url_date": "2026-11-18",
+      "kind": "development",
+      "status": "live",
+      "beat": "research",
+      "desk": "evaluation_science",
+      "title": "Preprint reports no measurable increase in merged coding work after higher-scoring Claude model access or upgrades",
+      "dek": "A new preprint uses a 19-day loss of access to Claude Fable 5 and five subsequent Claude model upgrades to study whether higher benchmark scores translated into more completed public coding work.",
+      "summary": "A new preprint uses a 19-day loss of access to Claude Fable 5 and five subsequent Claude model upgrades to study whether higher benchmark scores translated into more completed public coding work. The author reports no statistically significant change in seven-day pull-request merge rates or weekly merged pull requests. These are author-reported estimates, not an independent reproduction; the study observes public Claude Code pull requests, model attribution is sparse, and merge rates do not capture private work, time saved or all dimensions of code quality.",
+      "why_it_matters": "The study directly examines the gap between coding benchmark performance and a real-work outcome used in adoption decisions. If its bounded results replicate, they would caution against treating benchmark improvements alone as measured productivity or economic return. The paper does not show that model upgrades never help developers.",
+      "importance_rationale": "If the reported result holds in its stated setting, it materially changes how benchmark gains should inform coding-model evaluation and adoption economics; its scope is restricted to Claude Code public pull requests and does not measure broader productivity.",
+      "technical": {
+        "claimed_result": "The author reports a 1.4 percentage-point change in seven-day merge rate (95% CI −1.4 to +4.3) during the Fable 5 access reversal and a −0.9-point pooled change (95% CI −1.9 to +0.2) across five upgrades; weekly merged pull requests changed +2.4% (95% CI −4.9% to +10.2%). None was statistically significant.",
+        "compute_or_cost": "The paper does not measure compute costs, time saved, revenue, or return on investment.",
+        "demonstrated_result": "The accessible arXiv v1 paper specifies its datasets, study designs, outcomes, estimates, confidence intervals and limitations. Its empirical results are author-reported and were not independently reproduced in this activation.",
+        "mechanism": "A temporary external suspension of Fable 5 access is used as a natural experiment, with same-developer before/during/after pull-request outcomes and an Opus 4.8 control group; five model upgrades are separately assessed through within-developer before/after comparisons.",
+        "novelty": "Tests whether higher coding benchmark scores correspond to more accepted public coding work using an access suspension and multiple within-developer model-upgrade analyses.",
+        "regime": "Public Claude Code pull requests, mainly from Nov 2025 to Oct 2026. The suspension analysis includes 297 Fable 5 users and 8,908 Opus 4.8 controls; the upgrade analysis pools five upgrades and 1,208 developers. Outcomes are merge within seven days and weekly merged pull requests.",
+        "strongest_baseline": "For the suspension, Fable 5 users are compared before, during and after access suspension against developers who used Opus 4.8 throughout, with developer and calendar-day fixed effects. Upgrade comparisons are within-developer but observational and self-selected."
+      },
+      "importance_tier": "Notable",
+      "development_type": "paper",
+      "event_at": "2026-11-17T00:00:00Z",
+      "date_precision": "day",
+      "first_published_at": "2026-11-18T11:45:23Z",
+      "updated_at": "2026-11-18T11:45:23Z",
+      "importance": 5,
+      "evidence_class": "A",
+      "confidence": "claimed_unverified",
+      "front_page_eligible": false,
+      "carried_forward": false,
+      "evidence": {
+        "claims": [
+          {
+            "label": "DEMONSTRATED",
+            "text": "Yining Hua submitted arXiv:2611.23216v1 on 17 November 2026, reporting analyses of Claude Code pull requests around a temporary model-access suspension and several model upgrades."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The author reports that a 19-day Claude Fable 5 access suspension produced a 1.4 percentage-point change in seven-day pull-request merge rate (95% CI −1.4 to +4.3) among measured users, while five Claude model upgrades produced a pooled −0.9-point change (95% CI −1.9 to +0.2); neither estimate was statistically significant. The upgrade analysis reports no significant change in weekly merged pull requests (+2.4%; 95% CI −4.9% to +10.2%)."
+          },
+          {
+            "label": "CLAIMED",
+            "text": "The paper reports a difference-in-differences analysis of 297 developers who used Fable 5 and 8,908 Opus 4.8 control developers around the suspension, plus within-developer comparisons across five upgrades involving 1,208 developers and 15,442 pull requests."
+          },
+          {
+            "label": "NOT_ESTABLISHED",
+            "text": "The paper does not establish that higher coding benchmark scores generally fail to improve productivity: it studies public Claude Code pull requests and merge-based outcomes, model attribution is sparse, and it does not measure private work, task completion quality beyond available checks, time saved, or other coding tools."
+          }
+        ],
+        "limitations": [
+          "All outcome estimates are reported by the paper's author and were not independently reproduced in this activation.",
+          "The study focuses on public Claude Code pull requests; the paper reports that only 1.0% of a sampled set of merged Claude Code PRs included the model name in their description, limiting model attribution and generalization.",
+          "Merge rate is a proxy for accepted public code changes and does not directly measure time saved, private work, downstream code quality, or total productivity.",
+          "The Fable 5 suspension analysis covers one 19-day event; the model-upgrade comparisons are observational and self-selected."
+        ],
+        "gaps": [
+          {
+            "kind": "missing_independent",
+            "description": "No independent reproduction of the paper's suspension or upgrade estimates was performed; the linked GitHub code/data repository returned 404 during this activation."
+          },
+          {
+            "kind": "other",
+            "description": "The study identifies model use through sparse public Claude Code pull-request attribution; it does not measure private work, developer time saved or full code quality."
+          },
+          {
+            "kind": "other",
+            "description": "The suspension design is bounded to one 19-day event and depends on parallel trends; model upgrades are self-selected and observational."
+          }
+        ],
+        "contradictory": []
+      },
+      "sources": [
+        {
+          "url": "https://arxiv.org/abs/2611.23216",
+          "domain": "arxiv.org",
+          "primary": true
+        }
+      ],
+      "corrections": [],
+      "related": [],
+      "organizations": [
+        "Harvard University",
+        "Anthropic"
+      ],
+      "topics": [
+        "coding-models",
+        "benchmark-validity",
+        "developer-productivity",
+        "economics",
+        "field-evidence"
+      ],
+      "regions": [
+        "GLOBAL"
+      ],
+      "media": {
+        "kind": "explainer",
+        "local_path": "assets/story-media/FCMO-08AC34FF5FD4.svg",
+        "credit": "FCMO AI Research Desk",
+        "license": "FCMO original editorial graphic",
+        "alt": {
+          "en": "FCMO explainer graphic: Preprint reports no measurable increase in merged coding work after higher-scoring Claude model access or upgrades"
+        },
+        "width": 1600,
+        "height": 900
+      },
+      "l10n": {
+        "es-419": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "Un preprint no encuentra más trabajo de programación fusionado tras el acceso a modelos Claude con mejores puntuaciones",
+            "summary": "Un nuevo preprint estudia si mejores puntuaciones en benchmarks se tradujeron en más trabajo de programación terminado, usando la pérdida de acceso a Claude Fable 5 durante 19 días y cinco actualizaciones posteriores de modelos Claude. El autor informa que no hubo cambios estadísticamente significativos en la tasa de solicitudes fusionadas en siete días ni en las solicitudes fusionadas por semana. Son estimaciones del autor, no una reproducción independiente; el estudio observa solicitudes públicas de Claude Code, la atribución del modelo es escasa y las fusiones no capturan el trabajo privado, el tiempo ahorrado ni todas las dimensiones de calidad del código.",
+            "importance_rationale": "Si el resultado se sostiene en el contexto estudiado, cambia de forma significativa cómo deben usarse las mejoras de benchmarks para evaluar modelos de programación y decidir su adopción. El alcance se limita a solicitudes públicas de Claude Code y no mide la productividad en general.",
+            "why_it_matters": "El estudio examina directamente la brecha entre el rendimiento en benchmarks de programación y un resultado laboral usado para evaluar la adopción. Si sus resultados acotados se replican, advertirían contra tratar las mejoras de benchmarks como prueba directa de productividad o retorno económico. El artículo no demuestra que las actualizaciones de modelos nunca ayuden a los desarrolladores.",
+            "technical": {
+              "claimed_result": "El autor informa una variación de 1.4 puntos porcentuales (IC del 95%: −1.4 a +4.3) en la tasa de fusión en siete días durante la suspensión de acceso a Fable 5 y una variación agrupada de −0.9 puntos (IC del 95%: −1.9 a +0.2) en cinco actualizaciones. Las solicitudes fusionadas por semana variaron +2.4% (IC del 95%: −4.9% a +10.2%). Ningún resultado fue estadísticamente significativo.",
+              "compute_or_cost": "El artículo no mide costos de cómputo, tiempo ahorrado por desarrolladores, ingresos ni retorno de inversión. Informa sobre la posible relación entre puntuaciones de benchmarks y producción laboral, pero no cuantifica la economía de adopción.",
+              "demonstrated_result": "El preprint accesible especifica sus datos, diseños, resultados, intervalos de confianza y limitaciones. Sus resultados empíricos son informes del autor y no se reprodujeron de forma independiente en esta activación.",
+              "mechanism": "El artículo aprovecha una suspensión externa temporal del acceso a Fable 5 como experimento natural y compara resultados de solicitudes de los mismos desarrolladores antes, durante y después, con un grupo de control que usó Opus 4.8. También analiza por separado cinco actualizaciones mediante comparaciones antes y después dentro de cada desarrollador.",
+              "novelty": "Evalúa si mayores puntuaciones en benchmarks de programación se asocian con más trabajo público aceptado mediante una suspensión temporal de acceso y varias comparaciones de actualizaciones dentro de los mismos desarrolladores.",
+              "regime": "Solicitudes públicas de Claude Code, principalmente entre noviembre de 2025 y octubre de 2026. Los resultados principales son la fusión en siete días y las solicitudes fusionadas por semana. El análisis de suspensión incluye 297 usuarios de Fable 5 y 8,908 controles de Opus 4.8; el de actualizaciones agrupa cinco cambios y 1,208 desarrolladores. No cubre trabajo privado ni otras herramientas de programación.",
+              "strongest_baseline": "Para la suspensión, se compara a los usuarios de Fable 5 antes, durante y después del cierre de acceso con desarrolladores que siempre usaron Opus 4.8, mediante efectos fijos de desarrollador y día calendario. Las comparaciones de actualizaciones son dentro de cada desarrollador, pero observacionales y autoseleccionadas."
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Yining Hua presentó arXiv:2611.23216v1 el 17 de noviembre de 2026. El preprint informa análisis de solicitudes de incorporación de cambios de Claude Code en torno a una suspensión temporal de acceso a un modelo y varias actualizaciones de modelos."
+                },
+                {
+                  "text": "Durante los 19 días de suspensión de acceso a Claude Fable 5, el autor informa que la tasa de solicitudes fusionadas en siete días varió 1.4 puntos porcentuales (IC del 95%: −1.4 a +4.3) entre los usuarios medidos. En cinco actualizaciones de modelos, la variación agrupada fue de −0.9 puntos (IC del 95%: −1.9 a +0.2). Ninguna estimación fue estadísticamente significativa. El análisis de actualizaciones tampoco encontró un cambio significativo en las solicitudes fusionadas por semana (+2.4%; IC del 95%: −4.9% a +10.2%)."
+                },
+                {
+                  "text": "El artículo informa un análisis de diferencias en diferencias con 297 desarrolladores que usaron Fable 5 y 8,908 desarrolladores de control que usaron Opus 4.8, además de comparaciones de cinco actualizaciones con 1,208 desarrolladores y 15,442 solicitudes de incorporación de cambios."
+                },
+                {
+                  "text": "El artículo no demuestra que las puntuaciones más altas en pruebas de programación nunca mejoren la productividad: estudia solicitudes públicas de Claude Code, la atribución del modelo es escasa y no mide el trabajo privado, la calidad total de las tareas, el tiempo ahorrado ni otras herramientas de programación."
+                }
+              ],
+              "limitations": [
+                "Todas las estimaciones de resultados provienen del artículo y no se reprodujeron de forma independiente en esta activación.",
+                "El estudio examina solicitudes públicas de Claude Code; el artículo indica que solo el 1.0% de una muestra de solicitudes fusionadas incluía el nombre del modelo en su descripción, lo que limita la atribución y la generalización.",
+                "La fusión es un indicador de cambios de código públicos aceptados y no mide directamente el tiempo ahorrado, el trabajo privado, la calidad posterior del código ni la productividad total.",
+                "El análisis de suspensión de Fable 5 cubre un evento de 19 días; las comparaciones de cinco actualizaciones son observacionales y autoseleccionadas."
+              ],
+              "gaps": [
+                {
+                  "description": "No se realizó una reproducción independiente de las estimaciones de suspensión o actualización del artículo; el repositorio de código y datos enlazado devolvió un error 404 durante esta activación."
+                },
+                {
+                  "description": "El estudio identifica el uso del modelo mediante menciones escasas en solicitudes públicas de Claude Code; no mide el trabajo privado, el tiempo ahorrado ni toda la calidad del código."
+                },
+                {
+                  "description": "El análisis de suspensión cubre un solo evento de 19 días; las comparaciones de actualizaciones son observacionales y dependen de la elección de modelo."
+                }
+              ]
+            },
+            "dek": "Un nuevo preprint estudia si mejores puntuaciones en benchmarks se tradujeron en más trabajo de programación terminado, usando la pérdida de acceso a Claude Fable 5 durante 19 días y cinco actualizaciones posteriores de modelos Claude."
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        },
+        "zh-Hans": {
+          "state": "NATIVE_ARB",
+          "fields": {
+            "title": "预印本报告称，使用基准分数更高的 Claude 模型后，合并的编程工作量并未增加",
+            "summary": "一篇新预印本研究基准分数提高是否转化为更多完成的编程工作，利用 Claude Fable 5 在19天内停止提供访问以及随后五次 Claude 模型升级。作者报告称，七日内拉取请求合并率和每周合并数量均没有统计显著变化。这些是作者报告的估计，尚无独立复现；研究只观察公开的 Claude Code 拉取请求，模型归因信息有限，合并指标也无法覆盖私人工作、节省时间或代码质量的所有方面。",
+            "importance_rationale": "如果这一结论在所研究的范围内成立，它将实质影响如何使用基准提升来评估编程模型和决定采购或采用。研究范围仅限公开的 Claude Code 拉取请求，并未测量一般生产率。",
+            "why_it_matters": "该研究直接检验编程基准成绩与一种实际工作结果之间的差距，而后者常用于评估模型是否值得采用。如果其有限范围内的结果得到复现，就说明不能仅凭基准分数提升认定生产率或经济回报已经提高。论文并未证明模型升级从不帮助开发者。",
+            "technical": {
+              "claimed_result": "作者报告，Fable 5 暂停期间七日内合并率变化为1.4个百分点（95%置信区间：−1.4至+4.3）；五次升级的合并率变化合并估计为−0.9个百分点（95%置信区间：−1.9至+0.2）。每周合并的拉取请求数变化为+2.4%（95%置信区间：−4.9%至+10.2%）。这些结果均无统计显著性。",
+              "compute_or_cost": "论文没有测量计算成本、开发者节省的时间、收入或投资回报。研究涉及基准分数与实际工作产出之间可能的关系，但没有量化采用模型的经济收益。",
+              "demonstrated_result": "可访问的 arXiv v1 论文列明了数据、研究设计、结果、置信区间和局限。经验结果由作者报告，本次激活未独立复现。",
+              "mechanism": "论文将外部造成的 Fable 5 临时访问暂停视为自然实验，比较同一批开发者在暂停前、暂停期间和恢复后的拉取请求结果，并使用持续使用 Opus 4.8 的开发者作为对照。另通过同一开发者升级模型前后的比较，单独分析五次升级。",
+              "novelty": "通过一次临时访问暂停和多项同一开发者升级前后的比较，检验更高的编程基准分数是否对应更多被接受的公开工作。",
+              "regime": "研究对象为2025年至2026年的公开 Claude Code 拉取请求。主要结果是七日内合并率和每周合并的拉取请求数。暂停分析包括297名 Fable 5 用户和8,908名 Opus 4.8 对照开发者；升级分析汇总五次升级和1,208名开发者。研究不涵盖私人工作或其他编程工具。",
+              "strongest_baseline": "暂停分析使用开发者固定效应和日历日固定效应，将 Fable 5 用户在暂停前、暂停期间及恢复后的结果与持续使用 Opus 4.8 的开发者比较。升级分析在同一开发者内部比较，但属于观察性研究，模型升级由用户自行选择。"
+            },
+            "evidence": {
+              "claims": [
+                {
+                  "text": "Yining Hua 于 arXiv:2611.23216v1 提交了该论文，日期为17 November 2026。该预印本分析了 Claude Code 拉取请求在模型访问暂时中止及多次模型升级前后的变化。"
+                },
+                {
+                  "text": "在 Claude Fable 5 停止访问的19天期间，作者报告称，受分析用户的七日内合并率变化为1.4个百分点（95%置信区间：−1.4至+4.3）。五次模型升级的合并变化为−0.9个百分点（95%置信区间：−1.9至+0.2）。两项估计均未达到统计显著性。升级分析中每周合并的拉取请求数也没有显著变化（+2.4%；95%置信区间：−4.9%至+10.2%）。"
+                },
+                {
+                  "text": "论文报告称，差分中的差分分析包括297名 Fable 5 用户和8,908名使用 Opus 4.8 的对照开发者；另对五次升级进行了涉及1,208名开发者和15,442个拉取请求的比较。"
+                },
+                {
+                  "text": "论文并未证明更高的编程基准分数永远无法提高生产率：研究对象仅为公开的 Claude Code 拉取请求，模型归因信息有限，也没有测量私人工作、完整任务质量、节省时间或其他编程工具。"
+                }
+              ],
+              "limitations": [
+                "所有结果估计均来自论文作者的报告，本次激活未进行独立复现。",
+                "研究考察公开的 Claude Code 拉取请求；论文报告称，在抽取的已合并请求样本中，只有1.0%的描述包含模型名称，因此模型归因和结论推广受到限制。",
+                "合并只能作为公开代码变更被接受的指标，不能直接衡量节省时间、私人工作、后续代码质量或总体生产率。",
+                "Fable 5 暂停分析覆盖一次为期19天的事件；五次模型升级比较属于观察性研究，且模型选择由用户自行决定。"
+              ],
+              "gaps": [
+                {
+                  "description": "本次激活未独立复现论文中的暂停或升级估计；论文链接的代码和数据仓库在本次访问时返回404。"
+                },
+                {
+                  "description": "研究通过公开 Claude Code 拉取请求中有限的模型标记来识别模型使用情况，没有测量私人工作、节省时间或完整代码质量。"
+                },
+                {
+                  "description": "暂停分析只覆盖一次为期19天的事件；模型升级比较属于观察性分析，且模型选择由用户自行决定。"
+                }
+              ]
+            },
+            "headline": "预印本报告称，使用基准分数更高的 Claude 模型后，合并的编程工作量并未增加",
+            "dek": "一篇新预印本研究基准分数提高是否转化为更多完成的编程工作，利用 Claude Fable 5 在19天内停止提供访问以及随后五次 Claude 模型升级。作者报告称，七日内拉取请求合并率和每周合并数量均没有统计显著变化。这些是作者报告的估计，尚无独立复现；研究只观察公开的 Claude Code 拉取请求，模型归因信息有限，合并指标也无法覆盖私人工作、节省时间或代码质量的所有方面。"
+          },
+          "missing": [],
+          "provenance": {
+            "title": "arb",
+            "summary": "arb",
+            "why_it_matters": "arb",
+            "importance_rationale": "arb",
+            "technical": "arb",
+            "evidence.claims": "arb",
+            "evidence.limitations": "arb",
+            "evidence.gaps": "arb"
+          }
+        }
+      }
+    },
     {
       "id": "FCMO-CF9094D3A4FF",
       "slug": "paper-reports-that-language-model-agents-can-organize-context-learning",

@@ -1,0 +1,133 @@
+{
+  "record": {
+    "id": "FCMO-41B563D1CCAF",
+    "title": "ADIndex reports faster sparse-attention indexing for long-context inference",
+    "desk": "Inference Systems",
+    "event_at": "2026-11-07T00:00:00Z",
+    "evidence": "A",
+    "confidence": "credible_unconfirmed",
+    "importance": 5,
+    "tier": "Notable",
+    "summary": "Qi et al. introduce ADIndex, which calibrates token-bank size by layer and distills a lightweight group indexer to share candidate tokens across neighboring queries in DeepSeek Sparse Attention. In author-reported SGLang experiments on NVIDIA B300 GPUs with DeepSeek-V3.2 and GLM-5.1, ADIndex stays within one percentage point of standard DSA on RULER at 16K–128K contexts, while reported indexing-kernel speedups reach 6.22× for prefill and 3.40× for decode at 256K; the paper reports 1.54× end-to-end speed at 128K. Some shorter-context configurations are slower than DSA, and code or independent reproduction was not established in this review.",
+    "topics": [
+      "sparse-attention",
+      "long-context-inference",
+      "inference-efficiency",
+      "attention-indexing",
+      "benchmarking"
+    ],
+    "organizations": [
+      "Nanjing University",
+      "Alibaba Group"
+    ],
+    "human_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-41B563D1CCAF.html",
+    "machine_url": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/data/briefs/FCMO-41B563D1CCAF.json",
+    "citation": {
+      "id": "FCMO-41B563D1CCAF",
+      "source": "https://fcmo-ai.github.io/FCMO-AI-Newsletter/developments/FCMO-41B563D1CCAF.html"
+    }
+  },
+  "brief": {
+    "claims": [
+      {
+        "label": "DEMONSTRATED",
+        "text": "Qi et al. published ADIndex, a layer-adaptive sparse-attention indexing method, as arXiv:2611.12956v1 on 7 November 2026."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The authors report that on DeepSeek-V3.2 and GLM-5.1, ADIndex remained within one percentage point of the original DSA on RULER at each tested context length from 16K through 128K. At 128K, the reported scores were 93.34 versus 93.69 for DeepSeek-V3.2 and 94.49 versus 94.97 for GLM-5.1. These results were not independently reproduced here."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The paper reports custom indexing-kernel speedups over DSA of 3.15×–6.22× for prefill and 2.46×–3.40× for decode at 256K across four reuse configurations, and 1.54× end-to-end speed at a 128K KV-cache length. It also reports end-to-end slowdowns at shorter contexts for some configurations, including 0.69× at 16K for one configuration and 0.86× for its layer-wise setting."
+      },
+      {
+        "label": "CLAIMED",
+        "text": "The appendix analytical model counts each score evaluation at equal cost regardless of indexing-head count and excludes pooling, projections, candidate selection and kernel-launch overhead; its scoring-operation reductions are not themselves end-to-end latency measurements."
+      },
+      {
+        "label": "NOT_ESTABLISHED",
+        "text": "The inspected paper does not establish independent reproduction, performance on hardware other than the reported NVIDIA B300 setting, or realized serving-cost savings in production workloads."
+      }
+    ],
+    "confidence": "credible_unconfirmed",
+    "contradictory_evidence": [],
+    "desks": [
+      "inference_systems",
+      "evaluation_science",
+      "open_ecosystem"
+    ],
+    "development_type": "paper",
+    "editions": [
+      "2026-11-18"
+    ],
+    "event_at": "2026-11-07T00:00:00Z",
+    "evidence_class": "A",
+    "evidence_gaps": [
+      {
+        "description": "No author-linked implementation or pinned code artifact was found in the arXiv record or the earlier bounded search.",
+        "kind": "missing_artifact",
+        "state": "open"
+      },
+      {
+        "description": "The benchmark and efficiency results remain author-reported; no independent matched reproduction was conducted.",
+        "kind": "missing_independent",
+        "state": "open"
+      }
+    ],
+    "id": "FCMO-41B563D1CCAF",
+    "importance_effective_score": 5,
+    "importance_rationale": "If reproduced on deployed sparse-attention systems, lower indexer overhead at long contexts could materially change inference throughput and cost choices. The paper reports an end-to-end gain on two model families, but measurements are author-reported and hardware- and context-dependent.",
+    "importance_scale_version": 2,
+    "importance_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-11-18T08:18:11Z",
+    "limitations": [
+      "All task-performance and efficiency measurements are author-reported; no independent reproduction was conducted.",
+      "The reported experiment uses SGLang and NVIDIA B300 GPUs with two models; cross-stack, cross-hardware and production transfer are unestablished.",
+      "ADIndex can be slower than DSA at shorter contexts; the paper reports configuration-specific end-to-end slowdowns at 16K and 32K.",
+      "The appendix operation-count model assigns equal cost to different indexer heads and excludes pooling, projection, candidate-selection and kernel-launch overheads; these ratios are not wall-clock latency.",
+      "The 1.54× end-to-end result is at a 128K KV-cache length and does not establish general production savings."
+    ],
+    "organizations": [
+      "Nanjing University",
+      "Alibaba Group"
+    ],
+    "primary_desk": "inference_systems",
+    "recorded_at": "2026-11-18T08:18:11Z",
+    "regions": [
+      "China"
+    ],
+    "relationships": [],
+    "source_languages": [
+      "en"
+    ],
+    "source_urls": [
+      "https://arxiv.org/abs/2611.12956"
+    ],
+    "status": "active",
+    "summary": "Qi et al. introduce ADIndex, which calibrates token-bank size by layer and distills a lightweight group indexer to share candidate tokens across neighboring queries in DeepSeek Sparse Attention. In author-reported SGLang experiments on NVIDIA B300 GPUs with DeepSeek-V3.2 and GLM-5.1, ADIndex stays within one percentage point of standard DSA on RULER at 16K–128K contexts, while reported indexing-kernel speedups reach 6.22× for prefill and 3.40× for decode at 256K; the paper reports 1.54× end-to-end speed at 128K. Some shorter-context configurations are slower than DSA, and code or independent reproduction was not established in this review.",
+    "technical": {
+      "claimed_result": "The authors report near-matched RULER results on DeepSeek-V3.2 and GLM-5.1, kernel speedups up to 6.22× prefill and 3.40× decode at 256K, and 1.54× end-to-end speed at 128K. Some short-context configurations are slower than DSA.",
+      "compute_or_cost": "The paper reports end-to-end 1.54× speed at 128K KV-cache length on NVIDIA B300. It does not establish general serving economics; its simplified operation-count model excludes auxiliary costs.",
+      "demonstrated_result": "The accessible arXiv record establishes publication of v1 on 7 November 2026. The reported experiments remain author claims; no independent reproduction was conducted.",
+      "implementation_status": "Implemented in the authors’ experimental SGLang setup. No code artifact was linked in the inspected arXiv record and no independent deployment was found.",
+      "mechanism": "For each layer, offline calibration selects neighboring-query group sizes and token-bank budgets. A lightweight group indexer is distilled from the frozen DSA indexer to build a shared bank with one full-prefix scan per group; the original indexer then refines candidates for each query. Short prefixes and incomplete groups fall back to original DSA.",
+      "novelty": "Combines layer-specific calibration, group-level distillation and shared token-bank construction to reduce repeated full-prefix DSA scans while retaining per-query refinement.",
+      "regime": "Author-reported SGLang inference tests on NVIDIA B300 GPUs, using DeepSeek-V3.2 and GLM-5.1 in non-thinking mode. Benchmarks: LongBench, LongBench v2 capped at 128K, RULER at 16K–128K and indexing kernels profiled to 256K.",
+      "reproducibility": "The paper reports model, benchmark, GPU and training-data details. The inspected record did not link code; no matched independent reproduction was conducted.",
+      "strongest_baseline": "Original DeepSeek Sparse Attention (DSA) is the main baseline; the paper also compares HISA, MISA, IndexCache and PIVOT."
+    },
+    "title": "ADIndex reports faster sparse-attention indexing for long-context inference",
+    "topics": [
+      "sparse-attention",
+      "long-context-inference",
+      "inference-efficiency",
+      "attention-indexing",
+      "benchmarking"
+    ],
+    "why_it_matters": "The paper targets a systems bottleneck in sparse-attention inference: repeated full-prefix scoring can remain costly even after attention is sparsified. Its bounded results suggest layer-aware sharing may improve long-context throughput while retaining benchmark performance, which could affect serving choices if independently reproduced on relevant hardware and workloads."
+  },
+  "related": [],
+  "schema": "fcmo-public-brief-v1"
+}
