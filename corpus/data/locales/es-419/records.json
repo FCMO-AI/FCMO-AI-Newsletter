@@ -43926,6 +43926,59 @@
       "title": "Google Home MCP abre en acceso anticipado herramientas de estado y control de dispositivos para clientes de IA",
       "why_it_matters": "Esta integración ofrece una vía concreta para que agentes de propósito general controlen dispositivos físicos del hogar. El límite práctico depende del esquema de herramientas, la autorización y las restricciones aplicadas por el servidor; por eso importa más comprobar las salvaguardas y su cumplimiento que la etiqueta MCP por sí sola."
     },
+    "FCMO-C4CB765C1849": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron un preprint que describe una evaluación a ciegas, mediante consultas, de GPT-6 Astra sobre modelos de predicción clínica entrenados con datos del International Stroke Trial."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan un R² medio de 0.976 para reproducir las predicciones de 32 modelos y la detección de defectos plantados en 69 de 72 ejecuciones (96%; intervalo del 95%: 80%–99%). Un programa específico encontró los 24 modelos defectuosos. Las tres ejecuciones de cada modelo coincidieron, por lo que la muestra efectiva de defectos fue de 24 modelos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "De 1,089 problemas informados por el LLM que podían verificarse, 655 (60%; intervalo del 95%: 53%–67%) no superaron la comprobación preespecificada del modelo. De 601 relaciones inesperadas obtenidas de modelos limpios, 68 (11%) aparecieron en pacientes posteriores, frente a 28 de 101 (28%) candidatos seleccionados por una búsqueda de regresión. Tras una comprobación con los datos de entrenamiento, las tasas fueron 33% y 30%, respectivamente."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El estudio no demuestra que las auditorías de LLM mejoren decisiones clínicas o resultados de pacientes, ni que los hallazgos se generalicen a otros modelos, conjuntos de datos, tipos de defecto, LLM o sistemas clínicos actuales."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se realizó una reproducción independiente ni se repitieron los análisis con una versión fijada de los artefactos; el artículo señala algunos análisis y detalles comparativos posteriores a los resultados.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La evaluación cubrió un LLM, un conjunto histórico de un ensayo clínico, cuatro tipos de modelo y tres clases de defectos anunciadas; no probó el uso clínico ni resultados asistenciales.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados acotados se generalizan, la auditoría mediante consultas podría ayudar a revisar modelos de predicción inaccesibles; los avisos falsos y la débil transferencia de relaciones a pacientes posteriores hacen que sea un avance metodológico relevante, no evidencia de preparación clínica.",
+      "limitations": [
+        "Los resultados del preprint fueron informados por sus autores y no se reprodujeron de forma independiente.",
+        "El experimento estudia auditoría de modelos, no diagnóstico, recomendaciones terapéuticas, beneficios para pacientes ni seguridad de despliegue.",
+        "La consigna anunció las tres clases de defecto; no se probó una auditoría general frente a fallos desconocidos.",
+        "Los datos son históricos y se han estudiado ampliamente; su familiaridad puede afectar las relaciones propuestas.",
+        "Los autores reconocen análisis posteriores a las ejecuciones y una preespecificación privada con cambios hechos antes de comenzar las pruebas."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 18 de noviembre informa una prueba a ciegas de GPT-6 Astra para auditar, mediante consultas, 32 modelos de predicción clínica entrenados con datos del International Stroke Trial. En 72 ejecuciones identificó 69 de 72 defectos introducidos en los modelos; un programa diseñado para la tarea encontró los 24 modelos defectuosos. Los sustitutos del modelo lograron un R² medio de 0.976 al reproducir las predicciones. Sin embargo, el 60% de 1,089 problemas verificables que informó el LLM no superaron la comprobación preespecificada del comportamiento del modelo. Además, las relaciones inesperadas aparecieron en pacientes posteriores con menor frecuencia que las propuestas por una búsqueda de regresión más breve. El estudio trata sobre auditoría de modelos; no demuestra validez clínica, utilidad asistencial ni generalización fuera de este contexto.",
+      "technical": {
+        "claimed_result": "Los autores informan que los sustitutos del LLM reprodujeron las probabilidades logarítmicas de los modelos con R² medio de 0.976 en la prueba, y que GPT-6 Astra encontró defectos plantados en 69 de 72 ejecuciones.",
+        "demonstrated_result": "El preprint y la descripción de sus métodos y resultados están disponibles públicamente; el README del repositorio enlazado enumera archivos de modelos, instrucciones, respuestas, llamadas a herramientas, código de evaluación y resultados. En esta activación no se reprodujo el rendimiento informado.",
+        "mechanism": "Una herramienta que solo calculaba predicciones permitió consultar los modelos. El estudio fijó reglas de evaluación antes de las ejecuciones, ocultó la capa con los defectos, auditó cada modelo tres veces y comparó los sustitutos explicativos, la detección de defectos y las relaciones propuestas con un programa específico, búsquedas de regresión y controles.",
+        "regime": "Un LLM (GPT-6 Astra, esfuerzo de razonamiento máximo), segunda versión del International Stroke Trial con 19,435 pacientes, dos resultados clínicos y cuatro clases de modelo; 32 modelos (8 sin defectos y 24 con defectos), 96 ejecuciones a ciegas mediante consultas y 6 ejecuciones adicionales con acceso a pesos. La división por fecha de aleatorización usó pacientes de 1991–1995 para entrenamiento y de abril de 1995 a mayo de 1996 para prueba.",
+        "reproducibility": "Los autores enlazan código y artefactos de modelos y respuestas, e identifican el conjunto público del International Stroke Trial mediante DOI. No se realizó una repetición independiente, una auditoría de la integridad de los artefactos ni una comprobación de la cronología de la preespecificación.",
+        "strongest_baseline": "Un programa específico encontró los 24 defectos y no produjo avisos que fallaran la comprobación; sin embargo, sus autores conocían las clases buscadas y la lista de factores de riesgo, y lo diseñaron para ajustarse a los criterios de evaluación. Para las relaciones inesperadas, la lista más breve de una búsqueda de regresión tuvo una mayor tasa de confirmación posterior antes del filtrado; después de filtrar con datos de entrenamiento, las tasas fueron 33% para el LLM y 30% para la búsqueda."
+      },
+      "title": "Un estudio a ciegas evalúa auditorías de modelos clínicos mediante consultas",
+      "why_it_matters": "Si el método se generaliza dentro de estos límites, un LLM podría ayudar a inspeccionar modelos de predicción cuyo código interno no está disponible. El estudio también muestra que una detección alta de defectos plantados puede coexistir con baja precisión y poco valor para descubrir relaciones nuevas, por lo que cada hallazgo requiere verificación programática. No demuestra que el método sea apto para decisiones clínicas."
+    },
     "FCMO-C4EF37285216": {
       "claims": [
         {
