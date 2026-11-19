@@ -5278,6 +5278,67 @@
       "title": "Anthropic informa que Claude Fable 5.2 diseñó tres prototipos electrónicos funcionales",
       "why_it_matters": "El diseño de hardware combina razonamiento de software con geometría, límites de componentes, reglas de fabricación y comportamiento físico. Si se reproduce el flujo informado, podría acelerar la creación de prototipos y ampliar lo que equipos pequeños pueden explorar. La evidencia actual abarca tres prototipos iniciales fabricados con un socio y puntajes comunicados por el proveedor; no demuestra productos certificados, fabricación autónoma ni transferencia confiable a otros diseños."
     },
+    "FCMO-162F6909F238": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Autores afiliados a Meta publicaron el preprint Cap-and-Track el 18 de noviembre de 2026. Describe un sistema de distribución de solicitudes que usa rechazos por límite de capacidad para ajustar el ritmo de envío a servidores de proveedores y GPU internos."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que, con el mismo tráfico del clasificador, modelo, indicaciones y ajustes de vLLM, Cap-and-Track atendió la carga con 39 H100 frente a 68 del sistema predecesor, con cobertura equivalente y puntuaciones coincidentes dentro del ruido de muestreo. Atribuyen 5 tarjetas de la diferencia al margen de capacidad del predecesor y 24 al mayor rendimiento por motor con límites por réplica y Track."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan que, durante los picos de procesamiento de cargas acumuladas, el grupo de menor prioridad esperó más en la flota de clasificador reducida: una mediana de 6.6 horas en la etapa del clasificador frente a media hora en el predecesor. También indican que el sistema atendía más de 300 millones de solicitudes en línea al día y llegó a 1.125 mil millones en su jornada de procesamiento más intensa. Son cifras de los registros de producción de los autores, no mediciones independientes."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una reproducción con motores reales y capacidad estable, los autores reportan que Track quedó a menos de 1% del buen rendimiento de una tasa fija ajustada por encima de la capacidad medida y tuvo cerca de una cuarta parte de la proporción de rechazos de esa tasa. Para otra carga de inferencia de disparo cero en flotas MI300X del mismo tamaño, reportan que el sistema vació primero las colas compartidas, con una ventaja mediana de tres horas; no redujeron el tamaño de ninguna flota en esa comparación."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El preprint describe una implementación de Meta y cargas seleccionadas. No demuestra ahorros de aceleradores para toda la industria, resultados en inferencia interactiva o sesiones de agentes, ni generalización a otras tareas prioritarias o backends. Algunas observaciones de producción no tienen control por el tamaño de la cola, y la frescura de las tareas de menor prioridad empeoró durante los picos con la flota reducida."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Las comparaciones y registros de producción son reportados por Meta; no se realizó una medición de producción independiente ni una auditoría de los registros originales.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La comparación principal de 39 frente a 68 H100 incluye un margen de cinco tarjetas en el sistema predecesor; la flota menor también prolongó la espera de tareas de baja prioridad durante los picos de procesamiento.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No se evaluaron inferencia interactiva ni sesiones de agentes; las cargas medidas son específicas de las aplicaciones asíncronas y los backends de Meta.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el resultado de producción acotado se generaliza a cargas de inferencia asíncrona comparables, la distribución guiada por rechazos podría reducir los aceleradores necesarios y mejorar su utilización cuando cambia la capacidad, con efectos en el costo y el rendimiento de los servicios de IA. La evidencia proviene de una sola implementación de Meta y de cargas seleccionadas; el estudio también registra intercambios de frescura y no evalúa inferencia interactiva ni sesiones de agentes.",
+      "limitations": [
+        "La evidencia proviene de un preprint de Meta con registros de producción reportados por sus autores; en esta activación no se realizó una reproducción independiente.",
+        "La comparación de flotas del clasificador no atribuye las 29 GPU adicionales exclusivamente al algoritmo: el predecesor incluía un margen de cinco tarjetas, y las tareas de baja prioridad esperaron más durante picos de carga acumulada.",
+        "Los resultados de producción fuera de las reproducciones y las pruebas A/B son observacionales; una comparación con capacidad reservada no controla el tamaño de la cola.",
+        "La evaluación no incluyó inferencia interactiva ni sesiones de agentes."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de autores de Meta describe Cap-and-Track, un distribuidor que usa los rechazos del backend como señal para adaptar el ritmo de solicitudes mientras el trabajo excedente permanece en colas duraderas y priorizadas. En una prueba A/B reportada con el mismo tráfico del clasificador, el sistema utilizó 39 H100 frente a 68 del predecesor, con cobertura equivalente y puntuaciones coincidentes dentro del ruido de muestreo; las tareas de menor prioridad esperaron más durante los picos de procesamiento. Los autores también reportan alto volumen de producción y mejores medidas en reproducciones y otra carga. Los resultados son de primera parte y corresponden a ciertas cargas asíncronas; no se ha demostrado una reproducción independiente ni su transferencia a inferencia interactiva o sesiones de agentes.",
+      "technical": {
+        "claimed_result": "En la prueba A/B del clasificador, los autores reportan 39 H100 frente a 68 del predecesor, con cobertura equivalente y puntuaciones coincidentes dentro del ruido de muestreo; durante picos, las tareas de menor prioridad esperaron más. También reportan más de 300 millones de solicitudes en línea por día. Son resultados de primera parte.",
+        "demonstrated_result": "El preprint de arXiv, el diseño descrito del controlador, el protocolo, las cifras reportadas y las limitaciones pueden consultarse públicamente. En esta activación no se reprodujeron los experimentos de forma independiente ni se auditaron los registros originales de producción.",
+        "mechanism": "Un controlador Track por dominio de capacidad usa los rechazos del límite de admisión para aumentar o reducir el ritmo de envío, mientras una cola duradera y priorizada retiene solicitudes excedentes fuera del motor de inferencia. Los límites por réplica mantienen cortas las colas internas y permiten seguir cambios de capacidad sin reajustar manualmente una tasa global.",
+        "regime": "Cargas asíncronas de comprensión de publicaciones y videos en vivo de Meta, con flotas internas H100 y MI300X y capacidad de proveedores. La comparación A/B del clasificador usó el mismo tráfico, modelo, indicaciones y ajustes de vLLM; el artículo también presenta reproducciones y comparaciones de otras cargas. No se evaluó inferencia interactiva ni sesiones de agentes.",
+        "reproducibility": "El artículo describe protocolos y reporta resultados, pero en esta activación no se hizo una reproducción independiente, una auditoría de los registros de producción ni una réplica completa con artefactos públicos.",
+        "strongest_baseline": "En la carga del clasificador, el predecesor procesó el mismo tráfico de producción, modelo, indicaciones, ajustes de vLLM y cola duradera, pero aplicó una tasa global de envío y se dimensionó con margen. Los autores atribuyen parte de la diferencia de 29 tarjetas a retirar ese margen y parte al mayor rendimiento. También presentan una prueba A/B de inferencia de disparo cero con flotas iguales y una reproducción con motores reales frente a tasas fijas."
+      },
+      "title": "Meta reporta distribución de inferencia guiada por rechazos ante cambios de capacidad",
+      "why_it_matters": "El costo de inferencia de modelos de lenguaje depende de mantener productivos los aceleradores mientras se controla el tiempo en cola cuando cambian la demanda y la capacidad de servicio. La comparación reportada con el mismo tráfico hace que este mecanismo de distribución sea relevante para la economía de producción; la mayor espera de tareas de baja prioridad y el alcance acotado de las cargas son esenciales para interpretar ese intercambio."
+    },
     "FCMO-166D1A7F5012": {
       "claims": [
         {
@@ -8664,6 +8725,67 @@
       },
       "title": "Un estudio de REAP informa que dos grandes modelos MoE mantienen resultados de codificación al podar 50% de sus expertos",
       "why_it_matters": "Los checkpoints MoE grandes requieren mucha memoria. Si los resultados específicos de cada tarea se generalizan, la poda selectiva de expertos podría facilitar el almacenamiento o servicio de algunos modelos. El artículo no demuestra reducciones proporcionales de latencia, consumo eléctrico ni costo total de servicio."
+    },
+    "FCMO-24909CBE6463": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "OpenAI publicó el 19 de noviembre de 2026 un informe de ingeniería de primera parte sobre su Performance Factory y el Regression Workflow."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que, en poco más de tres meses, su Regression Workflow registró más de 1,700 investigaciones y encontró la causa raíz en más de 600 casos, un promedio de 17 investigaciones automatizadas al día; el informe no presenta una comparación con un proceso solo humano ni una mejora medida de confiabilidad."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que, en una revisión manual de 100 sugerencias de causa raíz, 70% fueron calificadas como precisas y 30% necesitaron más trabajo o no demostraron plenamente la causalidad; el artículo consultado no detalla el muestreo ni la evaluación."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "Según la descripción, una persona ingeniera debe revisar los cambios de código propuestos y decidir si se integran y despliegan; después, un agente comprueba si hubo recuperación. El artículo dice que OpenAI explora automatizar algunas correcciones de bajo riesgo sin intervención humana, no que eso ya esté desplegado."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El informe consultado no establece una medición independiente de la precisión de diagnósticos, mejoras causales en disponibilidad o productividad, ni que los cambios propuestos por agentes mejoren el rendimiento frente a un proceso solo humano."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El artículo no incluye una auditoría independiente ni detalles de evaluación para el 70% de precisión informado en la revisión manual de 100 sugerencias de causa raíz.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El informe no compara los resultados de confiabilidad, el tiempo para resolver incidentes, el tiempo de ingeniería ni las reversiones con una línea de base de trabajo solo humano.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El informe no cuantifica las falsas alarmas, el total de regresiones dentro del alcance ni la frecuencia con que las correcciones propuestas se aceptan, modifican o rechazan.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se mantiene fuera de OpenAI, un flujo de agentes desplegado que investiga regresiones de rendimiento y da seguimiento a correcciones revisadas por personas podría cambiar la gestión del trabajo de confiabilidad de infraestructura. La escala operativa y la precisión informadas son afirmaciones de primera parte, sin comparación independiente ni impacto medido en los resultados.",
+      "limitations": [
+        "Todas las cifras de casos y precisión de las sugerencias provienen de mediciones internas de OpenAI.",
+        "El 70% informado corresponde a una revisión manual de 100 sugerencias de causa raíz; el artículo consultado no detalla el muestreo ni la evaluación.",
+        "Las sugerencias sobre causas raíz no equivalen a correcciones completadas ni a incidentes con recuperación verificada.",
+        "Las personas ingenieras revisan los cambios y deciden si los integran y despliegan; el despliegue autónomo solo se presenta como una posibilidad futura.",
+        "El artículo no informa una comparación con un proceso solo humano, un efecto causal en la productividad ni una mejora cuantificada de disponibilidad."
+      ],
+      "relationships": [],
+      "summary": "El informe de ingeniería de OpenAI del 19 de noviembre de 2026 describe un flujo en producción que envía alertas de rendimiento a agentes Codex para investigar y proponer correcciones; luego, una persona ingeniera revisa y despliega los cambios, y un agente comprueba si el servicio recuperó su nivel anterior. OpenAI informa que, en poco más de tres meses, el flujo registró más de 1,700 investigaciones y encontró la causa raíz en más de 600 casos. En una revisión manual de 100 sugerencias de causa raíz, OpenAI calificó 70% como precisas y 30% como necesitadas de más trabajo o insuficientes para demostrar plenamente la causalidad. El informe no aporta una auditoría independiente, una comparación con un proceso solo humano ni efectos medidos en disponibilidad o productividad; las decisiones de despliegue siguen a cargo de personas ingenieras.",
+      "technical": {
+        "claimed_result": "OpenAI informa más de 1,700 investigaciones, más de 600 casos con causa raíz identificada y 70% de precisión en una revisión manual de 100 sugerencias.",
+        "demonstrated_result": "El informe de primera parte, con fecha, y su descripción del flujo están disponibles públicamente; las cifras operativas y el resultado de la evaluación siguen siendo datos comunicados por OpenAI.",
+        "mechanism": "Un servicio de tareas basado en eventos distribuye alertas de rendimiento en un flujo de investigación por agentes, revisión adversarial del diagnóstico, propuesta de cambio de código, revisión y despliegue por una persona ingeniera y verificación posterior de que el servicio volvió a su nivel de rendimiento anterior.",
+        "regime": "Entorno interno de ingeniería de rendimiento de ChatGPT en OpenAI; el artículo describe poco más de tres meses de actividad, pero no precisa el período exacto, el denominador de incidentes, los servicios afectados ni la mezcla de cargas de trabajo.",
+        "strongest_baseline": "El artículo consultado no informa una línea de base operativa de trabajo previo ni de un proceso solo humano."
+      },
+      "title": "OpenAI describe un flujo de producción impulsado por Codex para investigar regresiones de rendimiento de ChatGPT",
+      "why_it_matters": "Un flujo en producción que lleva el trabajo de agentes desde la clasificación de alertas hasta las correcciones propuestas y la verificación posterior al despliegue podría cambiar la asignación del trabajo de confiabilidad de infraestructura. Las cifras de uso y precisión son afirmaciones operativas concretas de OpenAI, pero no demuestran mejoras causales de productividad ni confiabilidad."
     },
     "FCMO-24994352D9CB": {
       "claims": [
