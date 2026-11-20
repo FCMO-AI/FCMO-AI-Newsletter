@@ -13478,6 +13478,64 @@
       "title": "Preprint informa mejor escalamiento de cómputo de inferencia con equipos paralelos de agentes",
       "why_it_matters": "El cómputo de inferencia suele destinarse a muchos intentos independientes o a un solo equipo grande que colabora. Si el resultado se generaliza, usar varios equipos pequeños que colaboran podría mejorar la búsqueda de largo horizonte cuando un verificador puntúa los resultados, al combinar colaboración con variación entre ejecuciones. Esto podría cambiar cómo se distribuye el cómputo entre agentes, pero la evidencia se limita a Qwen3.8-27B, un arnés y tareas seleccionadas; no demuestra mejoras cuando no hay un verificador confiable."
     },
+    "FCMO-39E695ED96CC": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa de un flujo que extrae aprendizajes de las trayectorias de los agentes, los consolida en pautas conservando los conteos de respaldo y las entrega de forma estática o mediante recuperación. Afirma que la biblioteca es de código abierto y se usa en CUGA y watsonx Orchestrate de IBM."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En AppWorld test_normal, los autores informan que DeepSeek-V3.2 pasó de 79.8% de tareas completadas sin memoria a 89.3% con sus 191 pautas (+9.5 puntos) y de 64.3% a 80.4% en escenarios completados (+16.1 puntos). Para gpt-oss-120b informan 39.9% inicial, 51.2% con 199 pautas y un promedio de 55.4% en tareas con una selección recuperada de unas 29 pautas, en dos ejecuciones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan variación sustancial entre ejecuciones, una pauta de paginación frecuente pero incorrecta, pérdida de procedencia durante la consolidación, una comparación sesgada por diferencias en el armazón del agente y fallos silenciosos de API y escritura. Señalan que el respaldo mide recurrencia, no corrección."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece una reproducción independiente, una mejora causal en los productos nombrados ni beneficios generales de memoria en distintos entornos. En el estudio AppWorld no hubo una partición reservada para elegir configuraciones y algunas se eligieron usando test_normal."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Falta una reproducción independiente de los efectos en AppWorld con armazones de agente fijos y ejecuciones repetidas.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "No se midió el impacto en producción de integrar memoria en CUGA o watsonx Orchestrate.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "No se inspeccionaron de forma independiente una versión fijada de la implementación ni sus regresiones para conservar procedencia, verificar corrección y detectar fallos silenciosos.",
+          "kind": "missing_artifact",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce, el efecto informado de la memoria según la capacidad del modelo y los fallos identificados podrían cambiar el diseño, la evaluación y los controles de despliegue de la memoria para agentes. La evidencia procede de un estudio AppWorld de los autores y de una integración de producto informada por ellos; no demuestra un beneficio productivo independiente.",
+      "limitations": [
+        "Los resultados los informan los autores de un solo artículo y esta revisión no los reprodujo de manera independiente.",
+        "Las configuraciones de AppWorld test_normal se evaluaron en test_normal; el artículo no reserva una partición para elegir configuraciones. Muchos resultados corresponden a una ejecución; la media de recuperación de gpt-oss se basa en dos.",
+        "La comparación entre métodos con ACE usó armazones y referencias distintas; los autores indican que buena parte de la diferencia inicial se debía al armazón.",
+        "Los autores informan despliegues en productos, pero no establecen con un estudio controlado mejoras reales de productividad o fiabilidad."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de autores de IBM informa que un sistema de memoria para agentes extrajo pautas de trayectorias de AppWorld y se integró en CUGA y watsonx Orchestrate. En AppWorld test_normal, los autores informan que DeepSeek-V3.2 mejoró 9.5 puntos porcentuales en tareas completadas y 16.1 en escenarios con sus 191 pautas. Para gpt-oss-120b, una selección recuperada de unas 29 pautas obtuvo, según el artículo, 55.4% de tareas completadas en promedio de dos ejecuciones, frente a 51.2% con las 199 pautas y 39.9% inicial. El artículo también documenta variación entre ejecuciones, una pauta incorrecta de alto respaldo, pérdida de procedencia, una comparación afectada por el armazón y fallos silenciosos de API y escritura. Son resultados de un solo artículo: se eligieron configuraciones con test_normal y no hay reproducción independiente ni impacto productivo medido.",
+      "technical": {
+        "claimed_result": "En AppWorld test_normal, el artículo informa que DeepSeek-V3.2 pasó de 79.8% de tareas completadas a 89.3% con 191 pautas, y de 64.3% a 80.4% en escenarios completados. Para gpt-oss-120b, las 199 pautas dieron 51.2% frente a 39.9% inicial; recuperar unas 29 pautas dio un promedio de 55.4% en tareas completadas, en dos ejecuciones.",
+        "compute_or_cost": "Los autores informan sobrecarga de tokens de entrada: para DeepSeek, 191 pautas elevaron 78% los tokens por tarea; un conjunto de 47 pautas añadió +27% de tokens para +5.9 puntos en tareas completadas. Para gpt-oss, la recuperación usó cerca de 5% más tokens que la referencia. No se midió el costo de forma independiente.",
+        "demonstrated_result": "El preprint permite verificar su publicación, diseño de evaluación y mediciones informadas. Los resultados experimentales son afirmaciones de los autores y esta revisión no los reprodujo de manera independiente.",
+        "mechanism": "El flujo extrae de una a tres lecciones de cada trayectoria exitosa o fallida, consolida lecciones equivalentes en pautas conservando metadatos de procedencia y respaldo, y luego incorpora todas o una selección según el respaldo y la similitud de la tarea. Se usa la misma familia de modelos para ejecutar tareas, extraer y consolidar lecciones.",
+        "regime": "AppWorld simula nueve aplicaciones con 457 API; el artículo usa test_normal (168 tareas) y, para algunos resultados, test_challenge (417 tareas). La memoria se obtuvo de trayectorias de train/dev. Varias configuraciones se eligieron con test_normal y muchos resultados son de una sola ejecución.",
+        "reproducibility": "El artículo enlaza una biblioteca de código abierto y describe la configuración AppWorld. Esta revisión no inspeccionó el código ni reprodujo los resultados. Siguen pendientes una evaluación independiente con ejecuciones repetidas y una auditoría de una versión fijada del código.",
+        "strongest_baseline": "El artículo compara cada modelo con su propia referencia ReAct sin memoria. La comparación entre métodos con ACE está afectada por armazones y referencias iniciales distintos; los autores acotan la comparación útil a la mejora respecto de cada referencia y al uso de tokens."
+      },
+      "title": "IBM informa mejoras dependientes del modelo y fallos de despliegue en sistemas de memoria para agentes",
+      "why_it_matters": "Este artículo ofrece un análisis concreto de la memoria para agentes en pruebas comparativas y en una integración empresarial informada por los autores. Su conclusión principal es condicional: conjuntos de memoria mayores ayudaron a algunos modelos más capaces, mientras que recuperar una selección ayudó a un modelo más débil; además, un respaldo frecuente no garantizó que una pauta fuera correcta. Los fallos operativos descritos hacen centrales la procedencia, la validación, las comparaciones con armazones fijos y la detección visible de errores. El impacto independiente y en condiciones reales sigue sin establecerse."
+    },
     "FCMO-3A16714B7377": {
       "claims": [
         {
@@ -14118,6 +14176,10 @@
         {
           "label": "NOT_ESTABLISHED",
           "text": "El lanzamiento y la ficha revisados no demuestran reproducción independiente de los resultados de capacidad, impacto real en productividad ni verificación independiente de que las salvaguardas finales mitiguen por completo los hallazgos de UK AISI."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que GPT-6.2 Astra obtuvo 84.5% del crédito disponible en MedChemBench con el nivel de razonamiento xhigh, frente a 83.3% de GPT-6 Astra, 82.0% de GPT-6.1 Sol y 58.2% de GPT-5.6 Sol. La evaluación retrospectiva contiene 99 problemas basados en 117 artículos y patentes y 761 estructuras moleculares. OpenAI advierte que no puede descartarse la exposición previa a las fuentes; cada respuesta fue un único intento sin herramientas, comentarios ni experimentos nuevos. El resultado no demuestra descubrimiento de fármacos ni mejores decisiones de laboratorio."
         }
       ],
       "contradictory_evidence": [],
@@ -14144,12 +14206,13 @@
         "La etiqueta Alta de automejora de IA se basa en cinco tareas seleccionadas de investigación e ingeniería; la ficha dice que no mide la productividad total de investigadores.",
         "El informe de UK AISI se refiere a dos versiones previas al lanzamiento; OpenAI dice que aplicó mitigaciones, pero UK AISI no había evaluado de forma independiente los cambios recientes al publicarse la ficha.",
         "Algunas evaluaciones de capacidad cibernética usaron configuraciones internas sin salvaguardas de producción, mientras que las pruebas externas de salvaguardas usaron entornos simulados o controlados. Ninguna demuestra por sí sola ataques reales generalizados ni seguridad integral.",
-        "OpenAI informa límites de conciencia de evaluación y supervisión de cadena de pensamiento en pruebas específicas; también dice que la supervisión de acciones detectó más intentos exitosos de sabotaje o escape."
+        "OpenAI informa límites de conciencia de evaluación y supervisión de cadena de pensamiento en pruebas específicas; también dice que la supervisión de acciones detectó más intentos exitosos de sabotaje o escape.",
+        "La puntuación de MedChemBench del 20 de noviembre es un resultado de un solo intento reportado por OpenAI sobre casos históricos; es posible que los modelos hayan visto las fuentes y el resultado no demuestra descubrimiento prospectivo de fármacos ni mejores decisiones de laboratorio."
       ],
       "relationships": [],
-      "summary": "OpenAI anunció GPT-6.2 Astra y Sol el 17 de noviembre y publicó una ficha de sistema detallada. OpenAI clasifica ambos modelos en sus umbrales Crítico de ciberseguridad y Alto de capacidad biológica y química, y clasifica a Astra —pero no a Sol— como Alto en automejora de IA, según cinco evaluaciones de investigación e ingeniería. La ficha informa mejores resultados en tareas de ciberseguridad e investigación, junto con límites de conciencia de evaluación y supervisión de cadena de pensamiento. También atribuye a pruebas de UK AISI una regresión de salvaguardas cibernéticas en versiones previas al lanzamiento e indica que UK AISI no había vuelto a probar las mitigaciones más recientes. Estas afirmaciones proceden de las fuentes y no se reprodujeron independientemente en esta activación.",
+      "summary": "OpenAI anunció GPT-6.2 Astra y Sol el 17 de noviembre y publicó una ficha de sistema detallada. OpenAI clasifica ambos modelos en sus umbrales Crítico de ciberseguridad y Alto de capacidad biológica y química, y clasifica a Astra —pero no a Sol— como Alto en automejora de IA, según cinco evaluaciones de investigación e ingeniería. La ficha informa mejores resultados en tareas de ciberseguridad e investigación, junto con límites de conciencia de evaluación y supervisión de cadena de pensamiento. También atribuye a pruebas de UK AISI una regresión de salvaguardas cibernéticas en versiones previas al lanzamiento e indica que UK AISI no había vuelto a probar las mitigaciones más recientes. Estas afirmaciones proceden de las fuentes y no se reprodujeron independientemente en esta activación. OpenAI también informa el 20 de noviembre que GPT-6.2 Astra obtuvo 84.5% en xhigh en MedChemBench, una evaluación retrospectiva de 99 problemas (GPT-6 Astra obtuvo 83.3%). La puntuación de un solo intento y sin herramientas no demuestra impacto prospectivo en química medicinal ni en el laboratorio.",
       "technical": {
-        "claimed_result": "OpenAI asigna a Astra la categoría Alta de automejora de IA y a ambos modelos la Crítica de ciberseguridad. En NanoGPT interno, informa ahorros medios de 42.87% del tiempo de entrenamiento para Astra frente a 7.73% para GPT-6 Astra; en MLE-Bench Revised, percentiles medios de 96.06 frente a 93.80. También informa hallazgos de UK AISI sobre salvaguardas previas al lanzamiento y que las mitigaciones finales aún no tenían una reevaluación independiente.",
+        "claimed_result": "OpenAI asigna a Astra la categoría Alta de automejora de IA y a ambos modelos la Crítica de ciberseguridad. En NanoGPT interno, informa ahorros medios de 42.87% del tiempo de entrenamiento para Astra frente a 7.73% para GPT-6 Astra; en MLE-Bench Revised, percentiles medios de 96.06 frente a 93.80. También informa hallazgos de UK AISI sobre salvaguardas previas al lanzamiento y que las mitigaciones finales aún no tenían una reevaluación independiente. OpenAI informa que GPT-6.2 Astra obtuvo 84.5% del crédito disponible en MedChemBench con xhigh, frente a GPT-6 Astra (83.3%), GPT-6.1 Sol (82.0%) y GPT-5.6 Sol (58.2%). La evaluación retrospectiva comprende 99 problemas basados en 117 artículos y patentes y 761 estructuras. Puede haber exposición previa a las fuentes; el resultado no demuestra impacto en descubrimiento de fármacos o laboratorios.",
         "compute_or_cost": "OpenAI informa precios de API de entrada y salida de GPT-6.2 Astra 20% inferiores a GPT-6 Astra y precio de entrada en caché 60% inferior. El costo por tarea también depende del benchmark, el esfuerzo del modelo y los tokens. Esta activación no midió la economía de tareas independientemente.",
         "demonstrated_result": "El lanzamiento del 17 de noviembre y la ficha son públicos e incluyen un registro detallado de evaluaciones y salvaguardas. Esta activación verificó la publicación y revisó los métodos y resultados declarados, pero no reprodujo independientemente el rendimiento o la seguridad.",
         "mechanism": "El lanzamiento incluye Astra, modelo de frontera para trabajo exigente, y Sol, más eficiente para tareas cotidianas. La ficha basa la categoría Alta de automejora de Astra en cinco evaluaciones: depuración de experimentos, optimización de kernels, entrenamiento de un modelo pequeño, postentrenamiento de un modelo existente y trabajo de aprendizaje automático tipo competencia.",
