@@ -18728,6 +18728,58 @@
       "title": "OpenProblemBench informa avances evaluados por modelos en 82 problemas matemáticos y físicos aún abiertos",
       "why_it_matters": "La mayoría de las pruebas de razonamiento de IA tienen respuestas conocidas, mientras que la investigación suele ocuparse de preguntas sin una solución de referencia. Una prueba que aporte contexto bibliográfico y evalúe obligaciones de demostración, comprobaciones computacionales y progreso parcial podría mejorar la medición de agentes de investigación. En este estudio, las tasas de resolución principales proceden de jueces basados en modelos, y el propio artículo pide una validación experta ciega; no establecen que los modelos hayan realizado descubrimientos científicos verificados."
     },
+    "FCMO-4FA8F8824B62": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron arXiv:2611.26450v1 el 19 de noviembre de 2026, donde describen la compilación de circuitos sin gradientes dentro de pesos de modelos preentrenados."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que insertó circuitos analíticos para suma, resta y multiplicación con signo y entradas acotadas en IBM Granite 4.2 3B y Alibaba Qwen 3.5 4B. En 1,200 ejemplos de seis dígitos, informa una precisión de prefijo aritmético de 99.17% y 100.00%, respectivamente, en BF16, y una reanudación en línea de 98%–100%; son mediciones reportadas por los autores."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que los circuitos superaron 14 de 14 particiones preregistradas de razonamiento ampliado y contexto largo (N=4,392), y que los parches congelados se reprodujeron en entornos Apple Silicon y NVIDIA A100. Estos resultados no se comprobaron de manera independiente en esta revisión."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no establece una reproducción independiente ni la generalidad más allá de las dos familias pequeñas de modelos y las operaciones acotadas que informa. Documenta fallas de acarreo en BF16, tokenización y continuación posterior al circuito; señala que siguen pendientes la aritmética completa en Gemma y los kernels fusionados de C++/CUDA."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados de prefijo aritmético, retención del lenguaje y portabilidad entre hardware siguen siendo informes de los autores y no se reprodujeron de forma independiente en esta revisión.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La generalidad se limita a dos familias pequeñas de modelos y circuitos aritméticos acotados; el artículo deja pendientes la aritmética completa en Gemma, los kernels de producción fusionados y los cálculos sin límite.",
+          "kind": "regime_unclear",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el método reportado se generaliza, ofrece una vía para incorporar cálculos deterministas acotados en pesos preentrenados sin entrenamiento por gradientes ni herramientas externas de inferencia, con posibles efectos en despliegues restringidos. La evidencia actual cubre dos familias de modelos pequeños y sigue siendo un informe de los autores.",
+      "limitations": [
+        "Los resultados experimentales son informes de los autores en un preprint de arXiv y no se reprodujeron de forma independiente en esta revisión.",
+        "Los circuitos reportados manejan operaciones acotadas; el artículo indica que las entradas de longitud ilimitada y los ciclos con condición de parada superan el alcance de TC^0 de una sola pasada.",
+        "El artículo informa fallas de redondeo de acarreo en BF16, de tokenización y de continuación posterior al circuito. Deja pendiente completar la aritmética en Gemma y los kernels fusionados de C++/CUDA.",
+        "No se ubicó el acceso al repositorio del código ni de los parches en las secciones examinadas; no se auditó la implementación ni su rendimiento."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 19 de noviembre informa que compiló circuitos analíticos directamente en pesos preentrenados, sin entrenamiento por gradientes ni herramientas externas durante la inferencia. En IBM Granite 4.2 3B y Alibaba Qwen 3.5 4B, los autores reportan una precisión de prefijo aritmético de 99.17% y 100.00% en 1,200 casos de seis dígitos, además de una continuación en línea alta y pruebas de retención reportadas. Estos resultados no se reprodujeron de manera independiente aquí. El artículo también documenta fallas de acarreo en BF16, tokenización y continuación después del circuito; limita el método a cálculos acotados y deja pendiente completar la aritmética en Gemma y los kernels fusionados.",
+      "technical": {
+        "claimed_result": "Los autores informan que compilaron suma, resta y multiplicación con signo y entradas acotadas en los pesos de Granite 4.2 3B y Qwen 3.5 4B sin gradientes; en 1,200 ejemplos de seis dígitos reportan precisión de prefijo aritmético en BF16 de 99.17% y 100.00%, respectivamente. También informan una reanudación en línea alta y retención de contexto largo.",
+        "demonstrated_result": "El manuscrito de arXiv está disponible públicamente e incluye detalles de arquitectura, evaluación, ablaciones y procedimientos de reproducción descritos por los autores. En esta revisión no se demostró ningún resultado experimental de forma independiente.",
+        "mechanism": "El método añade dimensiones para los circuitos y compuertas analíticas, atención o desplazamientos DeltaNet para encaminar operaciones digitales acotadas a través del modelo; también incorpora compensación de norma y salida adaptada a la tokenización. Estos mecanismos y resultados reportados no se han verificado de forma independiente.",
+        "regime": "IBM Granite 4.2 3B y Alibaba Qwen 3.5 4B; circuitos aritméticos con signo y entradas acotadas, principalmente evaluaciones de seis dígitos, variantes BF16/FP32 y pruebas Apple Silicon/A100 informadas por los autores.",
+        "reproducibility": "El manuscrito enumera parches, módulos de código y comandos de reproducción, pero no se ubicó una URL de repositorio o los artefactos en las secciones examinadas. No se auditó el código ni se hizo una reproducción independiente.",
+        "strongest_baseline": "El artículo compara con ajuste LoRA SFT sobre las mismas arquitecturas y con componentes del circuito sometidos a ablaciones. Aquí no se realizó una comparación independiente y equivalente con herramientas del sistema anfitrión."
+      },
+      "title": "Un procesador dentro de un LLM: autores informan que compilaron circuitos aritméticos exactos en pesos preentrenados sin gradientes",
+      "why_it_matters": "El enfoque reportado podría incorporar cálculos acotados en un punto de control para entornos restringidos que no pueden invocar herramientas del sistema anfitrión. Si se reproduce y amplía, podría cambiar las opciones para ejecutar aritmética confiable en modelos desplegados. La evidencia actual se limita a un artículo y dos familias de modelos pequeños, con fallas explícitas y sin reproducción independiente."
+    },
     "FCMO-4FB236532012": {
       "claims": [
         {
