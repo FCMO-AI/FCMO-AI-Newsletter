@@ -28252,6 +28252,58 @@
       "title": "Anthropic fija plazos para proponer dos marcos de gobernanza de IA",
       "why_it_matters": "Las propuestas abordarían cómo dar acceso a evaluadores independientes y si los gobiernos deberían responder a la aceleración de la investigación y el desarrollo impulsada por IA. Su relevancia dependerá de lo que Anthropic publique y de que las autoridades adopten o pongan en práctica algún mecanismo."
     },
+    "FCMO-7ABD186D5688": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "El 19 de noviembre de 2026, llama.cpp incorporó la PR #32601 a master como el commit 50518b6; la lista oficial de versiones incluye ese commit en la versión preliminar b12556 e informa que se aprobaron 24 comprobaciones."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La persona autora de la PR informa que multiplicar en uint32_t los factores de capas y ciclos de HRM podía desbordarse hasta block_count, superar la aserción de arquitectura y escribir más allá del vector model.layers al cargar un archivo HRM GGUF manipulado o malformado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "La persona autora informa que, antes del arreglo, test-llama-archs -a hrm_text activaba un fallo de escritura en el heap detectado por AddressSanitizer. Después del cambio, la prueba termina correctamente y un modelo HRM válido sigue cargando. La revisión no ejecutó esta prueba."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "La PR y la página de versiones revisadas no establecen ejecución arbitraria de código, explotación remota, cuántas versiones están afectadas, un aviso público de seguridad ni explotación en la práctica."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Esta revisión no compiló llama.cpp antes y después del arreglo ni ejecutó la prueba de regresión y AddressSanitizer para HRM; la reproducción procede del informe de la persona autora de la PR.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "Las fuentes revisadas no indican qué versiones publicadas están afectadas, qué condiciones permiten que un archivo manipulado llegue al cargador ni si la escritura puede escalar más allá de corrupción de memoria del proceso.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se reproduce el defecto informado, cargar un archivo de modelo HRM manipulado podría corromper la memoria del proceso llama.cpp, un riesgo relevante para quienes abren archivos de modelos no confiables. El problema afecta una arquitectura concreta; no se ha establecido ejecución arbitraria de código, explotación remota ni prevalencia en el campo.",
+      "limitations": [
+        "El defecto se describe para metadatos HRM GGUF malformados; esta revisión no establece exposición en otras arquitecturas de modelo.",
+        "La persona autora de la PR informa una reproducción con AddressSanitizer y una prueba posterior al arreglo, pero La revisión no reprodujo ninguno de los dos resultados.",
+        "Una escritura fuera de límites en el heap no demuestra por sí sola ejecución arbitraria de código ni explotación remota.",
+        "El arreglo aparece en la versión preliminar b12556; las fuentes revisadas no establecen su adopción en una versión estable."
+      ],
+      "relationships": [],
+      "summary": "El 19 de noviembre, llama.cpp incorporó un arreglo para una comprobación vulnerable al desbordamiento de enteros en su cargador de modelos HRM. La persona autora de la PR informa que metadatos HRM GGUF manipulados podían superar la comprobación de cantidad de bloques y provocar una escritura fuera de límites en el heap durante la carga de tensores. También informa que AddressSanitizer detectó el problema antes del arreglo y que después pasó una prueba de regresión y siguió cargando un modelo HRM válido. El commit aparece en la versión preliminar b12556, que informa 24 comprobaciones aprobadas. La revisión no reprodujo el defecto. La evidencia no establece ejecución arbitraria de código, explotación remota, prevalencia entre usuarios ni un aviso público de seguridad.",
+      "technical": {
+        "claimed_result": "La persona autora informa que los metadatos HRM malformados activaban una escritura en el heap fuera del vector; después del arreglo, la prueba de regresión pasó y un modelo HRM válido siguió cargando.",
+        "demonstrated_result": "La PR #32601 incorporó el commit de arreglo 50518b6 a master; la versión preliminar oficial b12556 incluye el commit e informa 24 comprobaciones aprobadas. La revisión no ejecutó la prueba.",
+        "implementation_status": "Incorporado a master y listado en la versión preliminar b12556.",
+        "mechanism": "Según la PR, los factores de capas y ciclos HRM se multiplicaban en uint32_t antes de compararse con block_count. El desbordamiento podía superar la aserción; después, la carga de tensores iteraba los factores completos sobre un vector model.layers más corto.",
+        "regime": "Carga de modelos HRM en llama.cpp al procesar metadatos GGUF; no se evaluaron otras arquitecturas ni aplicaciones derivadas.",
+        "strongest_baseline": "La persona autora informa que, antes del arreglo, una escritura con AddressSanitizer rebasaba el vector dimensionado con block_count y que después pasaron la prueba de regresión y la carga de un modelo válido."
+      },
+      "title": "llama.cpp corrige una escritura fuera de límites al cargar metadatos HRM manipulados",
+      "why_it_matters": "Los cargadores procesan archivos proporcionados por usuarios y terceros. En el caso acotado descrito, un archivo HRM GGUF malformado podría corromper la memoria del proceso; la evidencia revisada no demuestra ejecución de código ni explotación remota."
+    },
     "FCMO-7B399FF703B2": {
       "claims": [
         {
@@ -35543,6 +35595,69 @@
       },
       "title": "SpecCompact acelera la compactación del contexto de agentes mediante verificación semántica en paralelo",
       "why_it_matters": "La compactación del contexto puede añadir demoras visibles en agentes de larga duración. Si las reducciones reportadas se sostienen en cargas de trabajo representativas, el borrador paralelo y la verificación del modelo objetivo podrían reducir ese costo recurrente. El artículo también deja claro el intercambio: una latencia menor no garantiza mejor precisión en tareas posteriores, por lo que conviene medir ambas."
+    },
+    "FCMO-9C0C3A9CCF3A": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La versión 1 del preprint AHE-Beta se envió a arXiv el 18 de noviembre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores describen un ciclo de evolución de arneses que reúne comentarios de un simulador de usuarios en interacciones de varios turnos, convierte problemas verificados en requisitos generales y cambios de código revisados, y selecciona los cambios según evidencia de requisitos en vez de puntajes de benchmarks."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En 38 tareas Harbor-index no vistas, evaluadas con interacción y GLM-5.3-Flash, el artículo reporta una tasa pass@1 de 33.3% para AHE-Beta frente a 21.9% para el arnés base y 40.8% menos tokens de ejecución promedio por tarea. La figura reportada promedia tres ejecuciones de evaluación; el artículo no demuestra una reproducción independiente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En una comparación A/B humana ciega de seis tareas de programación, las personas prefirieron AHE-Beta en 31 de 48 pares válidos y le asignaron puntuaciones mayores en las cinco dimensiones reportadas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Sin seguir evolucionando el arnés, los autores reportan mejoras de pass@1 frente al arnés base de 15.8 puntos porcentuales con GLM-5.3 y de 5.3 puntos porcentuales con DeepSeek-V4.1-Flash (versión 2026-10-17)."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "No se estableció una reproducción independiente, el rendimiento fuera del conjunto de 38 tareas y las condiciones de modelos reportadas, ni la validez general de usar un solo modelo como simulador de usuarios. Los autores señalan límites de hasta 32 escenarios de evolución, seis rondas y un modelo simulador; la comparación humana contiene 48 pares válidos en seis tareas de programación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los principales resultados de pass@1, tokens y preferencia humana no se han reproducido de forma independiente.",
+          "kind": "reproduction_missing",
+          "state": "open",
+          "updated_at": "2026-11-19T23:23:07Z"
+        },
+        {
+          "description": "Se desconoce cuánto se generalizan los resultados fuera de las 38 tareas Harbor-index, las condiciones GLM-5.3-Flash y un único modelo simulador de usuarios.",
+          "kind": "regime_unclear",
+          "state": "open",
+          "updated_at": "2026-11-19T23:23:07Z"
+        }
+      ],
+      "importance_rationale": "Si los resultados reportados se generalizan, un ciclo centrado en requisitos podría cambiar cómo los equipos evolucionan arneses de agentes al sumar interacción con usuarios simulados y evidencia de requisitos a la revisión de código. La evaluación de 38 tareas y el estudio humano de 48 pares hacen de este un resultado metodológico notable pero acotado, no evidencia de un cambio amplio en capacidades.",
+      "limitations": [
+        "Los resultados son reportados por los autores del artículo y no han sido reproducidos de forma independiente.",
+        "La evaluación cubre 38 tareas no vistas y pocas condiciones de arnés/modelo; los autores indican que el estudio se limita a hasta 32 escenarios de evolución, seis rondas y un modelo simulador.",
+        "El estudio humano ciego usa 48 pares válidos en seis tareas de programación. Respalda una preferencia acotada, no su generalización a una población amplia o a otras tareas.",
+        "La reducción de tokens reportada excluye la simulación de usuarios y, por tanto, no establece ahorros en el costo total del proceso de evolución."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 18 de noviembre presenta Agentic Harness Engineering Beta, un proceso por rondas que usa usuarios simulados para detectar requisitos, agentes especializados para implementar cambios generales y revisión basada en requisitos para seleccionar actualizaciones del arnés. En 38 tareas no vistas de Harbor-index con GLM-5.3-Flash, los autores reportan una tasa pass@1 de 33.3% frente a 21.9% con el arnés base, con 40.8% menos tokens de ejecución; en una comparación humana ciega, se prefirió AHE-Beta en 31 de 48 pares válidos de seis tareas de programación. Son resultados reportados por el artículo en una evaluación acotada, sin reproducción independiente ni evidencia de rendimiento general en distintas tareas y modelos.",
+      "technical": {
+        "claimed_result": "Los autores reportan 33.3% de pass@1 frente a 21.9% para el arnés base, 40.8% menos tokens de ejecución promedio por tarea en 38 tareas no vistas y preferencia por AHE-Beta en 31/48 pares A/B humanos válidos. También reportan mejoras en dos modelos adicionales sin más evolución del arnés.",
+        "compute_or_cost": "Los autores reportan 40.8% menos tokens promedio de ejecución por tarea no vista frente al arnés base en la comparación principal; esa cifra por tarea no incluye los costos de simulación de usuarios ni de evolución.",
+        "demonstrated_result": "El artículo arXiv v1 y la evaluación que describe están disponibles públicamente. Su publicación no demuestra de forma independiente que los experimentos o resultados indicados puedan reproducirse.",
+        "mechanism": "Con un modelo base fijo, el proceso itera sesiones de usuarios simulados en varios turnos, clasificación de problemas, consolidación de requisitos, planificación de arquitectura/producto e implementación por desarrolladores. Un cambio se selecciona mediante admisión de requisitos vinculada a evidencia y revisión de diseño y código, en vez de buscar el mayor puntaje de benchmark.",
+        "regime": "Estudio reportado en un artículo, con hasta 32 escenarios de evolución de usuarios simulados durante seis rondas; 38 tareas Harbor-index no vistas en programación, optimización, análisis y uso de herramientas; ejecución y simulación con GLM-5.3-Flash y equipo de ingeniería del arnés con GLM-5.3; comparación humana ciega de seis tareas con 48 pares válidos.",
+        "reproducibility": "No se encontró ni realizó una reproducción independiente. La página de arXiv no enlaza artefactos de código o datos; el artículo describe un repositorio Gitea, pero esta revisión no confirmó un paquete experimental inmutable y accesible.",
+        "strongest_baseline": "Arnés base bajo el mismo protocolo de evaluación con GLM-5.3-Flash; el artículo también compara Claude Code, Meta-Harness y AHE. Los resultados reportados no son una reproducción independiente con condiciones emparejadas."
+      },
+      "title": "Un proceso centrado en requisitos para evolucionar arneses de agentes reporta mejoras en tareas no vistas",
+      "why_it_matters": "Si las comparaciones reportadas se sostienen, evolucionar un arnés de agente a partir de requisitos surgidos en interacciones de varios turnos puede mejorar tanto el éxito en tareas como la calidad de la interacción y reducir tokens de ejecución en la configuración probada. El método ofrece una alternativa concreta a seleccionar cambios sólo por puntajes de verificadores, aunque el conjunto acotado de tareas, el simulador y la muestra humana dejan abierta su generalización."
     },
     "FCMO-9C3B22ED4893": {
       "claims": [

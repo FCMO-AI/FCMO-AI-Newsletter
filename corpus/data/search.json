@@ -1,6 +1,82 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "PR #32601 merged fix commit 50518b6 into llama.cpp master; the official b12556 pre-release listing includes the commit and reports 24 checks passed. the research desk did not independently run the test.",
+    "desks": [
+      "open_ecosystem"
+    ],
+    "development_type": "repository_release",
+    "event_at": "2026-11-19T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-7ABD186D5688",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-11-20T00:21:58Z",
+    "mechanism": "The PR says HRM layer/cycle factors were multiplied into uint32_t before comparison with block_count; wraparound could pass the assertion, after which tensor loading iterated the full factors into a shorter model.layers vector.",
+    "organizations": [
+      "ggml-org",
+      "llama.cpp"
+    ],
+    "primary_desk": "inference_systems",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "The PR author reports an ASan heap write beyond the block_count-sized vector before the fix and successful regression/valid-model loading afterward.",
+    "summary": "On 19 November, llama.cpp merged a fix for an integer-overflow check in its HRM model loader. The PR author reports that crafted HRM GGUF metadata could pass the block-count assertion and cause an out-of-bounds heap write while model tensors were loaded. The author reports an AddressSanitizer reproduction before the fix and a passing regression test plus successful valid-model load afterward; the merged commit appears in release b12556 with 24 checks reported passed. the research desk did not independently reproduce the defect. The evidence does not establish arbitrary-code execution, remote exploitability, affected-user prevalence or a published security advisory.",
+    "title": "llama.cpp fixes an HRM model-loading out-of-bounds write triggered by crafted metadata",
+    "topics": [
+      "model-loading",
+      "GGUF",
+      "integer-overflow",
+      "memory-safety",
+      "inference-security"
+    ],
+    "why_it_matters": "Model loaders process files supplied by users and third parties. A malformed HRM GGUF could therefore create a process-memory corruption risk in the bounded loader regime, although the reviewed evidence does not establish code execution or remote exploitation."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The arXiv v1 paper and its described evaluation are publicly available. Its publication does not independently demonstrate that the stated experiments or results reproduce.",
+    "desks": [
+      "evaluation_science",
+      "inference_systems",
+      "architectures_scaling"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-11-18T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-9C0C3A9CCF3A",
+    "importance_effective_score": 5,
+    "importance_tier": "Notable",
+    "last_verified_at": "2026-11-19T23:23:07Z",
+    "mechanism": "For a fixed base model, the process iterates multi-turn simulated-user sessions, issue triage, requirement consolidation, architecture/product planning and developer implementation. A change is selected through evidence-linked requirement admission and design/code review rather than benchmark-score search.",
+    "organizations": [
+      "Fudan University",
+      "Peking University",
+      "Renmin University of China",
+      "Shanghai Qiji Zhifeng Co., Ltd."
+    ],
+    "primary_desk": "evaluation_science",
+    "regions": [
+      "China",
+      "global"
+    ],
+    "status": "developing",
+    "strongest_baseline": "Base Harness under the same GLM-5.3-Flash evaluation protocol; the paper also compares Claude Code, Meta-Harness and AHE. The reported results are not an independent matched reproduction.",
+    "summary": "A 18 Nov preprint introduces Agentic Harness Engineering Beta, a multi-round process that uses simulated users to surface requirements, specialized agents to implement general changes, and requirement-based review to select harness updates. On 38 held-out Harbor-index tasks with GLM-5.3-Flash, the authors report 33.3% pass@1 versus 21.9% for the Base Harness, with 40.8% fewer execution tokens; a blind human comparison preferred AHE-Beta in 31 of 48 valid pairs across six coding tasks. These are paper-reported results from a bounded evaluation, not an independent reproduction or evidence of general performance across tasks and models.",
+    "title": "A requirement-centered process for evolving agent harnesses reports gains on held-out tasks",
+    "topics": [
+      "agent harnesses",
+      "harness evolution",
+      "user requirements",
+      "software engineering agents",
+      "human evaluation",
+      "agent evaluation"
+    ],
+    "why_it_matters": "If the reported comparisons hold, evolving an agent harness from multi-turn user requirements can improve both task success and interaction quality while reducing execution tokens in the tested setup. This offers a concrete alternative to selecting harness changes only by task-verifier scores, while the paper's limited task set, simulator and human sample leave generality uncertain."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The public v1 preprint describes the benchmark construction, calibration protocol, evaluation design, public development sample and its reported analyses. Numerical model and training findings were not independently reproduced.",
     "desks": [
       "evaluation_science",
