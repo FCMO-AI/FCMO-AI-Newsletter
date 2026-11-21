@@ -730,6 +730,68 @@
       "title": "Un estudio de complejidad de prompts encuentra que los puntos de quiebre de confiabilidad del código dependen de la tarea y la composición del prompt",
       "why_it_matters": "Si se replica, esta sensibilidad afecta el diseño de benchmarks: las curvas agregadas pueden sugerir un umbral de confiabilidad que se desplaza o invierte bajo controles plausibles. Las evaluaciones deberían estratificar tareas y construcción de prompts e informar resultados por modelo antes de usar un punto agrupado en decisiones de ingeniería."
     },
+    "FCMO-032CB2A4E98C": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "OpenAI publicó el 20 de noviembre de 2026 un artículo que describe su enfoque frente a la destilación adversarial y las salvaguardas del razonamiento protegido."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa tasas medias de éxito de ataques adaptativos de caja negra para extraer razonamiento protegido de una solicitud anterior de 54.0% contra GPT-6 Astra con las salvaguardas originales y de 0.2% contra GPT-6.2 Astra con las salvaguardas actualizadas; para extraerlo de la solicitud actual informa 22.9% y 0.9%, respectivamente."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "OpenAI informa que, en las tareas cibernéticas evaluadas, los modelos estudiantes entrenados con trazas exactas de razonamiento del modelo docente generalmente superaron a los entrenados con resúmenes después del ajuste fino supervisado; después del aprendizaje por refuerzo, el estudiante con trazas exactas obtuvo una puntuación mayor con el presupuesto de inferencia más alto, mientras que el estudiante con resúmenes superó con presupuestos menores."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo no demuestra que las salvaguardas informadas impidan la destilación adversarial en distintos proveedores, métodos de ataque, modelos o contextos de despliegue."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una evaluación independiente de equipo rojo, en condiciones comparables, de las salvaguardas actualizadas ni los artefactos sin procesar de la batería de ataques.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-11-21T00:15:33Z"
+        },
+        {
+          "description": "El artículo público no aporta datos por ataque ni detalles completos del protocolo y de los modelos atacantes que permitan reconstruir las tasas informadas.",
+          "kind": "missing_artifact",
+          "state": "open",
+          "updated_at": "2026-11-21T00:15:33Z"
+        }
+      ],
+      "importance_rationale": "Si las protecciones informadas se transfieren al uso desplegado, reducir la extracción de razonamiento protegido podría influir en cómo los proveedores protegen capacidades de alto riesgo frente a su transferencia a modelos con salvaguardas más débiles. La importancia se limita a los escenarios de extracción evaluados por el proveedor; no se establece resistencia más amplia ni eficacia independiente.",
+      "limitations": [
+        "Todas las cifras de eficacia, transferencia cibernética y aplicación de medidas contra campañas son informes de OpenAI.",
+        "No se inspeccionaron una reproducción independiente, datos de ataques sin procesar, detalles completos de los modelos atacantes ni una auditoría del despliegue final.",
+        "Los resultados se refieren a la extracción de cadena de pensamiento protegida en el esquema de API y evaluación descrito; no establecen resistencia a todas las formas de destilación no autorizada.",
+        "El artículo informa medidas semanales de aplicación que abarcan desde miles hasta decenas de miles de cuentas, pero no proporciona denominador ni una estimación de prevalencia verificada independientemente.",
+        "La comparación de transferencia cibernética con trazas exactas solo se informa para los modelos estudiantes, bancos de prueba, recetas de entrenamiento y presupuestos de inferencia evaluados; tras el aprendizaje por refuerzo, el rendimiento relativo se invierte entre presupuestos bajos y altos de inferencia."
+      ],
+      "relationships": [
+        {
+          "summary": "Informa sobre salvaguardas actualizadas y una evaluación distinta de extracción de razonamiento posterior al lanzamiento del modelo y la tarjeta de sistema GPT-6.2.",
+          "target_id": "FCMO-3BE79487659B",
+          "type": "extends"
+        }
+      ],
+      "summary": "En un artículo del 20 de noviembre de 2026, OpenAI informa que una evaluación interna de equipo rojo adaptativo de caja negra encontró menores tasas de extracción de razonamiento protegido con las salvaguardas actualizadas de GPT-6.2 que con las salvaguardas originales de GPT-6 Astra. Para extraer razonamiento de una solicitud anterior, la tasa media de éxito del ataque habría bajado de 54.0% a 0.2%; para una solicitud actual, de 22.9% a 0.9%. El artículo también informa que, en algunos regímenes evaluados, las trazas exactas de razonamiento pueden mejorar los resultados de un modelo estudiante en pruebas cibernéticas frente a los resúmenes de razonamiento. Son hallazgos internos comunicados por el proveedor; en esta revisión no se inspeccionaron ni reprodujeron de forma independiente la batería de ataques ni los datos subyacentes.",
+      "technical": {
+        "claimed_result": "OpenAI informa tasas de éxito de extracción adaptativa de caja negra de 54.0% para razonamiento de una solicitud anterior y 22.9% para una solicitud actual contra GPT-6 Astra con las salvaguardas originales, frente a 0.2% y 0.9%, respectivamente, contra GPT-6.2 Astra con las salvaguardas actualizadas. También informa que las trazas exactas pueden transferir más capacidad cibernética a un modelo estudiante que los resúmenes en algunos regímenes de ajuste e inferencia.",
+        "demonstrated_result": "El artículo oficial y la evaluación que describe son públicos; esta activación revisó el resumen metodológico y las tablas de resultados. No se inspeccionaron artefactos de evaluación, datos sin procesar ni ejecuciones independientes.",
+        "mechanism": "El artículo describe entrenamiento del comportamiento del modelo, clasificadores de entrada y salida, y controles de API que vinculan el razonamiento protegido con el historial de conversación que lo generó; se combinan con detección de patrones entre cuentas y medidas de aplicación a nivel de campaña. Informa pruebas estáticas y adaptativas de equipo rojo, en configuraciones de caja negra y caja blanca.",
+        "novelty": "Nuevo informe del proveedor sobre resultados de evaluación adaptativa de extracción de razonamiento frente a salvaguardas actualizadas de GPT-6.2, junto con una comparación separada de destilación cibernética entre trazas exactas y resúmenes de razonamiento.",
+        "regime": "Evaluación interna de OpenAI con seis modelos atacantes y equipo rojo automatizado adaptativo; los resultados de caja negra cubren extracción de solicitudes anteriores y actuales. Un estudio separado de destilación cibernética con modelos estudiantes internos utiliza ExploitBench y SEC-bench Pro.",
+        "reproducibility": "No se inspeccionaron ataques sin procesar, la batería completa, los datos ni una reproducción independiente. Una evaluación adaptativa externa y comparable de las configuraciones finales desplegadas fortalecería el resultado.",
+        "strongest_baseline": "El proveedor compara GPT-6.2 Astra con las salvaguardas actualizadas contra GPT-6 Astra con las salvaguardas originales en su evaluación adaptativa de caja negra. El artículo no aporta suficientes detalles públicos de la batería de ataques para reconstruirla independientemente en esta revisión."
+      },
+      "title": "OpenAI informa menores tasas de extracción de razonamiento protegido con las nuevas salvaguardas de GPT-6.2",
+      "why_it_matters": "Si las protecciones informadas se sostienen en evaluaciones independientes y en despliegues reales, podrían orientar medidas contra la transferencia no autorizada de capacidades cibernéticas de frontera mediante destilación. El resultado se limita a la extracción de razonamiento protegido y al esquema de evaluación de OpenAI; no demuestra resistencia general a la destilación ni que se impida la transferencia de capacidades en el mundo real."
+    },
     "FCMO-0397982A513C": {
       "claims": [
         {
@@ -8692,6 +8754,10 @@
         {
           "label": "CLAIMED",
           "text": "El artículo publica adaptadores, código de evaluación y 6,204 trayectorias de tareas puntuadas; esto permite inspeccionar los artefactos, pero no valida de forma independiente los resultados ni la facturación reportados."
+        },
+        {
+          "label": "DEMONSTRATED",
+          "text": "La ficha del conjunto de datos de los autores y el visor de Hugging Face describen 6,204 filas de tareas puntuadas con campos de recompensa, costo de OpenRouter, uso de tokens y tiempo del agente; 6,067 filas incluyen trayectorias de conversación y 137 contienen solo resultados. No se incluyen archivos de verificación, salidas de pruebas ni datos de referencia de los benchmarks. La descripción de los artefactos no valida de forma independiente los resultados ni la facturación."
         }
       ],
       "contradictory_evidence": [],
@@ -8707,6 +8773,12 @@
           "kind": "baseline_unclear",
           "state": "open",
           "updated_at": "2026-10-08T01:08:07Z"
+        },
+        {
+          "description": "La ficha del conjunto de datos de los autores indica que 137 de las 6,204 filas puntuadas no tienen trayectoria de conversación y que el paquete excluye archivos de verificación, salidas de pruebas y datos de referencia de los benchmarks. Esto limita la auditoría del proceso y la validación independiente de las etiquetas de recompensa.",
+          "kind": "missing_artifact",
+          "state": "open",
+          "updated_at": "2026-11-21T00:25:53Z"
         }
       ],
       "importance_rationale": "Si las interacciones medidas entre modelo y harness se generalizan, pueden cambiar la selección de sistemas de agentes y el trabajo obtenido por dólar de API en distintas tareas. El estudio abarca 66 configuraciones y tres benchmarks, pero una sola ejecución contabilizada por tarea y los distintos valores predeterminados de los harnesses dejan inciertas la atribución causal y la transferencia.",
@@ -8714,18 +8786,21 @@
         "Los resultados son reportados por los autores; el equipo de investigación no volvió a ejecutar los benchmarks ni validó las facturas de proveedores.",
         "Cada tarea aporta una ejecución contabilizada después de los reintentos; no se establece la varianza entre ejecuciones ni la estabilidad del ranking.",
         "La gestión de contexto, los reintentos, la compactación, los límites de turnos y los presupuestos efectivos de razonamiento difieren entre harnesses; no es una intervención emparejada que aísle la causalidad del harness.",
-        "Los subconjuntos y convenciones de recompensa son propios de esta campaña y no reproducen directamente los rankings originales de los benchmarks."
+        "Los subconjuntos y convenciones de recompensa son propios de esta campaña y no reproducen directamente los rankings originales de los benchmarks.",
+        "La ficha indica que 137 de 6,204 filas puntuadas no incluyen trayectoria de conversación, principalmente porque el entorno no inició o se perdió el registro nativo; las filas con solo resultados no permiten auditar el proceso completo.",
+        "El paquete de los autores no incluye archivos de verificación, salidas de pruebas ni datos de referencia de los benchmarks, lo que limita la validación independiente de las etiquetas de recompensa.",
+        "Los campos de tokens, tiempo y costo por tarea son contadores o estimaciones provistos por los autores; los cálculos de precio de OpenRouter no verifican de forma independiente la facturación del proveedor ni los costos comparables de infraestructura."
       ],
       "relationships": [],
-      "summary": "Li et al. reportan 66 configuraciones de modelo y harness en TUA-Bench, ALE-CLI y un subconjunto de 63 tareas de Terminal-Bench 4 sin H100. Los rankings cambian según el harness: en el subconjunto de Terminal-Bench del artículo, Claude supera a GPT-6 Astra por 7.94 puntos con OpenHands, pero queda 30.16 puntos por debajo con PI. GPT-6 Astra obtiene 60.32% con un costo de $4.66 por tarea usando PI, frente a 52.38% y $19.94 con DeepSeek Harness. Los autores publican adaptadores, código de evaluación y 6,204 trayectorias puntuadas. Son resultados reportados por los autores a partir de una ejecución contabilizada por tarea; los valores predeterminados y los presupuestos efectivos de razonamiento difieren entre harnesses, por lo que la comparación no aísla un efecto causal del harness ni demuestra estabilidad del ranking.",
+      "summary": "Li et al. reportan 66 configuraciones de modelo y harness en TUA-Bench, ALE-CLI y un subconjunto de 63 tareas de Terminal-Bench 4 sin H100. Los rankings se invierten según el harness: en el subconjunto de Terminal-Bench del artículo, Claude aventaja a GPT-6 Astra por 7.94 puntos con OpenHands, pero queda 30.16 puntos por debajo con PI. GPT-6 Astra alcanza 60.32% a $4.66 por tarea con PI, frente a 52.38% a $19.94 con DeepSeek Harness. Los autores publicaron adaptadores, código de evaluación y un conjunto de 6,204 ejecuciones puntuadas con campos de recompensa, costo de OpenRouter, uso de tokens y tiempo del agente; la ficha indica que 6,067 incluyen conversaciones y 137 solo resultados, principalmente porque el entorno no inició o se perdió el registro nativo. Siguen siendo resultados informados por los autores con una ejecución contabilizada por tarea; el paquete no incluye archivos de verificación, salidas de pruebas ni datos de referencia de los benchmarks. Los valores predeterminados de los harnesses y los presupuestos efectivos de razonamiento difieren, por lo que la comparación no aísla un efecto causal del harness ni establece la estabilidad del ranking.",
       "technical": {
         "claimed_result": "Los autores reportan cambios en el ranking de modelos entre harnesses, los mejores harnesses dependen de la colección de tareas y el mismo modelo puede tener diferencias sustanciales de puntuación y costo de API.",
         "compute_or_cost": "Costo de API por tarea reportado por los autores según precios de OpenRouter; incluye llamadas auxiliares del harness y excluye llamadas del evaluador.",
-        "demonstrated_result": "Existe el artículo primario y enlaza artefactos públicos; el equipo de investigación verificó el texto y la tabla de resultados reportada, pero no reprodujo el experimento.",
+        "demonstrated_result": "Existen el artículo principal y el paquete público de datos. La ficha de los autores describe recompensa, costo de OpenRouter, uso de tokens y tiempo del agente para 6,204 filas puntuadas; indica que 6,067 contienen conversaciones y 137 solo resultados. Esta revisión no inspeccionó de forma independiente todas las filas, no validó la facturación, no volvió a ejecutar las tareas ni verificó los resultados.",
         "implementation_status": "Prepublicación de investigación con adaptadores, código de evaluación y trayectorias puntuadas disponibles públicamente; no se hizo una reproducción independiente.",
         "mechanism": "Cruza cinco modelos con cuatro harnesses configurables en tres colecciones de tareas y agrega referencias nativas Codex–GPT y Claude Code–Claude; compara recompensa, costo reportado y trayectorias seleccionadas.",
         "regime": "66 configuraciones en TUA-Bench (120 tareas), ALE-CLI (99 tareas) y un subconjunto de 63 tareas de Terminal-Bench 4 sin H100; una ejecución contabilizada por tarea tras los reintentos.",
-        "reproducibility": "Los artefactos públicos están enlazados en el artículo; aún deben fijarse y comprobarse sus revisiones, junto con resultados independientes de múltiples ejecuciones emparejadas.",
+        "reproducibility": "El paquete de los autores incluye adaptadores, código de evaluación, una tabla de 6,204 tareas, un resumen de costos para 66 configuraciones y trayectorias de conversación. La ficha señala que 137 filas no tienen conversaciones, en su mayoría por fallas de inicio del entorno o pérdida de registros, y que no se incluyen archivos de verificación, salidas de pruebas ni datos de referencia. Para una reproducción independiente de varias ejecuciones con presupuestos emparejados y tareas reservadas, primero hay que fijar las versiones de datos y código.",
         "strongest_baseline": "Las comparaciones dentro del artículo mantienen identificadores de tarea para un modelo dado; no igualan todos los valores predeterminados del harness ni los presupuestos de razonamiento."
       },
       "title": "Un estudio de 66 configuraciones reporta cambios de ranking entre modelos y harnesses en distintas tareas de agentes",
@@ -14528,6 +14603,53 @@
       },
       "title": "Un estudio de SkillsBench informa que la utilidad de las habilidades depende del modelo, el entorno y la organización de artefactos",
       "why_it_matters": "Las instrucciones procedimentales reutilizables pueden ayudar o perjudicar según lo que el agente pueda ejecutar y la forma en que el entorno coordine varias habilidades. El estudio aporta evidencia acotada de que comprobar el respaldo operativo y conservar las dependencias entre artefactos intermedios podría importar más que la relevancia temática o el simple orden; las mejoras requieren reproducción independiente que mida costos."
+    },
+    "FCMO-3D8BB7DBA1A7": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "Los autores publicaron arXiv:2611.26627v1 el 19 de noviembre de 2026, donde describen vectores fijos de dirección de activación para transformadores de difusión."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que vectores ajustados para igualar las predicciones de velocidad de modelos afinados con RL recuperan entre 90.0 y 96.3% de las ganancias de recompensa reportadas en seis modelos de imagen, y 89.8% y 111.9% en dos modelos de video. En SD3.5-M, también informan que entrenar solo los vectores con RL en línea supera las ganancias medidas del ajuste por pesos en OCR y PickScore."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Estos resultados no demuestran que el postentrenamiento con aprendizaje por refuerzo consista, en general, solo en dirigir activaciones; tampoco que los vectores sean necesarios para las ganancias de los modelos ajustados con RL, que el resultado se generalice más allá de los modelos y recompensas evaluados ni que mejore los resultados para usuarios en situaciones reales."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se inspeccionó una reproducción independiente de la recuperación de ganancias de recompensa informada ni una evaluación independiente de esas métricas.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "La página del proyecto enlazada no se pudo abrir con este lector y en esta activación no se verificó por separado la disponibilidad de código, puntos de control ni otros artefactos de implementación.",
+          "kind": "missing_artifact",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se sostiene, el resultado podría cambiar cómo los equipos interpretan e implementan el postentrenamiento con RL en generadores de difusión, pues sugiere que muchas ganancias de recompensa medidas pueden recuperarse con muchos menos parámetros entrenables. Su relevancia es significativa, pero se limita a los modelos y métricas evaluados.",
+      "limitations": [
+        "Todas las cifras de rendimiento proceden de un solo preprint y sus autores; aquí no se reprodujeron de manera independiente.",
+        "Las proporciones recuperadas comparan vectores ajustados con las ganancias de recompensa de puntos de control específicos; no implican que los vectores sean necesarios ni que las actualizaciones de RL tengan bajo rango.",
+        "El resultado en video abarca dos modelos y dos modelos base; no caracteriza en general el ajuste con RL para generación de video.",
+        "El estudio de comparación por pares del artículo reunió cerca de 500 juicios sobre 50 indicaciones y 25 evaluadores; no encontró una diferencia significativa de preferencia entre los resultados dirigidos y los ajustados con RL, y no demuestra beneficios para usuarios en tareas posteriores."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 19 de noviembre informa que vectores de activación pequeños e independientes de la indicación, añadidos a bloques de transformadores de difusión congelados, pueden recuperar la mayor parte de la mejora en recompensa de varios generadores de imágenes y video ajustados con RL. Los autores informan una recuperación de 90.0–96.3% en seis modelos de imagen y de 89.8%/111.9% en dos modelos de video; en SD3.5-M comparan un conjunto de vectores de 0.29 millones de parámetros con una LoRA de 18.8 millones de parámetros y rango 32. Son resultados informados por los autores. Aclaran que no afirman que los vectores sean necesarios ni que las actualizaciones de RL sean de bajo rango; el resultado de video se limita a dos modelos.",
+      "technical": {
+        "claimed_result": "El artículo informa una recuperación de 90.0–96.3% de las ganancias de recompensa de RL en seis modelos de imagen y de 89.8% y 111.9% en dos modelos de video mediante vectores fijos de activación ajustados para igualar las predicciones de velocidad de modelos afinados con RL. También informa que entrenar solo vectores con RL en línea supera las ganancias medidas del ajuste por pesos en OCR y PickScore para SD3.5-M.",
+        "demonstrated_result": "El preprint público de arXiv describe el método y comunica estos resultados; el equipo de investigación no ejecutó de forma independiente la implementación, los puntos de control ni las evaluaciones de recompensa.",
+        "mechanism": "El método congela todos los pesos preentrenados y añade vectores a las salidas de bloque, compartidos entre indicaciones, tokens y semillas de muestreo. Los vectores varían según el bloque, la secuencia, el paso de guía y el intervalo de pasos de ruido. En el experimento informado con SD3.5-M, el conjunto de vectores tiene 0.29 millones de parámetros frente a 18.8 millones en la LoRA de rango 32 del modelo ajustado con RL. Los autores proponen que las operaciones existentes de atención, normalización y MLP combinan el desplazamiento compartido con estados que dependen de cada indicación.",
+        "regime": "Evaluaciones informadas por los autores de seis modelos de imagen ajustados con RL, incluidos SD3.5-M y FLUX.1-dev, y dos modelos de video. Las recompensas incluyen PickScore, HPSv2.1, OCR, GenEval, HPSv3 y medidas de VideoAlign. El estudio con personas cubre 50 indicaciones, 25 evaluadores y cerca de 500 juicios. Los resultados proceden del artículo y no se reprodujeron aquí.",
+        "strongest_baseline": "El artículo compara los vectores ajustados con los puntos de control respectivos afinados con RL y, para SD3.5-M, con una LoRA ajustada del mismo tamaño. La proporción informada corresponde a la ganancia de recompensa de cada modelo con RL respecto de su modelo base; no es una puntuación absoluta ni una medida de generalización entre tareas."
+      },
+      "title": "Un artículo informa que desplazamientos fijos de activación recuperan la mayoría de las ganancias de recompensa de RL en modelos de difusión",
+      "why_it_matters": "El resultado propone una interpretación mecanística potencialmente útil de los generadores visuales ajustados con recompensas: el modelo base congelado quizá ya calcule comportamientos dependientes de cada indicación, mientras que un desplazamiento de activación compacto y compartido lo orienta hacia una región favorecida por la recompensa. Si se reproduce, podría influir en los costos y mecanismos de adaptación. No establece una explicación general de RL ni valor práctico de los resultados."
     },
     "FCMO-3DCF6AD5CA1E": {
       "claims": [
