@@ -34941,6 +34941,51 @@
       "title": "Tev informa avances en el entrenamiento de agentes de largo horizonte con entornos verificables y recompensas densas de progreso",
       "why_it_matters": "Si los resultados se reproducen, combinar estados intermedios verificables con recompensas densas podría facilitar la creación de datos para entrenar agentes de largo horizonte y reducir lotes de RL desperdiciados cuando ninguna trayectoria completa la tarea. Las mejoras reportadas se limitan a entornos sintéticos de terminal y subconjuntos de evaluación seleccionados; aún no demuestran capacidad general para trabajo profesional ni transferencia amplia."
     },
+    "FCMO-944F8E4AE0AA": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "Los autores reportan un método de crítica de acciones basado en intención para 12 bancos de manipulación robótica. De 12,163 fallas anotadas, indican que 57.7% se recuperó de forma verificable al final del episodio y 38.9% dentro de las diez acciones posteriores; la recuperación varió según el tipo de falla (63.7% para agarre, 35.7% para alineación y 29.6% para efecto). En una prueba con 400 acciones anotadas por personas, el artículo reporta 71.25% de exactitud global para GPT-6 Astra y 67.75% para Muse-Glimmer-30B ajustado; este último reporta 74.24% de exactitud en el modo de falla, frente a 32.58% sin ajuste."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El preprint y los artefactos enlazados no demuestran reproducción independiente, confiabilidad robótica general en el mundo real ni que la crítica por acción mejore el éxito de tareas en despliegue."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Falta una recomputación independiente de la exactitud del crítico y de las etiquetas de modo de falla en las 400 acciones anotadas por personas.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "No se sabe si la crítica por acción mejora el éxito de tareas robóticas ni si se transfiere más allá de los bancos usados en el artículo.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se sostuviera, diagnosticar acciones y distinguir errores de agarre recuperables de fallas persistentes de alineación o efecto podría cambiar la evaluación de robots y el diseño de controladores. Los resultados se limitan a tareas y bancos específicos, por lo que representan un avance significativo, no evidencia de control robótico general confiable.",
+      "limitations": [
+        "Las cifras de capacidad y del crítico son reportadas por los autores a partir de bancos de datos; no se realizó una reproducción independiente.",
+        "El conjunto anotado por personas contiene 400 acciones del conjunto de prueba del banco; esta revisión no auditó de manera independiente la validez de las etiquetas ni el acuerdo entre anotadores.",
+        "La revisión secundaria de recuperación del apéndice incluyó 24 fallas, dos por banco, y encontró acuerdo en 21 casos; es una muestra pequeña.",
+        "La mayoría de las trayectorias provienen de evaluaciones de bancos o simulaciones; el artículo no demuestra confiabilidad robótica general en el mundo real ni mejoras en el éxito de tareas posteriores.",
+        "Se revisaron los listados del repositorio y de los datos/modelo enlazados, pero no se ejecutó código ni se inspeccionaron los archivos de datos o las salidas del modelo."
+      ],
+      "relationships": [],
+      "summary": "AgentRoboCritic evalúa cada acción robótica frente a la intención local declarada por el agente y la evidencia visual, y asigna un resultado y un modo de falla. En 12 bancos de manipulación, los autores reportan recuperación verificable al final del episodio en 57.7% de 12,163 fallas anotadas, con diferencias marcadas entre agarre y fallas de alineación o efecto. En un conjunto de 400 acciones anotadas por personas, reportan una exactitud global de 71.25% para GPT-6 Astra y de 67.75% para un crítico Muse-Glimmer-30B ajustado. El proyecto enlaza un repositorio público de evaluación y registros de datos y modelo. Son resultados reportados en el artículo; esta revisión no ejecutó los artefactos ni verificó de forma independiente las etiquetas, puntuaciones o la transferencia al mundo real.",
+      "technical": {
+        "claimed_result": "Los autores reportan recuperación al final del episodio para 57.7% de 12,163 acciones fallidas anotadas y para 38.9% dentro de las diez acciones siguientes; las tasas son 63.7% para agarre, 35.7% para alineación y 29.6% para efecto. En 400 acciones anotadas por personas, GPT-6 Astra obtiene 71.25% de exactitud global; Muse-Glimmer-30B ajustado obtiene 67.75% global y 74.24% en modo de falla, frente a 34.75% y 32.58% sin ajuste.",
+        "demonstrated_result": "La publicación del artículo, el diseño del banco y las mediciones reportadas por los autores pueden consultarse directamente. Los resultados medidos siguen siendo afirmaciones de los autores y esta activación no los verificó de forma independiente.",
+        "mechanism": "La política declara una intención en lenguaje natural junto con cada acción de bajo nivel. Un crítico recibe la tarea global, esa intención y observaciones anteriores y posteriores a la acción —con imágenes breves de seguimiento cuando hacen falta— y luego juzga el resultado y el modo de falla.",
+        "regime": "Doce bancos de manipulación; algunas trayectorias de GPT-6 Astra fueron recolectadas para el estudio y otras provienen de registros de bancos publicados. La validación del crítico usa 400 acciones de un conjunto de prueba separado por episodio. Los resultados son de los autores y no se reprodujeron de forma independiente.",
+        "reproducibility": "Los autores enlazan un repositorio público de evaluación, un banco y conjunto de datos, y un modelo ajustado. Esta activación revisó los listados y el README, pero no ejecutó el código ni verificó el contenido de los artefactos.",
+        "strongest_baseline": "La tabla del crítico compara GPT-6 Astra y otros críticos abiertos y de frontera con etiquetas humanas; Muse-Glimmer-30B ajustado se compara con su versión sin ajuste. Las comparaciones de políticas robóticas contra modelos VLA/WAM siguen el protocolo sin ajuste del artículo; no hubo reproducción externa con controles equivalentes."
+      },
+      "title": "AgentRoboCritic analiza la acción de robots de frontera según la intención declarada",
+      "why_it_matters": "El trabajo vuelve más diagnóstico el análisis de agentes robóticos al relacionar cada acción con su submeta y el resultado observado. Las diferencias reportadas entre modos de falla podrían orientar investigación sobre percepción, agarre y control de precisión; el banco de evaluación del crítico ofrece un artefacto que puede ponerse a prueba. Los resultados no demuestran exactitud independiente ni operación robótica confiable en el mundo real."
+    },
     "FCMO-94EBAAEAD595": {
       "claims": [
         {
