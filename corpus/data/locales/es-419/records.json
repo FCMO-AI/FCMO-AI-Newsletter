@@ -30288,6 +30288,79 @@
       "title": "Investigadores de AMD presentan un método de difusión de un paso para iluminación global con estabilidad temporal",
       "why_it_matters": "Si se reproduce, el trabajo muestra una forma concreta de combinar generación de imágenes en un paso con historial temporal para producir iluminación indirecta aprendida más estable. Podría influir en el diseño de renderizado neuronal, pero la evidencia pública describe una evaluación con escenas sintéticas y no establece que alcance una tasa de cuadros viable ni que exista un despliegue de producto."
     },
+    "FCMO-7E2975259F30": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "arXiv registra la versión 1 de este preprint como enviada el 2026-11-24 a las 18:38:06 UTC."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que la SFT cronológica, con una actualización por lote de rollouts guardado y sin etiquetas de recompensa, sigue de cerca las trayectorias pass@k de MaxRL en línea de Qwen3-1.7B-Base en MATH-500, AIME25, GPQA-Diamond y Knights-and-Knaves; el error de trayectoria informado es 0.002–0.011 en esos benchmarks."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan pequeños errores de rendimiento final para Qwen3-1.7B-Base y Qwen3-4B-Base en benchmarks matemáticos, y que lotes de etapas tardías recuperan el rendimiento final en algunos casos probados; la ventana necesaria varía según el modelo y la tarea."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan experimentos complementarios de navegación en laberintos de 17×17 y clasificación ImageNet con ResNet-50, y que el replay de datos de dos especialistas retiene mejor el rendimiento de ambas tareas que las fusiones de pesos comparadas en su configuración con Qwen3-1.7B."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El artículo revisado no establece una reproducción independiente, ahorros netos de cómputo o dinero, rendimiento fuera de las tareas y regímenes probados ni transferencia a modelos de frontera mayores de 4B parámetros."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Un preprint anterior citado, ROSS, informa mejoras posteriores al filtrar rollouts históricos verificados y supervisar segmentos seleccionados desde el checkpoint final; este artículo estudia replay cronológico sin filtrar para reconstruir la trayectoria de RL en línea."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "No se encontró ni realizó una reproducción independiente o auditoría de código de la recuperación con SFT ordenada, la recuperación final o la composición de especialistas informadas.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El artículo no ofrece una comparación neta de cómputo o costos que incluya la generación de rollouts, su almacenamiento, el replay con SFT y la evaluación; recuperar rendimiento no demuestra menor costo total de entrenamiento.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los experimentos reportados con modelos de lenguaje llegan hasta 4B parámetros y usan tareas de razonamiento seleccionadas; se desconoce la transferencia a modelos mayores, distribuciones más amplias y postentrenamiento de producción.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "El artículo identifica ROSS como trabajo previo cercano, pero no se revisó una comparación directa entre el replay de trayectorias sin filtrar y el reaprendizaje selectivo desde el checkpoint final.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los resultados de recuperación y combinación se generalizan, conservar y reutilizar archivos de rollouts de RL podría cambiar de forma relevante la gestión de datos de postentrenamiento y la formación de especialistas. La importancia es notable pero acotada: la evidencia proviene de un solo preprint, cubre modelos de hasta 4B y no cuenta con reproducción independiente ni ahorros netos de cómputo demostrados.",
+      "limitations": [
+        "Todos los resultados de curvas de aprendizaje, rendimiento final, composición, laberintos e ImageNet de este registro son informados por los autores del preprint; no se realizó una reproducción independiente.",
+        "Los experimentos con modelos de lenguaje usan Qwen3-1.7B-Base, Qwen3-4B-Base y SmolLM2-360M-Instruct; no se probaron modelos de frontera con más de 4B parámetros.",
+        "El método requiere guardar los datos de rollouts y realizar ajustes supervisados; el artículo no demuestra una reducción del cómputo total, del almacenamiento ni del tiempo de entrenamiento frente al RL en línea.",
+        "La suficiencia de rollouts de etapas tardías depende del modelo y la tarea: por ejemplo, un lote final basta en algunos casos de Qwen3, mientras que SmolLM2 en GSM8K requiere más lotes tardíos.",
+        "Los autores estudian la recuperación del rendimiento de RL en línea probado, no una capacidad general para superarlo ni un reemplazo universal del postentrenamiento en línea.",
+        "Trabajos relacionados como ROSS ya informan reutilización selectiva de rollouts históricos para lograr mejoras posteriores. La distinción acotada de este artículo es el replay cronológico sin filtrar y la reconstrucción de trayectorias; no hay una comparación directa que establezca superioridad o novedad amplia."
+      ],
+      "relationships": [],
+      "summary": "Un preprint del 24 de noviembre estudia si las muestras generadas durante el postentrenamiento con aprendizaje por refuerzo en línea conservan cambios de capacidad que suelen quedar en los pesos del modelo. Los autores informan que, al partir del mismo modelo base y aplicar una actualización de ajuste fino supervisado a cada lote de rollouts archivado en orden cronológico, se siguen de cerca las curvas del entrenamiento en línea en varios benchmarks de razonamiento para modelos de lenguaje. También informan recuperación del rendimiento final usando solo lotes de etapas tardías en algunos casos, combinación de especialistas mediante datos y experimentos complementarios con laberintos e ImageNet. Los experimentos abarcan modelos de hasta 4B de parámetros. Son resultados informados por los autores del preprint; no se establecieron una reproducción independiente ni ahorros netos de costo de entrenamiento. Los autores distinguen este objetivo de reconstrucción de trayectorias del reaprendizaje selectivo previo, incluido ROSS, que filtra trayectorias y segmentos para buscar mejoras posteriores. Los resultados siguen siendo autorreportados; no se establecieron comparaciones directas, reproducción independiente ni ahorro neto de costos.",
+      "technical": {
+        "claimed_result": "Los autores informan curvas de aprendizaje de MaxRL en línea y SFT cronológica casi superpuestas para Qwen3-1.7B-Base en MATH-500, AIME25, GPQA-Diamond y Knights-and-Knaves, con un error de trayectoria informado de 0.002–0.011. También reportan pequeños errores de rendimiento final para Qwen3-1.7B/4B, recuperación dependiente del contexto con lotes tardíos, composición de especialistas en matemáticas y lógica, y experimentos auxiliares con laberintos e ImageNet. Los autores distinguen este objetivo del trabajo ROSS, que filtra trayectorias y tokens históricos para mejorar el rendimiento posterior desde el checkpoint final.",
+        "compute_or_cost": "El preprint no demuestra ahorros netos al contabilizar la generación de rollouts en línea, su almacenamiento, el replay supervisado y la evaluación. Reutilizar datos generados podría cambiar los costos marginales, pero es una implicación no medida, no un resultado reportado.",
+        "demonstrated_result": "La ficha y el texto completo del preprint en arXiv permiten verificar qué informan los autores, la configuración experimental y los límites declarados. En esta revisión no se estableció ningún resultado experimental independiente.",
+        "mechanism": "El método conserva los lotes de instrucciones y respuestas generados en cada paso del RL en línea. Partiendo del mismo checkpoint base, un modelo estudiante realiza ajuste fino supervisado token a token en cada lote archivado y en el orden original. La pérdida de SFT usa respuestas correctas e incorrectas y no requiere etiquetas de recompensa, a diferencia de repetir la actualización de gradiente de política fuera de línea. El artículo atribuye el colapso de ese replay a una discrepancia acumulada entre el modelo que se actualiza y la política que generó cada lote.",
+        "regime": "El artículo usa Qwen3-1.7B-Base y Qwen3-4B-Base en razonamiento matemático con Polaris-53K, Qwen3-1.7B-Base en Knights-and-Knaves y SmolLM2-360M-Instruct en GSM8K; otras pruebas usan laberintos de 17×17 e ImageNet con ResNet-50. Las ejecuciones estándar en línea usan 1,000 pasos de MaxRL, con 256 prompts y 16 rollouts por prompt; la ejecución de SmolLM2 usa 1,500 pasos. Los resultados no demuestran transferencia a modelos de frontera de mayor escala.",
+        "reproducibility": "El HTML de arXiv incluye configuraciones experimentales detalladas y resultados de apéndices. En esta revisión no se encontró un repositorio de código ni una reproducción independiente.",
+        "strongest_baseline": "La comparación principal es con la ejecución correspondiente de MaxRL en línea desde el mismo modelo base; MaxRL fuera de línea sin más, incluso con variantes de muestreo por importancia, colapsa en los experimentos reportados. Para combinar especialistas de matemáticas y lógica, los autores comparan SFT con rollouts archivados frente a promedios de pesos, aritmética de tareas y TIES. Todas las comparaciones son del preprint y no se reprodujeron de forma independiente. ROSS es trabajo previo pertinente, pero no una comparación equivalente: parte del checkpoint final y supervisa de forma selectiva trayectorias históricas para buscar mejoras posteriores, mientras que este artículo busca reconstruir la trayectoria desde el checkpoint base."
+      },
+      "title": "Un preprint informa que la SFT ordenada con rollouts archivados recupera trayectorias de RL en línea",
+      "why_it_matters": "Si los resultados se generalizan, los rollouts de RL podrían reutilizarse para reconstruir trayectorias de capacidad, combinar especialistas o transferir datos, lo que podría influir en la conservación de datos y la elección de métodos de postentrenamiento. El artículo no muestra que reutilizar rollouts reduzca el cómputo total ni sustituya el RL en línea para modelos de frontera más grandes."
+    },
     "FCMO-7E546D2CDBDD": {
       "claims": [
         {
