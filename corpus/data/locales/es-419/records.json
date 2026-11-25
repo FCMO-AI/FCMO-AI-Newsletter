@@ -13193,6 +13193,64 @@
       "title": "Palo Alto anuncia un servicio continuo de seguridad ofensiva con modelos avanzados; su eficacia no está verificada",
       "why_it_matters": "La oferta proporciona una vía concreta para usar modelos avanzados en pruebas defensivas recurrentes: conecta análisis continuo, selección de modelos, validación de rutas de explotación y orientación para corregir fallas. Esto es relevante para cómo las empresas podrían poner en práctica modelos avanzados de ciberseguridad. La fuente es el anuncio del proveedor; no demuestra que el servicio encuentre más exposiciones válidas o reduzca el riesgo de sus clientes."
     },
+    "FCMO-3735B783D5F7": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En seis modelos abiertos ajustados para seguir instrucciones y cuatro pruebas en inglés, los autores informan una mediana de 6.6% de cambios en la corrección por ítem entre fechas plausibles (IC del 95%: 5.1–7.8%) y de 4.3% entre fechas separadas por un día (IC del 95%: 3.5–5.9%)."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan que las fechas optimizadas fuera del intervalo plausible causaron pérdidas de exactitud estadísticamente significativas en pruebas retenidas solo para los dos modelos Llama-3.x; la mayor pérdida reportada fue de 36.5 puntos porcentuales para Llama-3.1-8B en MMLU."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El estudio no establece que el campo de fecha sea especialmente disruptivo frente a otros campos del mensaje de sistema, ni que el efecto se generalice a modelos cerrados de frontera, decodificación no greedy o pruebas multilingües amplias."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los resultados experimentales reportados no se reprodujeron de manera independiente ni se recalcularon con código o datos publicados en esta activación."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los cambios de corrección por ítem y los resultados de búsqueda de fechas reportados aún no se han reproducido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open",
+          "updated_at": "2026-11-25T16:23:07Z"
+        },
+        {
+          "description": "No se identificó un repositorio de código o datos enlazado desde el registro de arXiv consultado.",
+          "kind": "missing_artifact",
+          "state": "open",
+          "updated_at": "2026-11-25T16:23:07Z"
+        }
+      ],
+      "importance_rationale": "Si se replica, una fecha no controlada puede cambiar los resultados por ítem y la reproducibilidad de una evaluación sin que la puntuación agregada lo haga evidente. Es relevante para las prácticas de evaluación, pero la evidencia actual se limita a seis modelos abiertos, cuatro pruebas en inglés y muestras pequeñas.",
+      "limitations": [
+        "Resultados reportados por los autores; en esta activación no hubo reproducción independiente ni auditoría de artefactos.",
+        "Seis modelos abiertos de hasta 24B parámetros, decodificación greedy y cuatro pruebas en inglés; MMLU incluye solo cuatro materias.",
+        "Cada celda modelo-prueba tiene 96 ítems de prueba, lo que limita la capacidad para descartar pérdidas pequeñas.",
+        "El artículo no varía otros campos del preámbulo; por eso no demuestra que la fecha sea especialmente disruptiva. El control con fechas aleatorias no iguala el presupuesto de búsqueda.",
+        "Las mayores pérdidas de exactitud con fechas optimizadas ocurrieron fuera del intervalo plausible 2024–2026 y las pérdidas estadísticamente significativas se limitaron a Llama-3.x."
+      ],
+      "relationships": [],
+      "summary": "Un preprint informa que cambiar la fecha que insertan las plantillas de conversación del modelo modificó cuáles respuestas eran correctas en seis modelos abiertos y cuatro pruebas en inglés: la mediana de cambios por ítem fue de 6.6% entre fechas plausibles y de 4.3% entre fechas separadas por un día. La exactitud agregada a menudo cambió mucho menos. Los resultados son reportados por los autores, usan 96 ítems de prueba por celda modelo-prueba y decodificación greedy, y no muestran que la fecha sea especialmente disruptiva frente a otros campos del mensaje de sistema.",
+      "technical": {
+        "claimed_result": "Según el informe, entre seis modelos abiertos y cuatro pruebas en inglés, las fechas plausibles cambiaron la corrección de una mediana de 6.6% de los ítems; los cambios de un día produjeron 4.3% de variación.",
+        "compute_or_cost": "No se informa como resultado directo de costo o latencia; los autores describen búsquedas de fechas y evaluaciones controladas.",
+        "demonstrated_result": "El registro de arXiv y el preprint pueden inspeccionarse públicamente. Los resultados experimentales son reportados por los autores; no se hizo una reproducción independiente.",
+        "implementation_status": "Medición en un preprint y propuesta de mitigación; no se estableció un cambio en un sistema de evaluación en producción ni un resultado de despliegue.",
+        "mechanism": "Varias plantillas de conversación insertan automáticamente la fecha del sistema anfitrión en el preámbulo del mensaje de sistema. El artículo varía esa fecha mientras mantiene fija la demás configuración evaluada, mide cambios en las respuestas y en su corrección por ítem, y después busca cadenas de fecha que maximicen la divergencia de salida.",
+        "novelty": "Identifica la fecha de reloj insertada automáticamente en plantillas de conversación como una entrada de evaluación oculta y mide cambios por ítem manteniendo fija la configuración restante evaluada.",
+        "regime": "Seis modelos abiertos ajustados para seguir instrucciones, de hasta 24B parámetros; decodificación greedy; cuatro pruebas en inglés (incluidos cuatro temas de MMLU); por celda modelo-prueba: 32 ítems de entrenamiento, 32 de validación y 96 de prueba.",
+        "reproducibility": "El preprint y sus métodos y apéndices están disponibles en el HTML de arXiv. No se identificó un enlace a código o datos en el registro consultado; sigue pendiente una reproducción independiente.",
+        "strongest_baseline": "El estudio compara el cambio de fecha de un día con un cambio de tamaño de lote en el mismo modelo y repite la fecha de referencia. No compara la fecha con un conjunto amplio y equivalente de cambios en otros campos del mensaje de sistema."
+      },
+      "title": "Un estudio de arXiv informa que las fechas insertadas automáticamente en el mensaje de sistema pueden cambiar resultados de evaluación por ítem",
+      "why_it_matters": "Una puntuación agregada puede ocultar cambios, dependientes de la fecha, en los ítems concretos que un modelo responde correctamente. Esto afecta el análisis de errores y la reproducibilidad aunque la puntuación general parezca estable. El artículo presenta una medición acotada en varios modelos abiertos; siguen pendientes la generalización a modelos actuales de frontera y el efecto relativo a otros campos del mensaje."
+    },
     "FCMO-377D88274A49": {
       "claims": [
         {
@@ -47589,6 +47647,58 @@
       },
       "title": "Kakao reporta latentes de video adaptados al contenido y generación con posiciones dispersas",
       "why_it_matters": "Los tokenizadores de video suelen asignar una cuadrícula latente fija a cada clip. KATok prueba una alternativa adaptada al contenido y aborda el problema de ubicación espacial que aparece al eliminar tokens. Si los resultados reportados se sostienen en reproducciones independientes y comparables, podrían influir en el diseño de tokenizadores y generadores de video. La evidencia se limita a benchmarks ejecutados por los autores, y la compresión ajustada por canales es menor que la reducción destacada del conteo de tokens."
+    },
+    "FCMO-CBEE46211FB7": {
+      "claims": [
+        {
+          "label": "CLAIMED",
+          "text": "En 9,136 intentos de cuatro agentes de programación con AIChipBench, los autores informan que señalar la primera discrepancia en el estado almacenado elevó la aceptación entre 25.0 y 46.9 puntos porcentuales en las 12 celdas agente-tarea comparadas y redujo de 13.4 a 6.5 las horas de agente por diseño aceptado."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Al volver a evaluar entregas congeladas con secuencias y condiciones nuevas, los autores informan que 45 de 69 diseños antes aceptados fallaron dentro de los 32 pasos de decodificación exigidos por las tareas originales; 17 de 85 secuencias fallidas tenían errores solo en el estado almacenado y habrían pasado una prueba de esa longitud que revisara únicamente las salidas."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "El artículo informa que más de un tercio de los intentos de optimizar un diseño ya correcto terminaron sin producir un diseño correcto, bajo un objetivo de rendimiento, potencia y área que exigía al menos 5% más rendimiento y como máximo 2% más tablas de consulta."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "Los resultados no demuestran que el efecto de la retroalimentación se transfiera a otro hardware con estado ni a flujos completos de diseño de chips: las tareas fijan la estructura de módulos, los agentes no colocan ni enrutan los diseños y la evaluación principal llega a 32 pasos de decodificación (256 pasos en la reevaluación)."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los contrastes de retroalimentación y los conteos de errores de estado tardíos no se han reproducido de manera independiente a partir de los registros de intentos.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "El estudio fija la estructura de los módulos, no incluye colocación ni enrutamiento por parte de agentes y evalúa un conjunto acotado de familias de decodificadores y horizontes.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si los efectos informados se sostienen, la retroalimentación de depuración que expone el estado persistente y las pruebas retenidas de mayor duración podrían cambiar de forma material la evaluación y la ingeniería de agentes para hardware de IA. La evidencia procede de un único benchmark de los autores, con estructuras de decodificador y horizontes acotados; no se ha establecido su transferencia.",
+      "limitations": [
+        "Se trata de un único benchmark realizado por sus autores; en esta activación no hubo reproducción independiente ni auditoría de los registros de intentos.",
+        "Las tareas fijan la estructura de los módulos y cubren RTL de decodificadores, no el proceso completo de diseño de aceleradores; los agentes no realizan colocación ni enrutamiento.",
+        "Los horizontes principales de evaluación llegan a 32 pasos de decodificación; la reevaluación ampliada llega a 256. No se ha probado la transferencia a otro hardware con estado.",
+        "Los resultados describen un sistema de modelo y herramientas; no aíslan los pesos del modelo de la estructura de trabajo, la retroalimentación, los presupuestos de herramientas ni el diseño de las tareas."
+      ],
+      "relationships": [],
+      "summary": "Los autores presentan AIChipBench, un benchmark para agentes de programación que implementan decodificadores cuantizados de modelos de lenguaje como RTL sintetizable. En un estudio comparado, informan que señalar la primera discrepancia en el estado almacenado mejoró la aceptación en todas las celdas agente-tarea; la reevaluación de diseños congelados encontró errores tardíos que las pruebas limitadas a salidas no detectaban. Son resultados informados por los autores, obtenidos con estructuras de decodificador fijas y horizontes acotados; no demuestran capacidad general de diseño de hardware.",
+      "technical": {
+        "claimed_result": "La retroalimentación que señala la primera discrepancia de estado mejoró la aceptación informada entre 25.0 y 46.9 puntos porcentuales en las 12 celdas agente-tarea, y redujo a la mitad las horas de agente por diseño aceptado; la reevaluación detectó fallas tardías de estado en entregas previamente aceptadas.",
+        "demonstrated_result": "El preprint público describe directamente el benchmark, el protocolo comparado de retroalimentación, el número de intentos y los resultados informados por los autores. En esta activación no se reprodujeron de forma independiente los resultados de desempeño.",
+        "mechanism": "Los agentes inspeccionan y editan RTL, y ejecutan herramientas frente a pruebas públicas. La retroalimentación puede señalar discrepancias de salida, avisar que el estado difiere o ubicar la primera palabra de estado discrepante. Después, un evaluador aislado congela las entregas y aplica pruebas retenidas y controles de síntesis.",
+        "regime": "AIChipBench v1, ejecutado por los autores: cuatro agentes de programación y 9,136 intentos en tareas repetidas con presupuesto fijo, usando decodificadores objetivo de Qwen, Gemma y Llama. Las tareas principales exigen hasta 32 pasos de decodificación; la reevaluación llega a 256. La estructura de módulos es fija y los agentes no realizan colocación ni enrutamiento.",
+        "reproducibility": "En esta activación no se hizo una reproducción independiente de los datos públicos del benchmark ni de los registros de intentos.",
+        "strongest_baseline": "Para establecer el efecto de la retroalimentación, el artículo compara las mismas tareas con retroalimentación limitada a las salidas; la señal de discrepancia de estado es un control adicional."
+      },
+      "title": "AIChipBench informa errores tardíos de estado y mide la retroalimentación de depuración para agentes que diseñan aceleradores de IA",
+      "why_it_matters": "Los errores de estado en aceleradores pueden aparecer varios pasos después del defecto original, por lo que las pruebas cortas que solo comparan salidas pueden inducir a error. Si se reproducen de manera independiente, los resultados de retroalimentación y reevaluación podrían mejorar la depuración y la evaluación de hardware con estado escrito por agentes. No se ha establecido su transferencia fuera de las tareas estudiadas."
     },
     "FCMO-CCA87EC86B07": {
       "claims": [
