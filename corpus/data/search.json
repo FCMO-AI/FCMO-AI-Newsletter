@@ -1,6 +1,79 @@
 [
   {
     "confidence": "credible_unconfirmed",
+    "demonstrated_result": "Anthropic’s v1 paper and official ETH repository are public. The repository is pinned here to commit 16a5ce41304fcdaea4e0be7c132e1c361dc26da5. GitHub reports that the exact commit’s `verify (eth)` Actions check completed successfully; the README documents that workflow as Lean compilation, Comparator statement checks and nanoda rechecking. This is a source-reported CI result; this activation did not rerun it. The README expressly leaves paper-to-formal-statement correspondence to human review. An external auditor separately reports replaying the exact pinned Lean artifact with Lean's kernel, Comparator and nanoda and proving a formal bridge to textbook-style ETH inside Anthropic's own machine model. the research desk inspected that report but did not reproduce the runs; the auditor leaves paper-to-formal-statement and cross-model correspondence to prose. The current external audit report additionally describes a port of the pinned proof into one newer Lean environment and a machine-checked bridge to a standard multitape Turing-machine/binary-input statement. This is report-described verification; the research desk did not reproduce it, and the report discloses AI authorship of the port and 47 changed files out of 809.",
+    "desks": [
+      "reasoning_posttraining",
+      "evaluation_science",
+      "labs_industry"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-10-27T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-8F8AE4B57EEC",
+    "importance_effective_score": 9,
+    "importance_tier": "Paradigm-level",
+    "last_verified_at": "2026-11-26T19:29:10Z",
+    "mechanism": "The paper describes a tensor-network contraction method and derives an asymptotic subexponential bound for exact #k-SAT counting. The repository README gives a condensed tensor-contraction argument, but this activation did not inspect the full paper proof or independently derive the bound.",
+    "organizations": [
+      "Anthropic"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "ETH is the standard conjecture that 3-SAT requires 2^{Ω(n)} worst-case time. The paper presents an asymptotic contradiction, not a measured comparison on practical formulas.",
+    "summary": "Anthropic contributed a version-one preprint on October 27 describing a deterministic algorithm that counts satisfying assignments for fixed-width CNF formulas in subexponential time, including #3-SAT, and attributes the core algorithm to an internal Claude research model. Anthropic’s official repository includes the paper and a Lean 4 formalization. GitHub reports that the repository’s exact commit passed its `verify (eth)` CI workflow, which the README describes as a pinned Lean build, Comparator check and nanoda recheck. This repository-hosted result was not independently rerun here. The README explicitly says machine checks do not establish that the formal statement matches the paper; independent mathematical review remains open. The result is asymptotic and does not establish practical SAT performance. An independent external formal-methods audit later reports replaying Anthropic's exact pinned Lean proof with Lean, Comparator and nanoda, a fresh-environment replay, and a Lean bridge from the formal statement to textbook-style ETH in Anthropic's own machine model. The auditor explicitly leaves paper-to-statement and machine-model/input-encoding correspondence to prose and does not certify the paper's mathematical argument. This strengthens the reported reproducibility of the formal artifact, not the truth status of the theorem. A current external audit report adds a port of Anthropic’s pinned Lean proof and a checked bridge to a standard multitape Turing-machine/binary-encoding statement in one newer Lean environment. The auditor reports independent-kernel and fresh-environment checks, but also discloses that the proof port was AI-authored, was not byte-identical (47 of 809 files changed), and was reported by its own author. It still does not establish paper-to-Lean correspondence or mathematical correctness.",
+    "title": "Anthropic publishes a Claude-attributed subexponential #3-SAT algorithm claim with Lean materials",
+    "topics": [
+      "computational complexity",
+      "3-SAT",
+      "exact counting",
+      "formal verification",
+      "AI-generated research"
+    ],
+    "why_it_matters": "If the claimed exact-counting algorithm is correct for the stated regime, it contradicts the Exponential Time Hypothesis and would affect research that relies on ETH-based lower bounds. The consequence is substantial, but the paper is a preprint, independent mathematical review is not established, and the source explicitly disclaims practical performance implications."
+  },
+  {
+    "confidence": "credible_unconfirmed",
+    "demonstrated_result": "The inspected preprint documents its method, comparisons, datasets and evaluation protocol. No experiment was independently rerun in this review.",
+    "desks": [
+      "reasoning_posttraining",
+      "evaluation_science"
+    ],
+    "development_type": "paper",
+    "event_at": "2026-11-25T00:00:00Z",
+    "evidence_class": "A",
+    "id": "FCMO-80C5F201CB1F",
+    "importance_effective_score": 4,
+    "importance_tier": "Meaningful",
+    "last_verified_at": "2026-11-26T19:17:12Z",
+    "mechanism": "DART retains the prefix before a selected step of a rejected greedy trace, discards that trace’s remaining suffix, uses position-weighted uncertainty to select a non-final step, generates a distinct alternative with a meta-thought and reference-answer guidance, and greedily completes a replacement trace. Only accepted traces enter supervised fine-tuning; mining uses reference answers and therefore is not the same as inference-time reasoning.",
+    "organizations": [
+      "Apple",
+      "Johannes Kepler University Linz",
+      "Carnegie Mellon University"
+    ],
+    "primary_desk": "reasoning_posttraining",
+    "regions": [
+      "global"
+    ],
+    "status": "active",
+    "strongest_baseline": "Full-trace Monte Carlo sampling using Llama-3.1-8B-Instruct at matched completed-trace budgets for mining coverage. Downstream comparisons also include STaR and rejection fine-tuning (RFT); training corpora differ in example count and tokens.",
+    "summary": "A NeurIPS 2026 workshop preprint introduces Diverse Alternative Reasoning Traces (DART), which takes a rejected greedy math trace, selects a non-final step using position-weighted uncertainty, proposes a deliberately different alternative with reference-answer guidance, and greedily completes a replacement trace. On greedy-unsolved problems from DeepMath-103K and OpenMathInstruct-2 using Llama-3.1-8B-Instruct, the authors report more problems recovered than full-trace Monte Carlo sampling at matched completed-trace counts: 37% more in the abstracted DeepMath result, with nearly identical estimated generation cost per recovered problem. After supervised fine-tuning on mined traces, DART has the highest point estimate in five of six MATH-500/AIME evaluations and up to a five-point gain over Monte Carlo sampling. These are paper-reported results; evaluation uses final-answer checking, reference answers are used during mining, and training-seed/checkpoint-selection uncertainty is not included in the reported intervals.",
+    "title": "DART expands accepted math-reasoning traces for post-training at matched trace budgets",
+    "topics": [
+      "mathematical reasoning",
+      "post-training",
+      "training data",
+      "trace mining",
+      "verifiable rewards"
+    ],
+    "why_it_matters": "If reproduced, targeted alternatives from failed reasoning traces could make difficult problems more likely to contribute accepted training examples without a similar increase in estimated generation cost per recovered problem. This may improve a post-training data pipeline; it does not establish better inference-time reasoning, correctness of intermediate steps, or broad model transfer."
+  },
+  {
+    "confidence": "credible_unconfirmed",
     "demonstrated_result": "The inspected official address and government communications establish that the President announced a 90-day national AI action-plan process, a Presidency-led team, and an intention to establish a R100m venture-capital fund and credit-guarantee fund. No implementation or economic effect is demonstrated.",
     "desks": [
       "policy_geopolitics",
@@ -1690,42 +1763,6 @@
       "public-sector AI adoption"
     ],
     "why_it_matters": "A ministry-published list of 180 selected transport AI cases, including an engineering simulation agent reported across six organizations, is a concrete signal of organized sector adoption. The reported deployment and cycle-time improvement remain unverified case claims; independent evidence and a defined comparison are absent."
-  },
-  {
-    "confidence": "credible_unconfirmed",
-    "demonstrated_result": "Anthropic’s v1 paper and official ETH repository are public. The repository is pinned here to commit 16a5ce41304fcdaea4e0be7c132e1c361dc26da5. GitHub reports that the exact commit’s `verify (eth)` Actions check completed successfully; the README documents that workflow as Lean compilation, Comparator statement checks and nanoda rechecking. This is a source-reported CI result; this activation did not rerun it. The README expressly leaves paper-to-formal-statement correspondence to human review. An external auditor separately reports replaying the exact pinned Lean artifact with Lean's kernel, Comparator and nanoda and proving a formal bridge to textbook-style ETH inside Anthropic's own machine model. the research desk inspected that report but did not reproduce the runs; the auditor leaves paper-to-formal-statement and cross-model correspondence to prose. The current external audit report additionally describes a port of the pinned proof into one newer Lean environment and a machine-checked bridge to a standard multitape Turing-machine/binary-input statement. This is report-described verification; the research desk did not reproduce it, and the report discloses AI authorship of the port and 47 changed files out of 809.",
-    "desks": [
-      "reasoning_posttraining",
-      "evaluation_science",
-      "labs_industry"
-    ],
-    "development_type": "paper",
-    "event_at": "2026-10-27T00:00:00Z",
-    "evidence_class": "A",
-    "id": "FCMO-8F8AE4B57EEC",
-    "importance_effective_score": 9,
-    "importance_tier": "Paradigm-level",
-    "last_verified_at": "2026-11-20T11:17:57Z",
-    "mechanism": "The paper describes a tensor-network contraction method and derives an asymptotic subexponential bound for exact #k-SAT counting. The repository README gives a condensed tensor-contraction argument, but this activation did not inspect the full paper proof or independently derive the bound.",
-    "organizations": [
-      "Anthropic"
-    ],
-    "primary_desk": "reasoning_posttraining",
-    "regions": [
-      "global"
-    ],
-    "status": "active",
-    "strongest_baseline": "ETH is the standard conjecture that 3-SAT requires 2^{Ω(n)} worst-case time. The paper presents an asymptotic contradiction, not a measured comparison on practical formulas.",
-    "summary": "Anthropic contributed a version-one preprint on October 27 describing a deterministic algorithm that counts satisfying assignments for fixed-width CNF formulas in subexponential time, including #3-SAT, and attributes the core algorithm to an internal Claude research model. Anthropic’s official repository includes the paper and a Lean 4 formalization. GitHub reports that the repository’s exact commit passed its `verify (eth)` CI workflow, which the README describes as a pinned Lean build, Comparator check and nanoda recheck. This repository-hosted result was not independently rerun here. The README explicitly says machine checks do not establish that the formal statement matches the paper; independent mathematical review remains open. The result is asymptotic and does not establish practical SAT performance. An independent external formal-methods audit later reports replaying Anthropic's exact pinned Lean proof with Lean, Comparator and nanoda, a fresh-environment replay, and a Lean bridge from the formal statement to textbook-style ETH in Anthropic's own machine model. The auditor explicitly leaves paper-to-statement and machine-model/input-encoding correspondence to prose and does not certify the paper's mathematical argument. This strengthens the reported reproducibility of the formal artifact, not the truth status of the theorem. A current external audit report adds a port of Anthropic’s pinned Lean proof and a checked bridge to a standard multitape Turing-machine/binary-encoding statement in one newer Lean environment. The auditor reports independent-kernel and fresh-environment checks, but also discloses that the proof port was AI-authored, was not byte-identical (47 of 809 files changed), and was reported by its own author. It still does not establish paper-to-Lean correspondence or mathematical correctness.",
-    "title": "Anthropic publishes a Claude-attributed subexponential #3-SAT algorithm claim with Lean materials",
-    "topics": [
-      "computational complexity",
-      "3-SAT",
-      "exact counting",
-      "formal verification",
-      "AI-generated research"
-    ],
-    "why_it_matters": "If the claimed exact-counting algorithm is correct for the stated regime, it contradicts the Exponential Time Hypothesis and would affect research that relies on ETH-based lower bounds. The consequence is substantial, but the paper is a preprint, independent mathematical review is not established, and the source explicitly disclaims practical performance implications."
   },
   {
     "confidence": "credible_unconfirmed",
