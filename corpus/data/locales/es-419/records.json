@@ -27505,6 +27505,60 @@
       "title": "GraphSkillAA emplea grafos de habilidades direccionables y dos compuertas para actualizar habilidades de agentes de forma focalizada",
       "why_it_matters": "Si se reproduce de forma independiente, el método ofrece una forma concreta de actualizar procedimientos externos de agentes en objetos específicos del grafo, comprobar regresiones y revertir ediciones fallidas. Esto podría influir en el diseño de bibliotecas persistentes de habilidades. La evidencia actual abarca tres conjuntos de benchmarks y ejecuciones de API realizadas por los autores; no demuestra utilidad en despliegues, agentes de larga duración ni auto-mejora general."
     },
+    "FCMO-711732E6183E": {
+      "claims": [],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "El artículo enlaza un paquete público de tareas ShellBench, pero las rutas GitHub fijadas devolvieron un error de caché; no se verificaron el contenido, los artefactos de puntuación ni la reproducibilidad.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "No se reprodujeron de forma independiente las comparaciones entre modelos y marcos ni la descomposición de varianza reportadas.",
+          "kind": "reproduction_missing",
+          "state": "open"
+        },
+        {
+          "description": "El corpus de 10.46M consultas y sus estadísticas agregadas no son públicos, lo que dificulta auditar la representatividad de la muestra y la distribución de grupos de consultas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "La comparación entre personas y juez es muestral y se limita a criterios; no hubo calificación humana independiente de respuestas completas.",
+          "kind": "other",
+          "state": "open"
+        },
+        {
+          "description": "Los costos por ejecución se estiman con tarifas de lista y una clasificación heurística de caché, y excluyen las llamadas al juez; se desconocen la facturación real y el costo total de evaluación.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si se mantiene, una comparación amplia y emparejada de modelos y marcos de agentes en tareas cotidianas podría influir en las prácticas de evaluación y en decisiones de despliegue. El conjunto de 100 tareas, la publicación parcial, el corpus privado y las limitaciones del juez acotan la transferencia de los resultados.",
+      "limitations": [
+        "Las mediciones principales del artículo son resultados de los autores; esta revisión no las reprodujo de forma independiente.",
+        "Solo 20 de 100 tareas están destinadas a publicación; el conjunto subyacente de 10,456,576 consultas y sus estadísticas agregadas no son públicos por motivos de privacidad.",
+        "Noventa tareas usan GPT-6.1 Sol como juez. La revisión humana cubre una muestra estratificada de decisiones sobre criterios, con 89.9% de concordancia en 278 decisiones de consenso; no establece la precisión de la calificación de respuestas completas.",
+        "Las comparaciones entre marcos cambian conjuntamente las instrucciones, las herramientas y el entorno de ejecución, por lo que no aíslan el efecto causal de un componente específico.",
+        "Los resultados de seguridad son mediciones de aprobado o reprobado según rúbricas; no miden directamente daños en el mundo real.",
+        "Los costos por ejecución son estimaciones basadas en tarifas públicas de proveedores al 18 de noviembre y en una contabilidad heurística de caché; el artículo excluye el costo del juez y no establece la facturación real ni el costo total de despliegue."
+      ],
+      "relationships": [],
+      "summary": "El artículo de ShellBench evalúa 12 modelos en cinco marcos de agentes, tres niveles de esfuerzo de razonamiento y 100 tareas cotidianas, con 53,100 ejecuciones. Sus autores informan que, en su comparación, el modelo explicó más variación que el marco de agente; los tres modelos con mejores resultados quedaron a 1.1 puntos porcentuales entre sí. Es un resultado reportado en el artículo, no una clasificación reproducida de forma independiente: 90 tareas usan GPT-6.1 Sol como juez, solo 20 tareas se designan para publicación y el corpus de 10,456,576 consultas que sirvió de base es privado. El artículo informa una concordancia entre jueces y evaluadores humanos a nivel de criterios, pero no una calificación humana independiente de respuestas completas.",
+      "technical": {
+        "claimed_result": "Los autores informan que la elección del modelo explicó 95.7% y la del marco 0.36% de la varianza en el análisis completo de 55 configuraciones; entre los cinco modelos con mejores resultados, las proporciones fueron 65.6% y 16.5%.",
+        "compute_or_cost": "Los autores estiman el costo por ejecución a partir de los tokens registrados y de las tarifas públicas de proveedores en OpenRouter al 18 de noviembre de 2026: GPT-6.1 Sol $0.19, Claude Fable 5.2 $0.83 y GPT-6 Astra $1.10 en promedio entre marcos. Estiman que 100 intentos con Astra cuestan cerca de $91 más que 100 intentos con Sol y producen alrededor de un acierto adicional. Son estimaciones de costo de tokens, no facturas reales; la clasificación de aciertos de caché es heurística y excluye el costo de calificación.",
+        "demonstrated_result": "Se inspeccionaron directamente el diseño del artículo, sus cifras reportadas y sus limitaciones declaradas; el artefacto público no se pudo recuperar y los resultados empíricos siguen siendo afirmaciones de los autores.",
+        "implementation_status": "Prepublicación disponible; la evaluación reportada no se verificó fuera del análisis de los autores.",
+        "mechanism": "Un conjunto común de 100 tareas con archivos se ejecuta en varias configuraciones de modelo, marco y esfuerzo. Noventa tareas usan un juez de lenguaje y diez usan código. Las variantes de marco cambian conjuntamente las instrucciones, las herramientas y el entorno de ejecución.",
+        "regime": "12 modelos, cinco versiones de marco y tres niveles de esfuerzo de razonamiento; 53,100 ejecuciones. Veinte tareas se designan para publicación y el corpus de consultas de origen es privado.",
+        "reproducibility": "No se reprodujo de forma independiente. No se pudo recuperar el repositorio público enlazado en el artículo; el HTML de arXiv sí estuvo disponible.",
+        "strongest_baseline": "Configuraciones emparejadas de modelo y marco dentro del artículo; descomposición de varianza en 55 configuraciones y análisis de sensibilidad limitado a los cinco modelos con mejores resultados."
+      },
+      "title": "ShellBench compara 53,100 ejecuciones de modelos y marcos de agentes en tareas cotidianas",
+      "why_it_matters": "La evaluación de agentes suele mezclar modelo, instrucciones, herramientas y entorno de ejecución. Una comparación amplia con tareas cotidianas y archivos variados puede orientar qué diferencias entre configuraciones importan en la práctica. El estudio no establece una clasificación universal de modelos o marcos: usa una muestra limitada, publica parcialmente el conjunto y depende en gran medida de un juez automático."
+    },
     "FCMO-712F40C89742": {
       "claims": [
         {
