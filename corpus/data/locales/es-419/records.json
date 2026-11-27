@@ -44301,6 +44301,62 @@
       "title": "Google, DeepMind y MIT FutureTech presentan evidencia inicial sobre el uso de IA y los cuellos de botella en la ciencia",
       "why_it_matters": "Si los patrones de trabajo reportados se mantienen más allá de esta muestra elaborada por un proveedor, la generación y el análisis más baratos podrían desplazar las restricciones principales hacia la verificación, la capacidad experimental y la validación clínica. El informe plantea medir esas capacidades posteriores, pero no demuestra que la IA ya haya aumentado la producción científica o los descubrimientos."
     },
+    "FCMO-B8E349A9F90A": {
+      "claims": [
+        {
+          "label": "DEMONSTRATED",
+          "text": "La versión 1 de un preprint que presenta FlyingStart se envió a arXiv el 25 de noviembre de 2026."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "En Huginn-0125, los autores informan que FlyingStart iguala al mejor método de referencia sin entrenamiento con 14–19% menos capas de decodificación y precisión comparable. En otros modelos adaptados de profundidad recurrente, el ahorro informado es menor y se concentra en presupuestos de cómputo ajustados."
+        },
+        {
+          "label": "CLAIMED",
+          "text": "Los autores informan un rendimiento por lotes 16–18% mayor en dos motores de servicio para Huginn-0125, más una mejora adicional de 10–14% sobre la decodificación autoespeculativa con tamaño de lote uno."
+        },
+        {
+          "label": "NOT_ESTABLISHED",
+          "text": "El preprint no establece una reproducción independiente, fiabilidad a escala de producción ni aceleración para transformadores que no sean de profundidad recurrente. Las mejoras medidas dependen de la tasa de convergencia del modelo, las pruebas, el hardware y la configuración de servicio."
+        }
+      ],
+      "contradictory_evidence": [],
+      "evidence_gaps": [
+        {
+          "description": "Los resultados informados sobre capas de decodificación, precisión y rendimiento no se han reproducido de forma independiente.",
+          "kind": "missing_independent",
+          "state": "open"
+        },
+        {
+          "description": "Esta activación no auditó el código enlazado, los artefactos de calibración ni las implementaciones de los motores de servicio.",
+          "kind": "missing_artifact",
+          "state": "open"
+        },
+        {
+          "description": "Se desconoce la transferencia a cargas de producción y a modelos de profundidad recurrente distintos de los cuatro estudiados; no se estableció aceleración para transformadores ordinarios.",
+          "kind": "other",
+          "state": "open"
+        }
+      ],
+      "importance_rationale": "Si el efecto informado se transfiere, una calibración lineal pequeña sobre un modelo congelado podría mejorar la eficiencia de inferencia de los modelos lingüísticos de profundidad recurrente sin cambiar sus pesos ni el criterio de parada. Es un avance significativo, pero específico de esta arquitectura, no una aceleración general de los modelos lingüísticos.",
+      "limitations": [
+        "Se trata de un solo preprint con experimentos de los autores; esta activación revisó sus afirmaciones, pero no las reprodujo ni ejecutó su código.",
+        "Las mediciones principales corresponden a Huginn-0125; los modelos adicionales de profundidad recurrente convergen en menos iteraciones y muestran mejoras menores o dependientes del presupuesto.",
+        "Las afirmaciones de rendimiento dependen de dos motores de servicio, del hardware y de las configuraciones de prueba evaluadas; no demuestran fiabilidad en producción ni aceleración general de la inferencia de modelos lingüísticos.",
+        "El argumento de seguridad y precisión sin cambios depende del análisis de contracción y del criterio de salida descritos; no se evaluó de forma independiente su solidez ante dinámicas distintas del modelo."
+      ],
+      "relationships": [],
+      "summary": "Un preprint de noviembre de 2026 presenta FlyingStart, una transformación lineal obtenida en forma cerrada que inicializa cada token de un modelo lingüístico de profundidad recurrente usando el estado final del token anterior y la salida de preámbulo del token actual. Los autores informan que iguala al mejor método de referencia sin entrenamiento con 14–19% menos capas de decodificación en Huginn-0125, aumenta entre 16–18% el rendimiento por lotes en dos motores de servicio y aporta mejoras adicionales al combinarse con decodificación autoespeculativa. Son resultados informados por los autores en una clase limitada de modelos iterativos; falta reproducirlos de forma independiente y comprobar su transferencia a otros entornos de servicio.",
+      "technical": {
+        "claimed_result": "Los autores informan 14–19% menos capas de decodificación con precisión comparable en Huginn-0125, 16–18% más rendimiento por lotes en dos motores de servicio y entre 10–14% de mejora adicional sobre la decodificación autoespeculativa con tamaño de lote uno.",
+        "demonstrated_result": "El HTML completo del preprint primario de arXiv y su configuración y resultados declarados estuvieron accesibles y fueron revisados; esta activación no reprodujo las mediciones.",
+        "mechanism": "Una transformación lineal de regresión ridge, calibrada sobre un modelo congelado, predice el punto fijo del estado recurrente del siguiente token a partir de la salida de preámbulo actual y del estado final del token anterior. Solo cambia el punto inicial; luego el modelo conserva la misma iteración y el mismo criterio de salida.",
+        "regime": "Huginn-0125 (3.5B) es el modelo principal y se evalúa en cuatro pruebas matemáticas agrupadas con 5,078 problemas y tres semillas. Llama-3.2-1B, OLMo-2-1B y TinyLlama-1.1B adaptados prueban condiciones de convergencia más rápida. La calibración empleó 640 secuencias de 512 tokens y una pasada del modelo congelado a profundidad completa. El rendimiento se midió en dos motores de servicio.",
+        "strongest_baseline": "La referencia sin entrenamiento más sólida para Huginn usa salida por cambio de estado con una entrada KV por token. En el punto principal de precisión comparable, el trabajo informa 14% menos capas por token; otros puntos informados abarcan ahorros de 14.1–18.9%."
+      },
+      "title": "Un inicio aprendido reduce el trabajo de decodificación en modelos de profundidad recurrente",
+      "why_it_matters": "El trabajo identifica una vía de eficiencia en servicio para modelos de profundidad recurrente que deja intactos los pesos, la recurrencia y el criterio de salida. Si las mejoras informadas se transfieren, podría reducir el costo práctico de los modelos iterativos; su alcance específico a esta arquitectura limita las conclusiones sobre la inferencia de modelos lingüísticos en general."
+    },
     "FCMO-B8F7E2A10FB6": {
       "claims": [
         {
